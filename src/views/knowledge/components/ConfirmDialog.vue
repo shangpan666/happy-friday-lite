@@ -63,7 +63,7 @@ function handleCancel() {
 
 .dialog-card {
   background: var(--bg-primary);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 32px 32px 24px;
   width: 400px;
   max-width: 90vw;
@@ -80,7 +80,7 @@ function handleCancel() {
 .dialog-icon-wrap {
   width: 52px;
   height: 52px;
-  border-radius: 16px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,14 +88,14 @@ function handleCancel() {
   margin-bottom: 4px;
 
   &.danger {
-    background: linear-gradient(135deg, rgba(229, 57, 53, 0.12), rgba(229, 57, 53, 0.06));
+    background: rgba(207, 34, 46, 0.08);
     color: #e53935;
     box-shadow: 0 4px 12px rgba(229, 57, 53, 0.1);
   }
 }
 
 [data-theme='dark'] .dialog-icon-wrap.danger {
-  background: linear-gradient(135deg, rgba(229, 57, 53, 0.18), rgba(229, 57, 53, 0.1));
+  background: rgba(207, 34, 46, 0.14);
 }
 
 .dialog-title {
@@ -150,13 +150,13 @@ function handleCancel() {
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #ef5350, #e53935);
+  background: var(--danger-color);
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(229, 57, 53, 0.25);
 }
 
 .confirm-btn:hover {
-  background: linear-gradient(135deg, #e53935, #d32f2f);
+  background: var(--danger-color);
   box-shadow: 0 6px 20px rgba(229, 57, 53, 0.35);
   transform: translateY(-1px);
 }
@@ -177,7 +177,7 @@ function handleCancel() {
 }
 
 .dialog-scale-enter-active {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dialog-scale-leave-active {

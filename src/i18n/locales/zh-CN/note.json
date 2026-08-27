@@ -115,7 +115,7 @@
     "exporting": "导出中...",
     "exportPdf": "导出 PDF",
     "exportMarkdown": "导出 Markdown",
-    "fridayAssistant": "Friday 助理"
+    "fridayAssistant": "Phronesis 助理"
   },
   "linkDialog": {
     "edit": "编辑链接",
@@ -142,10 +142,10 @@
     "cancel": "取消"
   },
   "aiSidebar": {
-    "title": "Friday 助理",
-    "assistant": "Friday 助理",
-    "emptyText": "向 Friday 提问，可获取写作帮助",
-    "askFriday": "向 Friday 提问，可获取写作帮助",
+    "title": "Phronesis 助理",
+    "assistant": "Phronesis 助理",
+    "emptyText": "向 Phronesis 提问，可获取写作帮助",
+    "askPhronesis": "向 Phronesis 提问，可获取写作帮助",
     "emptyHint": "主人，我可以使用写作Agent帮您修改这篇笔记",
     "inputPlaceholder": "输入消息...",
     "noModelConfigured": "未配置大模型，请先在设置中添加自己的模型",
@@ -153,7 +153,7 @@
     "referenceItem": "【引用{index}】\n{content}",
     "emptyContent": "消息内容为空，无法保存",
     "appendedToNote": "已追加到笔记末尾",
-    "systemPrompt": "你是 Friday，一个定制化个人知识智能服务助手。你友好、专业，善于帮助用户解答问题和完成任务。\n\n当前用户正在编辑一篇笔记，以下是笔记的完整内容：\n\n{noteContent}\n\n请基于笔记内容来回答用户的问题。用户可能会引用笔记中的部分内容进行提问，请重点关注引用的内容，同时结合笔记全文上下文来给出准确、有价值的回答。"
+    "systemPrompt": "你是 Phronesis，一个定制化个人知识智能服务助手。你友好、专业，善于帮助用户解答问题和完成任务。\n\n当前用户正在编辑一篇笔记，以下是笔记的完整内容：\n\n{noteContent}\n\n请基于笔记内容来回答用户的问题。用户可能会引用笔记中的部分内容进行提问，请重点关注引用的内容，同时结合笔记全文上下文来给出准确、有价值的回答。"
   },
   "bubbleMenu": {
     "close": "关闭",
@@ -171,7 +171,7 @@
     "inputPlaceholder": "输入问题，或从下方场景提问",
     "aiCommand": "AI 指令",
     "send": "发送",
-    "aiWrite": "Friday 帮写",
+    "aiWrite": "Phronesis 帮写",
     "helpWrite": "帮写",
     "interpret": "解读",
     "refine": "精炼",

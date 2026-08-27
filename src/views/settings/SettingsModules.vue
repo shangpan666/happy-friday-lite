@@ -249,7 +249,7 @@ const goBack = () => router.push('/settings');
   transition: transform .2s;
 }
 
-.toggle-switch input:checked + .toggle-slider { background: #10b981; }
+.toggle-switch input:checked + .toggle-slider { background: var(--success-color); }
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
 .toggle-switch input:focus-visible + .toggle-slider { outline: 2px solid var(--accent-color); outline-offset: 2px; }
 

@@ -3,10 +3,15 @@
     "confirm": "确认",
     "cancel": "取消",
     "save": "保存",
-    "delete": "删除"
+    "delete": "删除",
+    "newChat": "新对话"
+  },
+  "nav": {
+    "groupChat": "对话",
+    "groupWorkspace": "工作台"
   },
   "user": {
-    "name": "主人",
+    "name": "我的助理",
     "online": "在线",
     "greetingMorning": "早上好",
     "greetingAfternoon": "下午好",
@@ -14,6 +19,6 @@
     "quickTheme": "主题模式",
     "quickLanguage": "语言",
     "settings": "设置",
-    "about": "关于 Happy Friday"
+    "about": "关于 Phronesis（斐思）"
   }
 }

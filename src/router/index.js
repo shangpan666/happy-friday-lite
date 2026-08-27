@@ -7,6 +7,12 @@ export const routes = [
     redirect: '/friday'
   },
   {
+    path: '/pet',
+    name: 'pet',
+    component: () => import('@/views/pet/PetWidget.vue'),
+    meta: { pet: true }
+  },
+  {
     path: '/knowledge',
     name: 'knowledge',
     component: () => import('@/views/knowledge/KnowledgeList.vue')
@@ -94,6 +100,13 @@ export const routes = [
     name: 'share-note',
     component: () => import('@/views/note/NoteEdit.vue'),
     meta: { share: true }
+  },
+  {
+    // 手机端仿豆包界面
+    path: '/mobile',
+    name: 'mobile',
+    component: () => import('@/views/mobile/MobileHome.vue'),
+    meta: { mobile: true }
   },
   {
     path: '/:pathMatch(.*)*',

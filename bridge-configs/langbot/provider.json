@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "openai": ["YOUR_API_KEY_PLACEHOLDER"]
+  },
+  "requester": {
+    "openai-chat-completions": {
+      "base-url": "http://127.0.0.1:18790/v1",
+      "args": {},
+      "timeout": 120
+    }
+  },
+  "model": "YOUR_MODEL_NAME_PLACEHOLDER"
+}

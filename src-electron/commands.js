@@ -1,6 +1,7 @@
 import { ipcMain, shell, dialog } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import TurndownService from 'turndown'
 import { CancellationTokens } from './cancellation.js'
 import { loadConfig, saveConfig, getDataDir } from './config.js'
@@ -24,6 +25,7 @@ import { buildLlmMessage } from './attachmentContext.js'
 import { getUsageStats, clearUsage } from './usage.js'
 import { queryBalance } from './balance.js'
 import { registerAgentCommands } from './agent/ipc.js'
+import { syncPetFromConfig, setPetActivity } from './pet.js'
 import {
   registerHarnessCommands,
   syncHarnessConfigurationIfRunning
@@ -38,6 +40,31 @@ import {
   updateAutomationTask,
   runAutomationTaskNow
 } from './automation.js'
+
+// 获取 Windows 可用驱动器列表
+function getAvailableDrives() {
+  if (process.platform !== 'win32') return []
+  try {
+    const drives = []
+    for (const drive of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')) {
+      const drivePath = `${drive}:\\`
+      if (fs.existsSync(drivePath)) {
+        try {
+          const stats = fs.statSync(drivePath)
+          if (stats.isDirectory()) {
+            drives.push({ letter: drive, path: drivePath })
+          }
+        } catch (_e) {
+          // 忽略无法访问的驱动器
+        }
+      }
+    }
+    return drives
+  } catch (e) {
+    console.error('[Commands] Failed to get drives:', e)
+    return []
+  }
+}
 
 const cancelTokens = new CancellationTokens()
 
@@ -156,9 +183,39 @@ export function registerCommands(mainWindow) {
     return loadConfig()
   })
 
+  // 拉取厂商可用模型列表（OpenAI 兼容 /models 接口），供添加模型时选择
+  ipcMain.handle('fetch-provider-models', async (_event, { baseUrl, apiKey }) => {
+    try {
+      const base = String(baseUrl || '').replace(/\/+$/, '')
+      if (!base || !apiKey) {
+        return { success: false, error: 'missing params' }
+      }
+      const res = await fetch(`${base}/models`, {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      })
+      if (!res.ok) {
+        return { success: false, error: `HTTP ${res.status}` }
+      }
+      const data = await res.json()
+      // 返回 { id, isFree }：isFree = ID 带 :free 后缀，或官方定价为 0
+      // （OpenRouter 部分免费模型不带 :free 后缀，如 stealth/ox-alpha）
+      const models = (Array.isArray(data?.data) ? data.data : [])
+        .map((m) => {
+          const isFree = String(m?.id || '').endsWith(':free')
+            || (String(m?.pricing?.prompt) === '0' && String(m?.pricing?.completion) === '0')
+          return { id: m?.id, isFree }
+        })
+        .filter((m) => !!m.id)
+      return { success: true, models }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
   ipcMain.handle('save-config', (_event, config) => {
     const previousConfig = loadConfig()
     const result = saveConfig(config)
+  syncPetFromConfig()
     if (previousConfig.runtimeLogsEnabled !== config.runtimeLogsEnabled) {
       const enabled = setLoggingEnabled(config.runtimeLogsEnabled !== false)
       if (!enabled && config.runtimeLogsEnabled !== false) {
@@ -174,8 +231,184 @@ export function registerCommands(mainWindow) {
     return result
   })
 
+  // ========== 消息桥接服务（OpenAI 兼容端点） ==========
+  // 设置界面用于展示运行状态，以及保存配置后热重启服务。
+  ipcMain.handle('bridge-get-status', async () => {
+    try {
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return getBridgeStatus()
+    } catch (e) {
+      return { enabled: false, host: '127.0.0.1', port: 18790, running: false, endpoint: '', error: e?.message || String(e) }
+    }
+  })
+
+  ipcMain.handle('bridge-save-config', async (_event, cfg) => {
+    try {
+      const config = loadConfig()
+      config.bridge = {
+        enabled: !!cfg?.enabled,
+        host: String(cfg?.host || '127.0.0.1'),
+        port: Number(cfg?.port) || 18790,
+        apiKey: String(cfg?.apiKey || ''),
+        unattended: cfg?.unattended !== false,
+        allowedOrigins: String(cfg?.allowedOrigins || '*'),
+        maxHistory: Number(cfg?.maxHistory) || 40,
+        napcat: {
+          url: String(cfg?.napcat?.url || 'ws://127.0.0.1:3001/onebot/v11/ws'),
+          token: String(cfg?.napcat?.token || '')
+        },
+        qqbot: {
+          appid: String(cfg?.qqbot?.appid || ''),
+          secret: String(cfg?.qqbot?.secret || ''),
+          token: String(cfg?.qqbot?.token || ''),
+          apiBase: String(cfg?.qqbot?.apiBase || 'https://api.bot.qq.com'),
+          gatewayUrl: String(cfg?.qqbot?.gatewayUrl || ''),
+          sandbox: cfg?.qqbot?.sandbox !== false
+        }
+      }
+      saveConfig(config)
+      const { restartBridge } = await import('./bridge/index.js')
+      await restartBridge()
+      // 同步前端（与 save-config 一致，便于其它模块感知）
+      mainWindow?.webContents?.send(CONFIG_CHANGED, config)
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
+  // ========== 消息桥接：直接连接客户端（微信 / QQ） ==========
+  // 这些 handler 启动/停止内嵌的机器人客户端，把消息转发给 Friday 智能体。
+  ipcMain.handle('bridge-wechat-start', async () => {
+    try {
+      const { startWechat } = await import('./bridge/index.js')
+      await startWechat()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+  ipcMain.handle('bridge-wechat-stop', async () => {
+    try {
+      const { stopWechat } = await import('./bridge/index.js')
+      await stopWechat()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+  ipcMain.handle('bridge-qq-start', async () => {
+    try {
+      const { setMainWindow, startQQ } = await import('./bridge/clients/qq.js')
+      setMainWindow(mainWindow)
+      await startQQ()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+  ipcMain.handle('bridge-qq-stop', async () => {
+    try {
+      const { stopQQ } = await import('./bridge/index.js')
+      await stopQQ()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+  ipcMain.handle('bridge-qq-qr', async () => {
+    try {
+      const { getQQQrcode } = await import('./bridge/clients/qq.js')
+      const qrcode = getQQQrcode() || null
+      console.log('[bridge-qq-qr] qrcode=' + (qrcode ? qrcode.slice(0, 30) + '...(' + qrcode.length + ')' : 'NULL'))
+      return { success: true, qrcode }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
+  ipcMain.handle('bridge-napcat-start', async () => {
+    try {
+      const { setMainWindow, startNapCat } = await import('./bridge/clients/napcat.js')
+      setMainWindow(mainWindow)
+      await startNapCat()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+  ipcMain.handle('bridge-napcat-stop', async () => {
+    try {
+      const { stopNapCat } = await import('./bridge/clients/napcat.js')
+      await stopNapCat()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
+  ipcMain.handle('bridge-qqbot-start', async () => {
+    try {
+      const { setMainWindow, startQQBot } = await import('./bridge/clients/qqbot.js')
+      setMainWindow(mainWindow)
+      await startQQBot()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+  ipcMain.handle('bridge-qqbot-stop', async () => {
+    try {
+      const { stopQQBot } = await import('./bridge/clients/qqbot.js')
+      await stopQQBot()
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
   ipcMain.handle('get-platform', () => {
     return process.platform
+  })
+
+  // 获取可用驱动器列表（仅 Windows）
+  ipcMain.handle('get-available-drives', () => {
+    return getAvailableDrives()
+  })
+
+  // 选择驱动器（Windows 下先选盘符，再选目录）
+  ipcMain.handle('select-drive', async () => {
+    if (process.platform !== 'win32') {
+      return { success: false, error: 'Not supported on this platform' }
+    }
+    const drives = getAvailableDrives()
+    if (drives.length === 0) {
+      return { success: false, error: 'No drives found' }
+    }
+    // 使用简单的选择对话框让用户选择驱动器
+    // 由于 Electron 没有原生的驱动器选择器，我们构建一个自定义选择列表
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '请选择驱动器',
+      properties: ['openDirectory'],
+      defaultPath: drives[0]?.path || 'C:\\',
+      buttonLabel: '选择此驱动器'
+    })
+    if (result.canceled || !result.filePaths.length) {
+      return { success: false, canceled: true }
+    }
+    const selectedPath = result.filePaths[0]
+    // 返回驱动器根路径（如 C:\）
+    const driveRoot = path.parse(selectedPath).root
+    return { success: true, drive: driveRoot }
   })
 
   ipcMain.handle('save-file-dialog', async (_event, options) => {
@@ -326,6 +559,7 @@ export function registerCommands(mainWindow) {
       ]
 
       const cancelToken = cancelTokens.insert(requestId)
+      setPetActivity('thinking', '思考中…')
 
       // 选择了知识库时走 RAG Agent：由 LLM 通过 Function Calling 自主决定是否检索
       // 工作区(agent)不参与向量化与检索，跳过 RAG 配置
@@ -398,6 +632,7 @@ export function registerCommands(mainWindow) {
       ]
 
       const cancelToken = cancelTokens.insert(requestId)
+      setPetActivity('thinking', '思考中…')
 
       // 选择了知识库时走 RAG Agent：由 LLM 通过 Function Calling 自主决定是否检索
       // 工作区(agent)不参与向量化与检索，跳过 RAG 配置
@@ -546,9 +781,17 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('export_all_notes', async () => {
+    let defaultPath = undefined
+    if (process.platform === 'win32') {
+      const drives = getAvailableDrives()
+      if (drives.length > 0) {
+        defaultPath = drives[0].path
+      }
+    }
     const result = await dialog.showOpenDialog(mainWindow, {
       title: '选择笔记导出目录',
-      properties: ['openDirectory', 'createDirectory']
+      properties: ['openDirectory', 'createDirectory'],
+      defaultPath
     })
     if (result.canceled || !result.filePaths[0]) return { success: false, canceled: true }
 
@@ -1157,8 +1400,16 @@ export function registerCommands(mainWindow) {
     const pad = (n) => String(n).padStart(2, '0')
     const defaultName = `friday-backup-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.zip`
 
+    let defaultPath = defaultName
+    if (process.platform === 'win32') {
+      const drives = getAvailableDrives()
+      if (drives.length > 0) {
+        defaultPath = path.join(drives[0].path, defaultName)
+      }
+    }
+
     const result = await dialog.showSaveDialog(mainWindow, {
-      defaultPath: defaultName,
+      defaultPath,
       filters: [{ name: 'ZIP 压缩包', extensions: ['zip'] }]
     })
     if (result.canceled || !result.filePath) {
@@ -1212,13 +1463,92 @@ export function registerCommands(mainWindow) {
 
   // 选择自动备份目录
   ipcMain.handle('backup-select-dir', async () => {
+    let defaultPath = undefined
+    if (process.platform === 'win32') {
+      const drives = getAvailableDrives()
+      if (drives.length > 0) {
+        defaultPath = drives[0].path
+      }
+    }
     const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory', 'createDirectory']
+      properties: ['openDirectory', 'createDirectory'],
+      defaultPath
     })
     if (result.canceled || result.filePaths.length === 0) {
       return { success: false, canceled: true }
     }
     return { success: true, dir: result.filePaths[0] }
+  })
+
+  // ========== DeepSeek Harness 工作区目录配置 ==========
+  // 默认工作区位于数据目录内（通常在 C 盘），允许将其切换到其他盘/目录。
+  const defaultHarnessWorkspace = () =>
+    path.join(getDataDir(), 'deepseek-harness', 'workspace')
+
+  // 返回当前工作区配置（及默认路径），用于前端展示
+  ipcMain.handle('harness-get-workspace', () => {
+    const config = loadConfig()
+    const custom = config.harnessWorkspace || null
+    return {
+      path: custom,
+      defaultPath: defaultHarnessWorkspace(),
+      isCustom: !!custom
+    }
+  })
+
+  // 弹出系统目录选择框，选择 Harness 工作区
+  ipcMain.handle('harness-select-workspace', async () => {
+    let defaultPath = undefined
+    if (process.platform === 'win32') {
+      const drives = getAvailableDrives()
+      if (drives.length > 0) {
+        defaultPath = drives[0].path
+      }
+    }
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '选择 Harness 工作区目录',
+      properties: ['openDirectory', 'createDirectory'],
+      defaultPath
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: false, canceled: true }
+    }
+    return { success: true, dir: result.filePaths[0] }
+  })
+
+  // 保存工作区配置：dir 为 null/空字符串时恢复默认（数据目录内）
+  ipcMain.handle('harness-set-workspace', async (_event, args) => {
+    const dir = args && args.dir ? String(args.dir).trim() : ''
+    const config = loadConfig()
+    if (!dir) {
+      config.harnessWorkspace = null
+      saveConfig(config)
+      return { success: true, dir: null }
+    }
+    if (!path.isAbsolute(dir)) {
+      return { success: false, error: '工作区路径必须是绝对路径' }
+    }
+    try {
+      fs.mkdirSync(dir, { recursive: true })
+    } catch (e) {
+      return { success: false, error: `无法创建工作区目录：${e.message}` }
+    }
+    config.harnessWorkspace = dir
+    saveConfig(config)
+    return { success: true, dir }
+  })
+
+  // 在系统文件管理器中打开当前 Harness 工作区目录
+  ipcMain.handle('harness-open-workspace', async () => {
+    const config = loadConfig()
+    const dir = (config.harnessWorkspace && config.harnessWorkspace.trim())
+      || defaultHarnessWorkspace()
+    try {
+      await shell.openPath(dir)
+      return { success: true }
+    } catch (e) {
+      return { success: false, error: `无法打开目录：${e.message}` }
+    }
   })
 
   // ========== 对话历史自动清理相关命令 ==========

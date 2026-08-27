@@ -293,8 +293,8 @@ function barPct(value, max) {
 }
 
 const MODEL_COLORS = [
-  '#6366f1', '#ec4899', '#f59e0b', '#10b981',
-  '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'
+  '#3574f0', '#bf3989', '#9a6700', '#1a7f37',
+  '#0550ae', '#8250df', '#cf222e', '#1b7c83'
 ]
 
 function modelColor(idx) {
@@ -302,12 +302,12 @@ function modelColor(idx) {
 }
 
 const SOURCE_COLORS = {
-  chat: '#6366f1',
+  chat: '#3574f0',
   agent: '#ec4899',
   rag: '#f59e0b',
-  title: '#10b981',
+  title: '#1a7f37',
   fim: '#3b82f6',
-  note_ai: '#8b5cf6',
+  note_ai: '#8250df',
   unknown: '#9ca3af'
 }
 
@@ -520,7 +520,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   background: var(--bg-secondary);
-  border-radius: 16px;
+  border-radius: 8px;
   color: var(--text-tertiary);
 }
 
@@ -562,7 +562,7 @@ onMounted(() => {
 
 .summary-card.primary {
   grid-column: span 2;
-  background: linear-gradient(135deg, var(--primary-gradient-from, #6366f1), var(--primary-gradient-to, #8b5cf6));
+  background: var(--accent-color);
   color: #fff;
 }
 
@@ -646,7 +646,7 @@ onMounted(() => {
   width: 70%;
   max-width: 22px;
   min-height: 2px;
-  background: linear-gradient(180deg, var(--primary-gradient-from, #6366f1), var(--primary-gradient-to, #8b5cf6));
+  background: var(--accent-color);
   border-radius: 3px 3px 0 0;
   transition: height 0.3s ease;
 }

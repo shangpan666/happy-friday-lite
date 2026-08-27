@@ -899,7 +899,7 @@ onMounted(() => {
 .toggle-slider {
   position: absolute;
   inset: 0;
-  border-radius: 20px;
+  border-radius: 8px;
   background: var(--border-color);
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -919,7 +919,7 @@ onMounted(() => {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: #10b981;
+  background: var(--success-color);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -1037,7 +1037,7 @@ onMounted(() => {
 
 .template-preview.is-code .preview-lines i:nth-child(2) {
   width: 26px;
-  background: color-mix(in srgb, #10b981 35%, var(--border-color));
+  background: color-mix(in srgb, var(--success-color) 35%, var(--border-color));
 }
 
 .preview-icon {

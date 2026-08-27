@@ -1,17 +1,19 @@
 <template>
-  <div class="app-container" :class="{ 'is-share-view': isShareView }">
-    <TabBar v-if="!isShareView" />
-    <div class="main-body">
-      <Sidebar v-if="!isShareView" />
-      <main class="main-content">
-        <div class="content-wrapper">
-          <router-view v-slot="{ Component }">
-            <keep-alive :max="8">
-              <component v-if="!isHarnessRoute" :is="Component" :key="route.fullPath" />
-            </keep-alive>
-          </router-view>
-          <DeepSeekHarness v-if="hasVisitedHarness" v-show="isHarnessRoute" />
-        </div>
+  <!-- 桌宠窗口：仅渲染悬浮组件 -->
+  <div v-if="isPetView" class="pet-root">
+    <PetWidget />
+  </div>
+  <div v-else class="app-shell" :class="{ 'is-share-view': isShareView, 'is-mobile-view': isMobileView }">
+    <Sidebar v-if="!isShareView && !isMobileView" />
+    <div class="workspace">
+      <TabBar v-if="!isShareView && !isMobileView" />
+      <main class="workspace-content">
+        <router-view v-slot="{ Component }">
+          <keep-alive :max="8">
+            <component v-if="!isHarnessRoute" :is="Component" :key="route.fullPath" />
+          </keep-alive>
+        </router-view>
+        <DeepSeekHarness v-if="hasVisitedHarness" v-show="isHarnessRoute" />
       </main>
     </div>
   </div>
@@ -21,6 +23,7 @@
 import Sidebar from '@/components/layout/Sidebar.vue';
 import TabBar from '@/components/layout/TabBar.vue';
 import DeepSeekHarness from '@/views/harness/DeepSeekHarness.vue';
+import PetWidget from '@/views/pet/PetWidget.vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useAppStore, useTabStore } from '@/store';
 import { electronService } from '@/services/electron';
@@ -37,6 +40,8 @@ const { currentMode, initTheme, setTheme: applyThemeFromConfig } = useTheme();
 
 // 分享视图：隐藏侧边栏/标签栏，全屏展示对话界面
 const isShareView = computed(() => route.meta?.share === true || !isElectronEnvironment());
+const isMobileView = computed(() => route.meta?.mobile === true);
+const isPetView = computed(() => route.meta?.pet === true);
 const isHarnessRoute = computed(() => route.name === 'harness');
 const hasVisitedHarness = ref(false);
 
@@ -171,44 +176,56 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.app-container {
+.pet-root {
+  height: 100vh;
+  background: transparent;
+  overflow: hidden;
+}
+
+.app-shell {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
 }
 
-.main-body {
-  display: flex;
+.workspace {
   flex: 1;
-  overflow: hidden;
-  padding: 0 6px 6px 6px;
-}
-
-.main-content {
-  flex: 1;
-  overflow: hidden;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.content-wrapper {
+.workspace-content {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   background-color: var(--bg-primary);
-  border-radius: var(--content-radius);
-  margin: 0;
+  position: relative;
 }
 
-/* 分享视图：全屏展示，去除内边距与圆角 */
-.app-container.is-share-view .main-body {
-  padding: 0;
+/* 分享视图：隐藏侧边栏与标题条，全屏展示 */
+.app-shell.is-share-view .workspace {
+  width: 100%;
 }
 
-.app-container.is-share-view .content-wrapper {
-  border-radius: 0;
+/* 手机视图：全屏展示，居中限制最大宽度 */
+.app-shell.is-mobile-view {
+  justify-content: center;
+  background: #000;
+}
+
+.app-shell.is-mobile-view .workspace {
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+}
+
+@media (min-width: 768px) {
+  .app-shell.is-mobile-view .workspace {
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
 }
 </style>

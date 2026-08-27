@@ -81,6 +81,70 @@ export function cancelApproval(requestId) {
   }
 }
 
+// ========== 选项提问（ask_user）等待 ==========
+// ask_user 工具挂起等待用户点选选项，答案通过 IPC 回传后 resolve。
+const pendingAnswers = new Map()
+
+/**
+ * 等待用户回答选项问题
+ * @param {string} requestId
+ * @param {string} toolCallId
+ * @returns {Promise<Array<{question, answer}>|null>} 超时/取消返回 null
+ */
+export function waitForUserAnswer(requestId, toolCallId) {
+  const key = `${requestId}:${toolCallId}`
+  return new Promise((resolve) => {
+    const entry = {
+      requestId,
+      resolveFn: resolve,
+      timer: setTimeout(() => {
+        if (pendingAnswers.delete(key)) {
+          log.warn(`选项提问超时未回答: ${key}`)
+          resolve(null)
+        }
+      }, 600000)
+    }
+    pendingAnswers.set(key, entry)
+    log.info(`等待用户回答选项: ${key}`)
+  })
+}
+
+/**
+ * 用户已提交答案
+ */
+export function resolveUserAnswer(requestId, toolCallId, answers) {
+  const key = `${requestId}:${toolCallId}`
+  const entry = pendingAnswers.get(key)
+  if (entry) {
+    clearTimeout(entry.timer)
+    pendingAnswers.delete(key)
+    entry.timer?.unref?.()
+    log.info(`用户已回答选项: ${key}`)
+    resolveAnswer(entry, answers)
+  } else {
+    log.warn(`未找到等待中的选项提问: ${key}`)
+  }
+}
+
+function resolveAnswer(entry, answers) {
+  // 通过闭包外的 resolve 调用：entry 中保存 resolve
+  if (entry.resolveFn) entry.resolveFn(answers)
+}
+
+/**
+ * 取消该请求下所有等待中的提问（agent-stop 时调用）
+ */
+export function cancelUserAnswer(requestId) {
+  for (const [key, entry] of [...pendingAnswers.entries()]) {
+    if (entry.requestId === requestId) {
+      clearTimeout(entry.timer)
+      pendingAnswers.delete(key)
+      if (entry.resolveFn) entry.resolveFn(null)
+      log.info(`已取消选项提问: ${key}`)
+    }
+  }
+}
+
 /**
  * 构造恢复执行的 Command
  * @param {{ type: 'approve' } | { type: 'reject', reason?: string }} decision

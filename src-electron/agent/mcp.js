@@ -45,7 +45,7 @@ import { MultiServerMCPClient } from '@langchain/mcp-adapters'
 
 const log = createLogger('MCP')
 
-const SERVER_NAME = 'happy-friday'
+const SERVER_NAME = 'phronesis'
 const SERVER_VERSION = '1.7.0'
 const LOCAL_PORT_PREFERRED = 17891
 const CONNECT_TIMEOUT_MS = 20000 // 连接 + listTools 超时
@@ -688,7 +688,7 @@ export function getLocalMcpConfig() {
   const json = JSON.stringify(
     {
       mcpServers: {
-        'happy-friday': {
+        'phronesis': {
           type: 'streamable_http',
           url: `http://127.0.0.1:${port}/mcp`
         }

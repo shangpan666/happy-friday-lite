@@ -172,7 +172,7 @@ function handleReject() {
 .approval-dialog {
   position: relative;
   background: var(--bg-primary, #fff);
-  border-radius: 16px;
+  border-radius: 8px;
   width: 540px;
   max-width: 92vw;
   max-height: 86vh;
@@ -192,7 +192,7 @@ function handleReject() {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+  background: var(--warning-color);
   z-index: 1;
 }
 
@@ -218,7 +218,7 @@ function handleReject() {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: rgba(154, 103, 0, 0.08);
   color: #d97706;
   flex-shrink: 0;
   box-shadow:
@@ -295,7 +295,7 @@ function handleReject() {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #2563eb 0%, #60a5fa 100%);
+  background: var(--accent-color);
   opacity: 0.7;
 }
 
@@ -490,7 +490,7 @@ function handleReject() {
 }
 
 .btn-approve {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--success-color);
   color: #fff;
   box-shadow:
     0 4px 12px rgba(16, 185, 129, 0.28),
@@ -498,7 +498,7 @@ function handleReject() {
 }
 
 .btn-approve:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: var(--success-color);
   box-shadow:
     0 6px 16px rgba(16, 185, 129, 0.36),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
@@ -537,7 +537,7 @@ function handleReject() {
 }
 
 [data-theme='dark'] .header-icon {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.25) 100%);
+  background: rgba(154, 103, 0, 0.1);
   color: #fbbf24;
   box-shadow:
     0 4px 10px rgba(245, 158, 11, 0.15),
@@ -560,7 +560,7 @@ function handleReject() {
 }
 
 .dialog-scale-enter-active {
-  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.28s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dialog-scale-leave-active {

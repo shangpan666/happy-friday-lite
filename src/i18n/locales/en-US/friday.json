@@ -1,7 +1,7 @@
 {
-  "title": "Friday Module",
-  "placeholder": "Ask Friday anything",
-  "greeting": "What would you like Friday to do for you?",
+  "title": "Phronesis",
+  "placeholder": "Ask Phronesis anything",
+  "greeting": "What would you like Phronesis to do for you?",
   "remove": "Remove",
   "referenceNoteFile": "Reference Note/File",
   "referenceKb": "Reference Knowledge Base",

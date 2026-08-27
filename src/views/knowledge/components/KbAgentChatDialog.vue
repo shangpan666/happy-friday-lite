@@ -638,7 +638,7 @@ async function sendChatMessage(text) {
   if (attachments.value.length > 0) {
     const refLines = [];
     for (const att of attachments.value) {
-      const icon = att.isDirectory ? '📁 文件夹' : '📄 文件';
+      const icon = att.isDirectory ? '文件夹' : '文件';
       refLines.push(`【${icon}】${att.name}（路径：${att.virtualPath}）`);
     }
     userMessage = `${text}\n\n---\n用户指定以下文件/文件夹（Agent 工作区路径）：\n${refLines.join('\n')}`;
@@ -875,7 +875,7 @@ onUnmounted(() => {
   height: 80vh;
   max-height: 800px;
   background: var(--bg-primary, #ffffff);
-  border-radius: 20px;
+  border-radius: 8px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
@@ -912,7 +912,7 @@ onUnmounted(() => {
 
   &.icon-agent {
     background: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    color: var(--success-color);
   }
 }
 
@@ -1077,8 +1077,8 @@ onUnmounted(() => {
       width: 22px;
       height: 22px;
       border-radius: 6px;
-      background: color-mix(in srgb, var(--tag-accent, #10b981) 12%, transparent);
-      color: var(--tag-accent, #10b981);
+      background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 12%, transparent);
+      color: var(--tag-accent, var(--success-color));
       flex-shrink: 0;
     }
 
@@ -1093,8 +1093,8 @@ onUnmounted(() => {
     .tag-type-badge {
       font-size: 10px;
       font-weight: 500;
-      color: var(--tag-accent, #10b981);
-      background: color-mix(in srgb, var(--tag-accent, #10b981) 10%, transparent);
+      color: var(--tag-accent, var(--success-color));
+      background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 10%, transparent);
       padding: 1px 5px;
       border-radius: 4px;
       flex-shrink: 0;
@@ -1130,7 +1130,7 @@ onUnmounted(() => {
   gap: 8px;
   background: var(--bg-secondary, #f7f7f7);
   border: 1.5px solid transparent;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 8px 8px 8px 16px;
   transition: all 0.2s ease;
 }
@@ -1192,7 +1192,7 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border: none;
-  background: var(--text-tertiary, #ccc);
+  background: var(--accent-color);
   color: #ffffff;
   cursor: pointer;
   border-radius: 50%;
@@ -1201,12 +1201,14 @@ onUnmounted(() => {
 }
 
 .send-btn.active {
-  background: var(--text-primary, #1a1a1a);
+  background: var(--accent-hover);
 }
 
-.send-btn:hover:not(:disabled) {
-  transform: scale(1.06);
+.send-btn:hover:not(:disabled):not(.active) {
+  background: var(--accent-color);
 }
+
+
 
 .send-btn:disabled {
   cursor: not-allowed;
@@ -1263,7 +1265,7 @@ onUnmounted(() => {
 }
 
 .agent-response-header .ai-avatar {
-  background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+  background: var(--online-color);
 }
 
 .agent-response-header .avatar-icon {
@@ -1366,7 +1368,7 @@ onUnmounted(() => {
 .agent-text-body .markdown-body :deep(blockquote) {
   margin: 10px 0;
   padding: 8px 14px;
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--success-color);
   background: rgba(16, 185, 129, 0.06);
   border-radius: 0 8px 8px 0;
   color: var(--text-secondary);
@@ -1402,7 +1404,7 @@ onUnmounted(() => {
   display: inline-block;
   width: 2px;
   height: 16px;
-  background: #10b981;
+  background: var(--success-color);
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.8s infinite;
@@ -1454,7 +1456,7 @@ onUnmounted(() => {
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dialog-scale-enter-from,

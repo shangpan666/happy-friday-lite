@@ -1,6 +1,6 @@
 {
   "title": "Automation",
-  "description": "Configure and manage automated tasks so Happy Friday can run workflows on schedule.",
+  "description": "Configure and manage automated tasks so Phronesis can run workflows on schedule.",
   "actions": {
     "manualCreate": "Create manually",
     "createInChat": "Create in chat",
@@ -39,7 +39,7 @@
       "hours": "hours",
       "days": "days"
     },
-    "instruction": "What should Happy Friday do?",
+    "instruction": "What should Phronesis do?",
     "instructionHint": "Describe the goal, required input, and expected result",
     "instructionPlaceholder": "Describe the task and expected result, such as summarizing news, analyzing data, or preparing a daily report.",
     "executionMode": "Execution mode",

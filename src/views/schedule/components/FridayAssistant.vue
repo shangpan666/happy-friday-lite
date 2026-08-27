@@ -16,7 +16,7 @@
             <template v-else>
               <div class="bubble-text" v-html="renderContent(bubbleContent)"></div>
               <div class="bubble-footer">
-                <span class="bubble-timer">{{ isStreaming ? '生成中...' : 'Friday 助理' }}</span>
+                <span class="bubble-timer">{{ isStreaming ? '生成中...' : 'Phronesis 助理' }}</span>
                 <button v-if="!isStreaming" class="bubble-copy" @click="copyContent" title="复制">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -38,7 +38,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/>
               </svg>
-              <span>Friday 日程助理</span>
+              <span>Phronesis 日程助理</span>
             </div>
             <button class="close-btn" @click="close">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -55,7 +55,7 @@
               v-model="inputText"
               class="assistant-input"
               type="text"
-              :placeholder="isStreaming ? 'Friday 正在思考...' : '问我关于日程的任何问题...'"
+              :placeholder="isStreaming ? 'Phronesis 正在思考...' : '问我关于日程的任何问题...'"
               :disabled="isStreaming"
               @keydown.enter.exact.prevent="handleSend"
             />
@@ -339,15 +339,15 @@ watch(() => props.visible, (val) => {
   width: 400px;
   max-width: calc(100vw - 48px);
   padding: 14px 16px;
-  background: linear-gradient(135deg, #f0f4ff 0%, #f5f0ff 100%);
+  background: var(--bg-inset);
   border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: 16px;
+  border-radius: 8px;
   position: relative;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme='dark'] .response-bubble {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  background: var(--accent-light);
   border-color: rgba(102, 126, 234, 0.3);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
@@ -359,7 +359,7 @@ watch(() => props.visible, (val) => {
   right: 32px;
   width: 14px;
   height: 14px;
-  background: linear-gradient(135deg, #f5f0ff 0%, #f5f0ff 100%);
+  background: var(--bg-inset);
   border-right: 1px solid rgba(102, 126, 234, 0.2);
   border-bottom: 1px solid rgba(102, 126, 234, 0.2);
   transform: rotate(45deg);
@@ -381,7 +381,7 @@ watch(() => props.visible, (val) => {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #667eea;
+  background: var(--accent-color);
   animation: bounce 1.2s infinite ease-in-out;
 }
 
@@ -444,7 +444,7 @@ watch(() => props.visible, (val) => {
   font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
   font-size: 12px;
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  color: var(--accent-color);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -531,7 +531,7 @@ watch(() => props.visible, (val) => {
 
 .bubble-copy:hover {
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  color: var(--accent-color);
 }
 
 /* ========== 助理卡片 ========== */
@@ -542,7 +542,7 @@ watch(() => props.visible, (val) => {
   max-width: calc(100vw - 48px);
   background: var(--bg-primary, #fff);
   border: 1px solid var(--border-color, #e8e8e8);
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18), 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
@@ -559,7 +559,7 @@ watch(() => props.visible, (val) => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent-color);
   color: #fff;
   flex-shrink: 0;
 }
@@ -602,7 +602,7 @@ watch(() => props.visible, (val) => {
   flex: 1;
   height: 40px;
   border: 1.5px solid var(--border-color, #e8e8e8);
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 0 16px;
   font-size: 14px;
   color: var(--text-primary);
@@ -613,7 +613,7 @@ watch(() => props.visible, (val) => {
 }
 
 .assistant-input:focus {
-  border-color: #667eea;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -633,7 +633,7 @@ watch(() => props.visible, (val) => {
   width: 40px;
   height: 40px;
   border: none;
-  background: var(--text-tertiary, #ccc);
+  background: var(--accent-color);
   color: #fff;
   cursor: pointer;
   border-radius: 50%;
@@ -642,7 +642,7 @@ watch(() => props.visible, (val) => {
 }
 
 .send-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent-color);
 }
 
 .send-btn:disabled {
@@ -650,8 +650,8 @@ watch(() => props.visible, (val) => {
   opacity: 0.5;
 }
 
-.send-btn:not(:disabled):hover {
-  transform: scale(1.05);
+.send-btn::disabled:hover {
+  background: var(--accent-hover);
 }
 
 .loading-icon {
@@ -673,7 +673,7 @@ watch(() => props.visible, (val) => {
   padding: 3px 10px;
   border: none;
   background: rgba(102, 126, 234, 0.08);
-  color: #667eea;
+  color: var(--accent-color);
   font-size: 11.5px;
   border-radius: 12px;
   cursor: pointer;
@@ -690,7 +690,7 @@ watch(() => props.visible, (val) => {
 
 /* Transitions */
 .assistant-panel-enter-active {
-  animation: panelIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: panelIn 0.25s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .assistant-panel-leave-active {

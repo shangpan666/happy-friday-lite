@@ -3,14 +3,31 @@
     <div class="friday-content">
       <div class="logo-section">
         <div class="logo-main">
-          <img :src="logoImage" alt="Friday" class="logo-image" draggable="false" />
-          <img :src="happyFridayTextImage" alt="Happy Friday" class="happy-friday-text-image" draggable="false" />
+          <h1 class="brand-script">Phronesis</h1>
         </div>
         <p class="logo-subtitle">{{ t('friday.greeting') }}</p>
       </div>
 
       <div class="input-section">
         <div class="input-wrapper">
+          <!-- Agent 工作目录标签 -->
+          <div class="attachment-area" v-if="agentFolder">
+            <div class="attachment-tag tag-kb">
+              <span class="tag-icon-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </span>
+              <span class="tag-name">{{ agentFolder.name }}</span>
+              <span class="tag-type-badge">工作目录</span>
+              <button class="tag-remove" @click="clearAgentFolder" title="移除">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
           <!-- 挂载的文档标签 -->
           <div class="attachment-area" v-if="attachments.length > 0">
             <div v-for="(att, idx) in attachments" :key="att.id" class="attachment-tag" :class="'tag-' + att.type">
@@ -112,6 +129,12 @@
                 </svg>
                 <span>{{ t('friday.selectKbFile') }}</span>
               </div>
+              <div class="link-menu-item item-kb-file" @click="openAgentFolderSelect">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Agent 工作目录</span>
+              </div>
             </div>
           </div>
 
@@ -196,7 +219,7 @@
                     <span class="model-name">{{ model.name }}</span>
                     <span v-if="model.embeddingName" class="model-embedding-name">{{ t('friday.embedding') }}: {{ model.embeddingName }}</span>
                   </div>
-                  <svg v-if="modelSettings.modelId === model.id" class="model-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-if="modelSettings.modelId === model.id" class="model-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               </div>
             </div>
@@ -205,18 +228,15 @@
       </div>
 
       <div class="features-section">
-        <div
+        <button
           v-for="feature in features"
           :key="feature.id"
           class="feature-card"
           @click="handleFeatureClick(feature.id)"
         >
-          <div class="feature-icon-wrap" :style="{ '--feature-color': feature.color }">
-            <div class="feature-icon" v-html="feature.icon"></div>
-          </div>
+          <span class="feature-icon" v-html="feature.icon"></span>
           <span class="feature-label">{{ feature.label }}</span>
-          <span class="feature-desc">{{ feature.desc }}</span>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -335,12 +355,6 @@ const inputText = ref('');
 const textareaRef = ref(null);
 
 const isDark = computed(() => appStore.theme === 'dark');
-const logoImage = new URL('@/assets/images/friday-w.png', import.meta.url).href;
-const happyFridayTextImage = computed(() => {
-  return isDark.value
-    ? new URL('@/assets/images/HPTEXT-w.png', import.meta.url).href
-    : new URL('@/assets/images/HPTEXT-b.png', import.meta.url).href;
-});
 
 const showModeDropdown = ref(false);
 const showModelDropdown = ref(false);
@@ -471,6 +485,27 @@ const openKbFileSelect = () => {
   kbFileList.value = [];
   fileBreadcrumb.value = [];
   showKbFileDialog.value = true;
+};
+
+// ========== Agent 工作目录 ==========
+const agentFolder = ref(null); // { path, name }
+
+const openAgentFolderSelect = async () => {
+  showLinkDropdown.value = false;
+  try {
+    const res = await window.electronAPI?.invoke('agent-select-folder');
+    if (res?.success) {
+      agentFolder.value = { path: res.path, name: res.name };
+    } else if (res?.error) {
+      alert(res.error);
+    }
+  } catch (e) {
+    console.error('选择工作目录失败:', e);
+  }
+};
+
+const clearAgentFolder = () => {
+  agentFolder.value = null;
 };
 
 const loadKbFiles = async (item, categoryId) => {
@@ -680,6 +715,13 @@ const handleSend = async () => {
   const kbName = kbAttachment ? kbAttachment.name : '';
   const kbCategoryId = kbAttachment && kbAttachment.categoryId ? kbAttachment.categoryId : '';
 
+  // Agent 工作目录：传递给会话页（仅 Agent 模式使用）
+  if (agentFolder.value) {
+    sessionStorage.setItem('friday-agent-folder', JSON.stringify(agentFolder.value));
+  } else {
+    sessionStorage.removeItem('friday-agent-folder');
+  }
+
   router.push({
     name: 'friday-chat',
     params: { sessionId: `new-${Date.now()}` },
@@ -756,7 +798,7 @@ const features = computed(() => [
     id: 'office',
     label: t('friday.featureOffice'),
     desc: t('friday.featureOfficeDesc'),
-    color: '#8b5cf6',
+    color: 'var(--accent-color)',
     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'
   },
   {
@@ -770,7 +812,7 @@ const features = computed(() => [
     id: 'writing',
     label: t('friday.featureWriting'),
     desc: t('friday.featureWritingDesc'),
-    color: '#10b981',
+    color: 'var(--success-color)',
     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>'
   },
   {
@@ -827,7 +869,7 @@ const handleFeatureClick = (id) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .logo-main {
@@ -841,29 +883,26 @@ const handleFeatureClick = (id) => {
   color: var(--text-primary);
 }
 
-.logo-image {
-  height: 100px;
-  width: auto;
-  object-fit: contain;
+.brand-script {
+  font-family: "Segoe Script", "Brush Script MT", "Lucida Handwriting", cursive;
+  font-size: 46px;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0;
-  -webkit-user-drag: none;
+  line-height: 1.2;
   user-select: none;
-}
-
-.happy-friday-text-image {
-  width: min(360px, 88vw);
-  height: auto;
-  object-fit: contain;
-  -webkit-user-drag: none;
-  user-select: none;
+  -webkit-user-select: none;
 }
 
 .logo-subtitle {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 400;
-  color: var(--text-primary);
-  letter-spacing: 3px;
-  margin: 0;
+  color: var(--text-secondary);
+  letter-spacing: 5px;
+  margin: 10px 0 0;
+  padding-left: 5px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .input-section {
@@ -876,7 +915,7 @@ const handleFeatureClick = (id) => {
   margin: 0 auto;
   background: var(--bg-primary);
   border: 1.5px solid var(--border-color);
-  border-radius: 28px;
+  border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -916,11 +955,11 @@ const handleFeatureClick = (id) => {
     }
 
     &.tag-kb {
-      --tag-accent: #10b981;
+      --tag-accent: var(--success-color);
     }
 
     &.tag-note {
-      --tag-accent: #6366f1;
+      --tag-accent: var(--accent-color);
     }
 
     &.tag-kb-file {
@@ -934,8 +973,8 @@ const handleFeatureClick = (id) => {
       width: 22px;
       height: 22px;
       border-radius: 6px;
-      background: color-mix(in srgb, var(--tag-accent, #10b981) 12%, transparent);
-      color: var(--tag-accent, #10b981);
+      background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 12%, transparent);
+      color: var(--tag-accent, var(--success-color));
       flex-shrink: 0;
     }
 
@@ -951,8 +990,8 @@ const handleFeatureClick = (id) => {
     .tag-type-badge {
       font-size: 10px;
       font-weight: 500;
-      color: var(--tag-accent, #10b981);
-      background: color-mix(in srgb, var(--tag-accent, #10b981) 10%, transparent);
+      color: var(--tag-accent, var(--success-color));
+      background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 10%, transparent);
       padding: 1px 5px;
       border-radius: 4px;
       flex-shrink: 0;
@@ -1043,7 +1082,7 @@ const handleFeatureClick = (id) => {
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 8px;
   font-size: 13.5px;
   font-weight: 500;
   transition: all 0.15s ease;
@@ -1090,7 +1129,7 @@ const handleFeatureClick = (id) => {
   width: 34px;
   height: 34px;
   border: none;
-  background: var(--text-tertiary);
+  background: var(--accent-color);
   color: #ffffff;
   cursor: pointer;
   border-radius: 50%;
@@ -1099,12 +1138,12 @@ const handleFeatureClick = (id) => {
 }
 
 .send-btn.active {
-  background: var(--text-primary);
+  background: var(--accent-color);
   color: #ffffff;
 }
 
-.send-btn:hover {
-  transform: scale(1.06);
+.send-btn.active:hover {
+  background: var(--accent-hover);
 }
 
 .dropdown-overlay {
@@ -1119,7 +1158,7 @@ const handleFeatureClick = (id) => {
 .dropdown-panel {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -1420,7 +1459,7 @@ const handleFeatureClick = (id) => {
 }
 
 .dialog-scale-enter-active {
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dialog-scale-leave-active {
@@ -1480,7 +1519,7 @@ const handleFeatureClick = (id) => {
 }
 
 .kb-item:hover .kb-item-icon-fallback {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .kb-item-icon {
@@ -1642,7 +1681,7 @@ const handleFeatureClick = (id) => {
 .model-badge {
   font-size: 11px;
   font-weight: 600;
-  color: #10b981;
+  color: var(--success-color);
   background: #d1fae5;
   padding: 2px 8px;
   border-radius: 6px;
@@ -1654,66 +1693,55 @@ const handleFeatureClick = (id) => {
 
 .features-section {
   display: flex;
-  gap: 14px;
+  gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .feature-card {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 18px;
+  gap: 7px;
+  padding: 7px 14px;
   background: transparent;
-  border: none;
+  border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 14px;
-  min-width: 100px;
+  transition: border-color 0.12s, background-color 0.12s;
+  border-radius: var(--radius-md);
+  font-family: inherit;
 }
 
-.feature-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--feature-color, #9ca3af) 10%, transparent);
-  transition: all 0.25s ease;
-}
-
-.feature-card:hover .feature-icon-wrap {
-  background: var(--feature-color, #9ca3af);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--feature-color, #9ca3af) 35%, transparent);
+.feature-card:hover {
+  border-color: var(--accent-color);
+  background: var(--accent-light);
 }
 
 .feature-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--feature-color, #6b7280);
-  transition: all 0.25s ease;
+  color: var(--text-tertiary);
+  transition: color 0.12s;
+}
+
+.feature-icon svg {
+  width: 15px;
+  height: 15px;
 }
 
 .feature-card:hover .feature-icon {
-  color: #ffffff;
+  color: var(--accent-color);
 }
 
 .feature-label {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: center;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1;
+  transition: color 0.12s;
 }
 
-.feature-desc {
-  font-size: 11.5px;
-  color: var(--text-tertiary);
-  text-align: center;
-  line-height: 1.4;
+.feature-card:hover .feature-label {
+  color: var(--accent-color);
 }
 </style>

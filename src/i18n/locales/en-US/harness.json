@@ -1,7 +1,7 @@
 {
   "title": "DeepSeek Harness",
   "starting": "Starting DeepSeek Harness",
-  "startingDetail": "Syncing the shared model configuration and connecting Happy Friday tools.",
+  "startingDetail": "Syncing the shared model configuration and connecting Phronesis tools.",
   "modelRequired": "Model configuration required",
   "modelRequiredDetail": "Harness uses the model selected in Settings. Add and select a complete model configuration first.",
   "openSettings": "Open model settings",
@@ -11,6 +11,6 @@
   "refresh": "Refresh Harness",
   "restart": "Restart Harness",
   "openExternal": "Open in browser",
-  "toolCount": "{count} Friday tools",
+  "toolCount": "{count} Phronesis tools",
   "noModel": "No model selected"
 }

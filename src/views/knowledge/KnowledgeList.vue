@@ -755,7 +755,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
 
-  &.success { color: #10b981; }
+  &.success { color: var(--success-color); }
   &.cancelled { color: #f59e0b; }
   &.failed { color: #ef4444; }
 }

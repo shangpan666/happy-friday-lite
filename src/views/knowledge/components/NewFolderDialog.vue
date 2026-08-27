@@ -52,7 +52,7 @@ defineEmits(['close', 'confirm', 'update:folderName']);
 
 .modal-content {
   background: var(--bg-primary);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 40px 48px;
   text-align: center;
   max-width: 400px;

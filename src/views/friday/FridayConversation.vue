@@ -39,6 +39,12 @@
                 <div v-if="seg.type === 'text' && seg.content" class="agent-text-body">
                   <div class="markdown-body" v-html="renderMarkdown(seg.content)"></div>
                 </div>
+                <AskUserCard
+                  v-else-if="seg.type === 'ask'"
+                  tool-call-id="history"
+                  :questions="seg.questions"
+                  :status="seg.status || 'success'"
+                />
                 <ToolCallSection
                   v-else-if="seg.type === 'tool'"
                   :tool-name="seg.toolName"
@@ -99,12 +105,28 @@
               <div class="avatar ai-avatar"><span class="avatar-icon">✦</span></div>
               <span class="ai-name">周五</span>
             </div>
+            <!-- 执行进度：当前步骤与活动 -->
+            <div v-if="isStreaming" class="agent-progress">
+              <span class="agent-progress-dot"></span>
+              <span class="agent-progress-step">步骤 {{ agentStepCount }}</span>
+              <span class="agent-progress-sep"></span>
+              <span class="agent-progress-action">{{ currentActionLabel }}</span>
+            </div>
             <div class="agent-timeline">
               <template v-for="seg in agentSegments" :key="seg.id">
                 <div v-if="seg.type === 'text' && seg.content" class="agent-text-body">
                   <div class="markdown-body" v-html="renderMarkdown(seg.content)"></div>
                   <span v-if="seg.isStreaming" class="streaming-cursor"></span>
                 </div>
+                <AskUserCard
+                  v-else-if="seg.type === 'ask'"
+                  :request-id="activeRequestIdRef"
+                  :tool-call-id="seg.toolCallId"
+                  :questions="seg.questions"
+                  :answers="seg.answers"
+                  :status="seg.status"
+                  @submitted="(r) => seg.answers = r"
+                />
                 <ToolCallSection
                   v-else-if="seg.type === 'tool'"
                   :tool-name="seg.toolName"
@@ -135,6 +157,21 @@
         </template>
       </div>
     </main>
+
+    <!-- Agent 工作目录标签 -->
+    <div v-if="currentMode === 'agent' && agentFolder" class="agent-folder-bar">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+      </svg>
+      <span class="agent-folder-label">工作目录：{{ agentFolder.path }}</span>
+      <span class="agent-folder-hint">Agent 生成的文件将保存到这里</span>
+      <button class="agent-folder-clear" @click="clearAgentFolder" title="移除">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
 
     <ChatInputBox
       v-if="!isShareMode"
@@ -191,6 +228,7 @@ import ChatInputBox from '@/components/chat/ChatInputBox.vue';
 import RollbackConfirmDialog from '@/components/chat/RollbackConfirmDialog.vue';
 import ToolApprovalDialog from '@/components/chat/ToolApprovalDialog.vue';
 import ToolCallSection from '@/components/chat/ToolCallSection.vue';
+import AskUserCard from '@/components/chat/AskUserCard.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -205,7 +243,7 @@ const isRollingBack = ref(false);
 const isAtBottom = ref(true);
 const showScrollDownBtn = ref(false);
 
-const chatTitle = ref('与 Friday 的对话');
+const chatTitle = ref('与 Phronesis 的对话');
 const chatTime = ref(formatTime(new Date()));
 
 const messages = ref([]);
@@ -221,7 +259,9 @@ let unlistenTitle = null;
 let unlistenAgentToolCall = null;
 let unlistenAgentToolResult = null;
 let unlistenAgentApproval = null;
+let unlistenAskUser = null;
 let activeRequestId = '';
+const activeRequestIdRef = ref('');
 let isDoneReceived = false;
 
 // ========== Agent 模式状态 ==========
@@ -245,6 +285,113 @@ let unlistenSummaryError = null;
 watch(isStreaming, (streaming) => {
   if (!streaming) autoApproveAll.value = false;
 });
+
+// ========== 免费模型卡顿 / 繁忙自动恢复 ==========
+// 当免费 AI 模型卡住（长时间无新内容）或返回"使用人数过多 / 服务器繁忙 / 无法回答"等
+// 因过载无法完成回答的提示时，自动结束当前对话并输入续写提示，让模型继续未完成的任务。
+const ENABLE_AUTO_RECOVER = true;                  // 是否开启自动恢复
+const AUTO_RECOVER_PROMPT = '请完成你未完成的任务';  // 自动输入的续写提示
+const STUCK_TIMEOUT_MS = 90000;                    // 超过该时长无任何新内容视为"卡住"
+const MAX_AUTO_RECOVER = 3;                         // 单轮对话最多自动恢复次数，避免死循环
+
+// 服务繁忙 / 过载 / 无法回答的识别关键词（免费模型使用人数过多等场景）
+const OVERLOAD_PATTERNS = [
+  '使用人数过多',
+  '人数过多',
+  '服务器繁忙',
+  '系统繁忙',
+  '网络繁忙',
+  '服务繁忙',
+  '请求过于频繁',
+  '请稍后再试',
+  '稍后再试',
+  '暂时无法回答',
+  '暂时不能回答',
+  '当前无法回应',
+  '模型繁忙',
+  '模型加载中',
+  '正在加载模型',
+  'rate limit',
+  'too many requests',
+  '429',
+  'service unavailable',
+  'overloaded',
+  'capacity',
+  'busy now',
+  'try again later'
+];
+
+// 单轮对话内已自动恢复的次数（用户主动发送时清零）
+const autoRecoverCount = ref(0);
+let stuckTimer = null;
+
+function containsOverload(text) {
+  if (!text) return false;
+  const t = String(text).toLowerCase();
+  return OVERLOAD_PATTERNS.some((p) => t.includes(p.toLowerCase()));
+}
+
+function clearStuckTimer() {
+  if (stuckTimer) {
+    clearTimeout(stuckTimer);
+    stuckTimer = null;
+  }
+}
+
+function startStuckTimer() {
+  clearStuckTimer();
+  stuckTimer = setTimeout(() => {
+    if (isStreaming.value && !isShareMode.value) {
+      forceStopAndRecover('AI 回答卡住');
+    }
+  }, STUCK_TIMEOUT_MS);
+}
+
+// 收到任意内容 / 事件时重置卡顿计时器
+function resetStuckTimer() {
+  if (isStreaming.value && ENABLE_AUTO_RECOVER) {
+    startStuckTimer();
+  }
+}
+
+// 自动结束当前对话并输入续写提示，驱动模型继续未完成的任务
+async function forceStopAndRecover(reason) {
+  clearStuckTimer();
+  if (!ENABLE_AUTO_RECOVER || isShareMode.value) return;
+
+  if (autoRecoverCount.value >= MAX_AUTO_RECOVER) {
+    showSaveToast('多次自动重试仍无法完成，请稍后手动重试');
+    return;
+  }
+  autoRecoverCount.value += 1;
+  const attempt = autoRecoverCount.value;
+  showSaveToast(`检测到${reason}，正在自动续写（${attempt}/${MAX_AUTO_RECOVER}）`);
+
+  // 仍在流式：先保留已生成内容并强制结束当前流，避免后端旧事件再次写入
+  if (isStreaming.value) {
+    const partial = streamingContent.value || streamingReasoning.value;
+    if (partial) {
+      messages.value.push({ role: 'assistant', content: partial });
+    }
+    // 标记为已结束，旧请求的 done/error 事件将被忽略
+    isDoneReceived = true;
+    isStreaming.value = false;
+    streamingContent.value = '';
+    streamingReasoning.value = '';
+    agentSegments.value = [];
+    try {
+      await handleStop();
+    } catch (e) {
+      console.error('[AutoRecover] stop failed:', e);
+    }
+  }
+
+  // 输入续写提示，让模型继续未完成的任务
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  if (autoRecoverCount.value <= MAX_AUTO_RECOVER) {
+    sendChatMessage(AUTO_RECOVER_PROMPT, { isAutoRecover: true });
+  }
+}
 
 const rollbackDialogVisible = ref(false);
 const rollbackPreviewContent = ref('');
@@ -706,10 +853,16 @@ function startStreaming() {
   isAtBottom.value = true;
   scrollToBottom(true);
   activeRequestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  activeRequestIdRef.value = activeRequestId;
   isDoneReceived = false;
+  // 启动卡顿监测（用户主动发送或自动续写均从此处开始计时）
+  if (ENABLE_AUTO_RECOVER && !isShareMode.value) startStuckTimer();
+  else clearStuckTimer();
 }
 
-async function sendChatMessage(text) {
+async function sendChatMessage(text, { isAutoRecover = false } = {}) {
+  // 用户主动发送时清零自动恢复计数；自动续写不重置，以受 MAX_AUTO_RECOVER 约束
+  if (!isAutoRecover) autoRecoverCount.value = 0;
   if (isStreaming.value || isRollingBack.value || !text.trim()) return;
 
   const mode = route.query.mode || 'chat';
@@ -731,6 +884,81 @@ async function sendChatMessage(text) {
   // - attachments: 附件元数据（供后端构造 LLM 消息）
   let userMessage = text;
   let attachments = [];
+
+// ========== Agent 工作目录 ==========
+// 从欢迎页通过 sessionStorage 传入；Agent 模式下生成的文件将保存到此目录
+const agentFolder = ref(null);
+try {
+  const folderRaw = sessionStorage.getItem('friday-agent-folder');
+  if (folderRaw) {
+    agentFolder.value = JSON.parse(folderRaw);
+    sessionStorage.removeItem('friday-agent-folder');
+  }
+} catch (_e) {}
+
+const clearAgentFolder = () => {
+  agentFolder.value = null;
+};
+
+// ========== Agent 执行进度 ==========
+const TOOL_ACTION_LABELS = {
+  think: '思考与规划',
+  ask_user: '等待你的选择',
+  retrieve_knowledge: '检索知识库',
+  search_notes: '搜索笔记',
+  get_note: '查看笔记',
+  create_note: '创建笔记',
+  update_note: '更新笔记',
+  list_events: '查询日程',
+  create_event: '创建日程',
+  update_event: '更新日程',
+  delete_event: '删除日程',
+  list_agent_files: '浏览文件',
+  read_agent_file: '读取文件',
+  write_agent_file: '写入文件',
+  write_file: '写入文件',
+  execute_command: '执行命令',
+  get_current_time: '获取当前时间',
+  calculator: '数学计算',
+  python_repl: '执行 Python',
+  pip_install: '安装依赖',
+  requests_get: '发起 GET 请求',
+  requests_post: '发起 POST 请求',
+  fetch_webpage_text: '抓取网页',
+  browser_navigate: '打开页面',
+  browser_reload: '刷新页面',
+  browser_snapshot: '检查页面',
+  browser_console: '查看控制台',
+  browser_click: '点击页面元素',
+  browser_input: '输入内容',
+  browser_evaluate: '执行页面脚本',
+  browser_screenshot: '页面截图'
+};
+
+const agentStepCount = computed(() => {
+  const tools = agentSegments.value.filter((s) => s.type === 'tool' || s.type === 'ask').length;
+  return tools + 1;
+});
+
+const currentActionLabel = computed(() => {
+  const segs = agentSegments.value;
+  const last = segs.length > 0 ? segs[segs.length - 1] : null;
+  if (last) {
+    if (last.type === 'ask' && last.status === 'running') return '等待你的选择';
+    if (last.type === 'tool') {
+      if (last.status === 'running') {
+        if (last.toolName === 'write_agent_file' || last.toolName === 'write_file') {
+          const args = typeof last.arguments === 'string' ? (() => { try { return JSON.parse(last.arguments) } catch (_e) { return {} } })() : (last.arguments || {});
+          const p = args.filePath || args.path || '';
+          return `正在写入 ${p.split('/').pop() || p}`;
+        }
+        return TOOL_ACTION_LABELS[last.toolName] || `调用 ${last.toolName}`;
+      }
+    }
+  }
+  if (streamingContent.value) return '正在输出';
+  return '思考中';
+});
   if (route.query.hasAtt === 'true') {
     try {
       const attDataRaw = sessionStorage.getItem('friday-att-data') || '';
@@ -769,6 +997,7 @@ async function sendChatMessage(text) {
         model: model,
         message: userMessage,
         attachments,
+        folderPath: agentFolder.value?.path || '',
         enableThinking: route.query.thinkMode === 'deep'
       });
     } else if (mode === 'chat') {
@@ -849,7 +1078,7 @@ async function loadShareData(sessionId) {
     const res = await fetch(`/api/share/${encodeURIComponent(sessionId)}`);
     const data = await res.json();
     if (data && data.success && data.session) {
-      chatTitle.value = data.session.title || '与 Friday 的对话';
+      chatTitle.value = data.session.title || '与 Phronesis 的对话';
       currentMode.value = data.session.mode || 'chat';
       messages.value = (data.messages || []).map(m => {
         const msg = { role: m.role, content: m.content, id: m.id };
@@ -866,6 +1095,8 @@ async function loadShareData(sessionId) {
 
 async function triggerAiResponse() {
   if (isStreaming.value || isRollingBack.value) return;
+
+  autoRecoverCount.value = 0;
 
   const mode = route.query.mode || 'chat';
   const modelId = route.query.modelId || '';
@@ -920,7 +1151,7 @@ async function initConversation() {
   messages.value = [];
   activeRequestId = '';
   isDoneReceived = false;
-  chatTitle.value = '与 Friday 的对话';
+  chatTitle.value = '与 Phronesis 的对话';
   chatTime.value = formatTime(new Date());
 
   currentMode.value = route.query.mode || 'chat';
@@ -996,6 +1227,7 @@ onMounted(async () => {
     const data = event.payload;
     if (data.requestId !== activeRequestId) return;
     streamingContent.value += data.content;
+    resetStuckTimer();
     // Agent 模式：维护时间线段，文本追加到最后一个 text 段或新建
     if (currentMode.value === 'agent') {
       const segs = agentSegments.value;
@@ -1018,6 +1250,7 @@ onMounted(async () => {
     const data = event.payload;
     if (data.requestId !== activeRequestId) return;
     streamingReasoning.value += data.content;
+    resetStuckTimer();
     scrollToBottom();
   });
 
@@ -1028,6 +1261,7 @@ onMounted(async () => {
     isDoneReceived = true;
 
     isStreaming.value = false;
+    clearStuckTimer();
 
     if (data.userMessageId) {
       for (let i = messages.value.length - 1; i >= 0; i--) {
@@ -1071,6 +1305,12 @@ onMounted(async () => {
     agentSegments.value = [];
     showScrollDownBtn.value = false;
     scrollToBottom(true);
+
+    // 模型返回"繁忙 / 无法回答"等过载提示：自动结束对话并续写
+    const doneText = data.fullContent || data.reasoningContent || '';
+    if (containsOverload(doneText)) {
+      forceStopAndRecover('服务繁忙/无法回答');
+    }
   });
 
   unlistenError = electronService.listen('chat-error', (event) => {
@@ -1079,6 +1319,7 @@ onMounted(async () => {
     if (isDoneReceived) return;
     isDoneReceived = true;
     isStreaming.value = false;
+    clearStuckTimer();
     const errorContent = `请求失败：${data.error || '大模型暂时不可用，请稍后重试。'}`;
     // 错误也作为助手消息展示，避免 404、超时、限速等异常表现为空白。
     if (streamingContent.value || streamingReasoning.value) {
@@ -1095,6 +1336,11 @@ onMounted(async () => {
     agentSegments.value = [];
     showScrollDownBtn.value = false;
     console.error('Stream error:', data.error);
+
+    // 过载 / 繁忙 / 无法回答（如免费模型使用人数过多）：自动结束对话并续写
+    if (containsOverload(errorContent) || containsOverload(streamingContent.value)) {
+      forceStopAndRecover('服务繁忙/无法回答');
+    }
   });
 
   unlistenTitle = electronService.listen('session-title-updated', (event) => {
@@ -1109,6 +1355,7 @@ onMounted(async () => {
   unlistenAgentToolCall = electronService.listen('agent-tool-call', (event) => {
     const data = event.payload;
     if (data.requestId !== activeRequestId) return;
+    resetStuckTimer();
     const segs = agentSegments.value;
     // 标记前一个 text 段为非流式（AI 已切换到工具调用）
     const last = segs.length > 0 ? segs[segs.length - 1] : null;
@@ -1129,6 +1376,17 @@ onMounted(async () => {
       existing.arguments = data.arguments;
       existing.status = 'running';
       existing.requireApproval = !!data.requireApproval;
+    } else if (data.toolName === 'ask_user') {
+      // 选项提问：渲染为可点选的选项卡，问题内容由 agent-ask-user 事件填充
+      segs.push({
+        type: 'ask',
+        id: data.toolCallId,
+        toolCallId: data.toolCallId,
+        toolName: data.toolName,
+        questions: [],
+        status: 'running',
+        output: ''
+      });
     } else {
       segs.push({
         type: 'tool',
@@ -1148,6 +1406,7 @@ onMounted(async () => {
   unlistenAgentToolResult = electronService.listen('agent-tool-result', (event) => {
     const data = event.payload;
     if (data.requestId !== activeRequestId) return;
+    resetStuckTimer();
     const seg = agentSegments.value.find((s) => s.type === 'tool' && s.toolCallId === data.toolCallId);
     if (seg) {
       // execute_command 等非 interruptOn 工具在 handler 内部触发审批，
@@ -1156,6 +1415,22 @@ onMounted(async () => {
         seg.status = data.status || 'success';
         seg.output = data.output || '';
       }
+    }
+    const askSeg = agentSegments.value.find((s) => s.type === 'ask' && s.toolCallId === data.toolCallId);
+    if (askSeg) {
+      askSeg.status = data.status || 'success';
+    }
+    scrollToBottom();
+  });
+
+  // 选项提问：填充 ask 段的问题列表
+  unlistenAskUser = electronService.listen('agent-ask-user', (event) => {
+    const data = event.payload;
+    if (data.requestId !== activeRequestId) return;
+    resetStuckTimer();
+    const seg = agentSegments.value.find((s) => s.type === 'ask' && s.toolCallId === data.toolCallId);
+    if (seg) {
+      seg.questions = data.questions || [];
     }
     scrollToBottom();
   });
@@ -1166,6 +1441,7 @@ onMounted(async () => {
   unlistenAgentApproval = electronService.listen('agent-tool-approval', (event) => {
     const data = event.payload;
     if (data.requestId !== activeRequestId) return;
+    resetStuckTimer();
 
     // 若用户已点击"全部批准"，自动批准后续所有工具调用，不弹窗
     if (autoApproveAll.value) {
@@ -1233,6 +1509,7 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener('click', handleCodeBlockCopy);
   window.removeEventListener('friday-before-tab-close', handleTabCloseRequest);
+  clearStuckTimer();
 
   // 清理总结功能临时事件监听器
   if (unlistenSummaryChunk) { unlistenSummaryChunk(); unlistenSummaryChunk = null; }
@@ -1247,6 +1524,7 @@ onUnmounted(() => {
   if (unlistenAgentToolCall) unlistenAgentToolCall();
   if (unlistenAgentToolResult) unlistenAgentToolResult();
   if (unlistenAgentApproval) unlistenAgentApproval();
+  if (unlistenAskUser) unlistenAskUser();
   if (messagesContainer.value) {
     messagesContainer.value.removeEventListener('scroll', checkScrollPosition);
   }
@@ -1526,23 +1804,27 @@ async function handleRejectTool(decision) {
    整个 Agent 回复作为一个响应块，头部含头像/名称，
    时间线内文本段与工具调用段交替排列 */
 
+/* 无框平铺：消息不套底色容器 */
 .agent-response-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .agent-response-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .agent-response-header .avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1550,19 +1832,19 @@ async function handleRejectTool(decision) {
 }
 
 .agent-response-header .ai-avatar {
-  background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+  background: var(--online-color);
 }
 
 .agent-response-header .avatar-icon {
-  font-size: 16px;
+  font-size: 12px;
   color: #ffffff;
   font-weight: 700;
 }
 
 .agent-response-header .ai-name {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   letter-spacing: -0.01em;
 }
 
@@ -1570,11 +1852,11 @@ async function handleRejectTool(decision) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-left: 44px; /* 与头像对齐 */
+  padding-left: 0;
 }
 
 .agent-text-body {
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text-primary);
 }
@@ -1653,7 +1935,7 @@ async function handleRejectTool(decision) {
 .agent-text-body .markdown-body :deep(blockquote) {
   margin: 10px 0;
   padding: 8px 14px;
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--success-color);
   background: rgba(16, 185, 129, 0.06);
   border-radius: 0 8px 8px 0;
   color: var(--text-secondary);
@@ -1678,12 +1960,9 @@ async function handleRejectTool(decision) {
   font-weight: 600;
 }
 
-/* Agent 响应块内的分隔线 */
+/* Warp 风格块之间自然分隔，不再需要额外分隔线 */
 .agent-response-block .message-divider {
-  width: 100%;
-  height: 1px;
-  background: var(--border-color);
-  margin-top: 8px;
+  display: none;
 }
 
 /* Agent 时间线内的流式光标 */
@@ -1691,7 +1970,7 @@ async function handleRejectTool(decision) {
   display: inline-block;
   width: 2px;
   height: 16px;
-  background: #10b981;
+  background: var(--success-color);
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.8s infinite;
@@ -1745,7 +2024,10 @@ async function handleRejectTool(decision) {
   align-items: center;
   justify-content: space-between;
   gap: 2px;
-  padding-left: 44px; /* 与时间线内容对齐 */
+  padding-left: 0;
+  border-top: 1px solid var(--border-color);
+  padding-top: 6px;
+  margin-top: 2px;
 }
 
 .agent-footer .footer-left,
@@ -1759,13 +2041,13 @@ async function handleRejectTool(decision) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border: none;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: all 0.15s ease;
   position: relative;
 }
@@ -1776,7 +2058,7 @@ async function handleRejectTool(decision) {
 }
 
 .agent-footer .action-icon-btn.copied {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .agent-footer .action-icon-btn.copied:hover {
@@ -1867,7 +2149,7 @@ async function handleRejectTool(decision) {
 }
 
 .agent-text-body .markdown-body :deep(.code-copy-btn.copied) {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .agent-text-body .markdown-body :deep(.code-block-wrapper pre) {
@@ -1908,11 +2190,100 @@ async function handleRejectTool(decision) {
 }
 
 .agent-text-body .markdown-body :deep(a) {
-  color: #10b981;
+  color: var(--success-color);
   text-decoration: none;
 }
 
 .agent-text-body .markdown-body :deep(a:hover) {
   text-decoration: underline;
+}
+/* Agent 执行进度条 */
+.agent-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
+.agent-progress-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  animation: progress-pulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.8); }
+}
+
+.agent-progress-step {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-color);
+  flex-shrink: 0;
+}
+
+.agent-progress-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+
+.agent-progress-action {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Agent 工作目录标签栏 */
+.agent-folder-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.agent-folder-label {
+  font-size: 12px;
+  color: var(--text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.agent-folder-hint {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.agent-folder-clear {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.agent-folder-clear:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
 }
 </style>

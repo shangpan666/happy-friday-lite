@@ -149,7 +149,7 @@ $type-colors: (
     z-index: 2;
     transition: opacity 0.2s;
 
-    &.status-success { background: #10b981; }
+    &.status-success { background: var(--success-color); }
 
     &.status-processing {
       background: #f59e0b;

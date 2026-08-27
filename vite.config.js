@@ -16,6 +16,15 @@ export default defineConfig(() => ({
   server: {
     port: 5173,
     strictPort: true,
+    watch: {
+      ignored: [
+        "**/app-data/**",
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/release/**",
+        "**/dist/**",
+      ],
+    },
     hmr: {
       protocol: "ws",
       host: "localhost",

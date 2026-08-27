@@ -10,8 +10,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   invoke(channel, ...args) {
     const validChannels = [
       'get-config',
+      'fetch-provider-models',
       'save-config',
       'get-platform',
+      'get-available-drives',
+      'select-drive',
       'save-file-dialog',
       'open-file-dialog',
       'get_notes',
@@ -132,7 +135,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'harness-start',
       'harness-status',
       'harness-restart',
-      'harness-sync-config'
+      'harness-sync-config',
+      'harness-get-workspace',
+      'harness-open-workspace',
+      'harness-select-workspace',
+      'harness-set-workspace',
+      'pet-get-state',
+      'agent-select-folder',
+      'agent-ask-user-answer',
+      'bridge-get-status',
+      'bridge-qq-qr',
+      'bridge-save-config',
+      'bridge-wechat-start',
+      'bridge-wechat-stop',
+      'bridge-qq-start',
+      'bridge-qq-stop',
+      'bridge-qq-qr',
+      'bridge-napcat-start',
+      'bridge-napcat-stop',
+      'bridge-qqbot-start',
+      'bridge-qqbot-stop',
+      'mobile-get-qr-info',
+      'mobile-start-tunnel',
+      'mobile-stop-tunnel',
+      'mobile-tunnel-status'
     ]
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args)
@@ -175,7 +201,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'agent-tool-approval',
       'automation-updated',
       'kb-directory-changed',
-      'harness-status-changed'
+      'harness-status-changed',
+      'pet-status-changed',
+      'agent-ask-user',
+      'pet-avatar-changed',
+      'bridge-qq-qr',
+      'bridge-napcat-status',
+      'bridge-qqbot-status'
     ]
     if (validChannels.includes(channel)) {
       const subscription = (event, ...args) => callback(...args)

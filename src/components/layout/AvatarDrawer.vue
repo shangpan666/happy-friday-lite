@@ -31,7 +31,8 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Brain, Sparkles, Plug, BarChart3 } from 'lucide-vue-next';
+import { Brain, Sparkles, Plug, BarChart3, Bot } from 'lucide-vue-next';
+import AssistantProfile from './drawer/AssistantProfile.vue';
 import SkillsManagement from './drawer/SkillsManagement.vue';
 import MemoryManagement from './drawer/MemoryManagement.vue';
 import MCPConnection from './drawer/MCPConnection.vue';
@@ -61,6 +62,7 @@ watch(visible, (val) => {
 });
 
 const navItems = computed(() => [
+  { key: 'profile', label: t('drawer.nav.profile'), icon: Bot },
   { key: 'memory', label: t('drawer.nav.memory'), icon: Brain },
   { key: 'skills', label: t('drawer.nav.skills'), icon: Sparkles },
   { key: 'mcp', label: t('drawer.nav.mcp'), icon: Plug },
@@ -68,6 +70,7 @@ const navItems = computed(() => [
 ]);
 
 const componentMap = {
+  profile: AssistantProfile,
   memory: MemoryManagement,
   skills: SkillsManagement,
   mcp: MCPConnection,
@@ -213,7 +216,7 @@ onUnmounted(() => {
 }
 
 .drawer-slide-enter-active {
-  transition: all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .drawer-slide-leave-active {

@@ -3,7 +3,8 @@
     "memory": "记忆管理",
     "skills": "Skills管理",
     "mcp": "MCP连接",
-    "usage": "用量统计"
+    "usage": "用量统计",
+    "profile": "助手资料"
   },
   "skills": {
     "title": "Skills管理",
@@ -21,7 +22,7 @@
     "added": "已添加的 MCP 服务器",
     "emptyAdded": "暂无已添加的 MCP 服务器",
     "localService": "本机 MCP 服务",
-    "localDesc": "将 Happy Friday 的内置工具暴露给本地其他 MCP 客户端调用",
+    "localDesc": "将 Phronesis（斐思）的内置工具暴露给本地其他 MCP 客户端调用",
     "copyJson": "复制 JSON",
     "copied": "已复制",
     "tools": "个工具",
@@ -60,13 +61,13 @@
   },
   "memory": {
     "title": "记忆管理",
-    "fridayCard": "Friday 助手",
-    "fridayName": "Friday",
+    "fridayCard": "斐思 助手",
+    "fridayName": "斐思",
     "name": "姓名",
     "birthDate": "出生日期",
     "fridayBirthDate": "2026.2.7",
     "memoryFiles": "记忆文件",
-    "memoryFilesHint": "Friday 会在对话中读取并更新这些记忆文件",
+    "memoryFilesHint": "斐思 会在对话中读取并更新这些记忆文件",
     "edit": "编辑",
     "editTitle": "编辑记忆文件",
     "editMode": "编辑",
@@ -80,14 +81,27 @@
     "updated": "更新于",
     "files": {
       "SOUL": "灵魂设定",
-      "SOUL_desc": "设定 Friday 说话做事的风格",
+      "SOUL_desc": "设定 斐思 说话做事的风格",
       "USER": "用户档案",
       "USER_desc": "记录用户的习惯与爱好",
       "MEMORY": "长期记忆",
       "MEMORY_desc": "跨会话的重要事实与事件",
       "Agent": "经验技巧",
-      "Agent_desc": "Friday 积累的经验与技巧"
+      "Agent_desc": "斐思 积累的经验与技巧"
     }
+  },
+  "profile": {
+    "title": "助手资料",
+    "avatar": "头像",
+    "avatarHint": "点击头像更换图片",
+    "name": "姓名",
+    "birthDate": "出生日期",
+    "namePlaceholder": "给助手起个名字",
+    "reset": "恢复默认",
+    "resetDone": "已恢复默认",
+    "save": "保存",
+    "saved": "已保存",
+    "saveFailed": "保存失败"
   },
   "comingSoon": "功能开发中，敬请期待",
   "usage": {

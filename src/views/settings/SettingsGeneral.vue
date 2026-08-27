@@ -24,7 +24,7 @@
                   @click="selectTheme(option.value)"
                 >
                   <span>{{ option.label }}</span>
-                  <svg v-if="settings.displayMode === option.value" class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg v-if="settings.displayMode === option.value" class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
@@ -61,7 +61,7 @@
                   @click="selectLanguage(option.value)"
                 >
                   <span>{{ option.label }}</span>
-                  <svg v-if="currentLanguage === option.value" class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg v-if="currentLanguage === option.value" class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
@@ -86,6 +86,41 @@
                 :class="['font-size-option', { active: settings.scheduleDefaultView === 'month' }]"
                 @click="selectScheduleView('month')"
               >{{ t('settings.viewMonth') }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 桌面宠物 -->
+      <div class="settings-group">
+        <div class="group-title">桌面宠物</div>
+        <div class="group-content">
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">显示桌面宠物</span>
+              <span class="item-hint">在桌面上显示悬浮的助手形象，实时展示对话状态，可拖动位置。</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="petEnabled" @change="savePetConfig" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">宠物形象</span>
+              <span class="item-hint">默认使用「助手资料」中设置的头像，也可导入自定义图片。</span>
+            </div>
+            <div class="pet-avatar-actions">
+              <img :src="petAvatarPreview" class="pet-avatar-preview" alt="pet avatar" />
+              <button class="pet-mini-btn" @click="triggerPetAvatarPick">导入</button>
+              <button v-if="petAvatar" class="pet-mini-btn" @click="resetPetAvatar">默认</button>
+              <input
+                ref="petAvatarInputRef"
+                type="file"
+                accept="image/png, image/jpeg, image/webp, image/gif"
+                class="hidden-input"
+                @change="onPetAvatarPicked"
+              />
             </div>
           </div>
         </div>
@@ -239,6 +274,10 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </span>
           </div>
+          <div v-if="backupConfig.enabled && isElectronWin32" class="setting-item">
+            <span class="item-label">{{ t('settings.selectDrive') }}</span>
+            <button class="action-btn" @click="selectDriveForBackup">{{ t('settings.selectDrive') }}</button>
+          </div>
           <div v-if="backupConfig.lastBackupAt" class="setting-item">
             <span class="item-label">{{ t('settings.lastBackupTime') }}</span>
             <span class="item-link">{{ formatBackupTime(backupConfig.lastBackupAt) }}</span>
@@ -246,7 +285,51 @@
         </div>
       </div>
 
-      <!-- 对话历史 -->
+      <!-- DeepSeek Harness 工作区 -->
+      <div class="settings-group">
+        <div class="group-title">{{ t('settings.harnessWorkspace') }}</div>
+        <div class="group-content">
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.harnessWorkspacePath') }}</span>
+              <span class="item-hint">{{ t('settings.harnessWorkspaceHint') }}</span>
+            </div>
+            <span
+              class="item-link harness-workspace-path copyable"
+              :title="t('settings.clickToCopy')"
+              @click="copyHarnessWorkspace"
+            >
+              {{ harnessWorkspace.path || (harnessWorkspace.defaultPath + ' （默认）') }}
+            </span>
+          </div>
+          <div class="setting-item">
+            <span class="item-label">{{ t('settings.harnessWorkspaceAction') }}</span>
+            <div class="setting-item-actions">
+              <button class="action-btn" :disabled="harnessSelecting" @click="selectHarnessWorkspace">
+                {{ harnessSelecting ? t('settings.selecting') : t('settings.selectDir') }}
+              </button>
+              <button v-if="isElectronWin32" class="action-btn" :disabled="harnessSelecting" @click="selectDriveForHarness">
+                {{ t('settings.selectDrive') }}
+              </button>
+              <button class="text-btn" :disabled="harnessSelecting" @click="openHarnessWorkspace">
+                {{ t('settings.openFileManager') }}
+              </button>
+              <button
+                v-if="harnessWorkspace.path"
+                class="text-btn"
+                :disabled="harnessSelecting"
+                @click="resetHarnessWorkspace"
+              >
+                {{ t('settings.resetDefault') }}
+              </button>
+            </div>
+          </div>
+          <div v-if="harnessWorkspaceError" class="setting-item harness-workspace-error">
+            <span class="item-link error-message">{{ harnessWorkspaceError }}</span>
+          </div>
+        </div>
+      </div>
+
       <div class="settings-group">
         <div class="group-title">{{ t('settings.history') }}</div>
         <div class="group-content">
@@ -334,6 +417,98 @@
         </div>
       </div>
 
+      <!-- 直接连接（内嵌微信 / QQ 机器人） -->
+      <div class="settings-group">
+        <div class="group-title">{{ t('settings.direct') }}</div>
+        <div class="group-hint">{{ t('settings.directHint') }}</div>
+        <div class="group-content">
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.directWechat') }}</span>
+              <span class="item-hint">{{ t('settings.directWechatHint') }}</span>
+            </div>
+            <div class="item-action-row">
+              <span class="item-link" :class="wechatOn ? 'python-ok' : 'python-warn'">
+                {{ wechatOn ? t('settings.directConnected') : t('settings.directDisconnected') }}
+              </span>
+              <button v-if="!wechatOn" class="primary-btn" :disabled="directBusy" @click="startWechat">
+                {{ t('settings.directConnect') }}
+              </button>
+              <button v-else class="ghost-btn" :disabled="directBusy" @click="stopWechat">
+                {{ t('settings.directDisconnect') }}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- QQ 官方机器人（开放平台，合规） -->
+      <div class="settings-group">
+        <div class="group-title">{{ t('settings.qqbot') }}</div>
+        <div class="group-hint">{{ t('settings.qqbotHint') }}</div>
+        <div class="group-content">
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.qqbotAppid') }}</span>
+            </div>
+            <div class="item-action-row">
+              <input class="text-input" v-model="qqbotAppid" placeholder="appid" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.qqbotSecret') }}</span>
+            </div>
+            <div class="item-action-row">
+              <input class="text-input" type="password" v-model="qqbotSecret" placeholder="client secret" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.qqbotToken') }}</span>
+            </div>
+            <div class="item-action-row">
+              <input class="text-input" type="password" v-model="qqbotToken" placeholder="bot token（可选）" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.qqbotApiBase') }}</span>
+              <span class="item-hint">{{ t('settings.qqbotApiBaseHint') }}</span>
+            </div>
+            <div class="item-action-row">
+              <input class="text-input" v-model="qqbotApiBase" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.qqbotGateway') }}</span>
+              <span class="item-hint">{{ t('settings.qqbotGatewayHint') }}</span>
+            </div>
+            <div class="item-action-row">
+              <input class="text-input" v-model="qqbotGateway" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">{{ t('settings.qqbotStatus') }}</span>
+            </div>
+            <div class="item-action-row">
+              <span class="item-link" :class="qqbotOn ? 'python-ok' : 'python-warn'">
+                {{ qqbotOn ? t('settings.directConnected') : t('settings.directDisconnected') }}
+              </span>
+              <button v-if="!qqbotOn" class="primary-btn" :disabled="directBusy" @click="startQQBot">
+                {{ t('settings.directConnect') }}
+              </button>
+              <button v-else class="ghost-btn" :disabled="directBusy" @click="stopQQBot">
+                {{ t('settings.directDisconnect') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 关于 -->
       <div class="settings-group">
         <div class="group-title">{{ t('settings.about') }}</div>
@@ -377,7 +552,7 @@
       </div>
     </div>
 
-    <!-- 关于 Happy Friday 弹窗 -->
+    <!-- 关于 Phronesis 弹窗 -->
     <Teleport to="body">
       <div v-if="showAboutModal" class="info-modal-overlay" @click.self="showAboutModal = false">
         <div class="info-modal-container">
@@ -388,10 +563,7 @@
             </svg>
           </button>
           <div class="about-modal-body">
-            <div class="about-logo">
-              <img :src="aboutLogo" alt="Happy Friday" class="about-logo-img" />
-            </div>
-            <h2 class="about-title">Happy Friday</h2>
+            <h2 class="about-title">Phronesis</h2>
             <p class="about-version">{{ t('settings.version') }} {{ appVersion }}</p>
             <p class="about-desc">{{ t('settings.aboutDesc') }}</p>
             <div class="about-links">
@@ -441,91 +613,33 @@
             </svg>
           </button>
 
-          <!-- 渐变 Banner 头部 -->
-          <div class="author-banner">
-            <div class="author-banner-bg"></div>
-            <div class="author-avatar-lg">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-            <h2 class="author-name-lg">Cheney</h2>
-            <div class="author-badges">
-              <span class="author-badge">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                  <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                </svg>
-                浙江工业大学
-              </span>
-              <span class="author-badge">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 21h18"></path>
-                  <path d="M5 21V7l8-4v18"></path>
-                  <path d="M19 21V11l-6-4"></path>
-                </svg>
-                杭州某城商行
-              </span>
-              <a class="author-badge author-badge-link" @click="openAuthorEmail">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                chenjie.plus@qq.com
-              </a>
-            </div>
-          </div>
-
-          <!-- 内容区 -->
           <div class="author-content">
-            <!-- 研究方向 -->
-            <div class="author-block">
-              <div class="author-block-title">
-                <span class="author-block-icon author-icon-research">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                  </svg>
-                </span>
-                <span>研究方向</span>
-              </div>
-              <p class="author-desc">计算机视觉、图像模型攻防</p>
-              <div class="author-tags">
-                <span class="pub-tag pub-tag-aaai">AAAI · 防御知识蒸馏 ×1</span>
-                <span class="pub-tag pub-tag-ccf">CCF-C ×2</span>
-              </div>
-            </div>
+            <h2 class="author-name-lg">暂不透露</h2>
+            <p class="author-subtitle">独立开发者 · Phronesis 作者</p>
 
-            <!-- 分隔线 -->
             <div class="author-divider"></div>
 
-            <!-- 业余爱好 -->
             <div class="author-block">
-              <div class="author-block-title">
-                <span class="author-block-icon author-icon-hobby">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a10 10 0 1 0 10 10"></path>
-                    <path d="M12 6v6l4 2"></path>
-                  </svg>
-                </span>
-                <span>业余爱好</span>
-              </div>
-              <p class="author-desc">大模型应用落地与 Agent Coding，探索 AI 驱动的工程实践。</p>
+              <div class="author-block-title">研究方向</div>
+              <p class="author-desc">大模型应用与智能体（Agent）系统：RAG 检索增强、工具调用与多智能体协作的工程化落地。</p>
             </div>
 
-            <!-- 主页按钮 -->
-            <button class="author-homepage-btn" @click="openAuthorHomepage">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-              </svg>
-              <span>访问作者主页</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="author-divider"></div>
+
+            <div class="author-block">
+              <div class="author-block-title">业余爱好</div>
+              <p class="author-desc">写开源工具和效率软件。</p>
+            </div>
+
+            <div class="author-divider"></div>
+
+            <a class="author-link" @click="openAuthorHomepage">
+              GitHub 项目主页
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -599,6 +713,7 @@ const themeSelectRef = ref(null);
 const showLangDropdown = ref(false);
 const langSelectRef = ref(null);
 let unsubBackupProgress = null;
+let unsubQrPush = null;
 
 const themeOptions = computed(() => [
   { value: 'light', label: t('settings.themeLight') },
@@ -642,6 +757,64 @@ const sidebarModuleCount = sidebarModuleConfig.length;
 
 const runtimeLogsEnabled = ref(true);
 const noteExporting = ref(false);
+
+// ========== 桌面宠物 ==========
+const petEnabled = ref(false);
+const petAvatar = ref(null);
+const assistantAvatar = ref(null);
+const petAvatarInputRef = ref(null);
+const petAvatarPreview = computed(() => petAvatar.value || assistantAvatar.value || `${import.meta.env.BASE_URL}images/icon.png`);
+
+const loadPetSettings = async () => {
+  try {
+    const config = await electronService.invoke('get-config');
+    petEnabled.value = config?.pet?.enabled === true;
+    petAvatar.value = config?.pet?.avatar || null;
+    assistantAvatar.value = config?.assistantProfile?.avatar || null;
+  } catch (_e) {}
+};
+
+const savePetConfig = async () => {
+  try {
+    const config = await electronService.invoke('get-config');
+    config.pet = { ...(config.pet || {}), enabled: petEnabled.value, avatar: petAvatar.value };
+    await electronService.invoke('save-config', config);
+  } catch (e) {
+    console.error('Failed to save pet config:', e);
+  }
+};
+
+const triggerPetAvatarPick = () => petAvatarInputRef.value?.click();
+
+const onPetAvatarPicked = (event) => {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      petAvatar.value = canvas.toDataURL('image/png');
+      savePetConfig();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+const resetPetAvatar = () => {
+  petAvatar.value = null;
+  savePetConfig();
+};
 
 // ========== 通用提示弹窗（替代原生 alert/confirm） ==========
 const dialog = reactive({
@@ -714,9 +887,50 @@ const handleExportAllNotes = async () => {
       await notifyError(t('settings.exportNotesFailed', { exported: result.exported, total: result.total }), { details });
     }
   } catch (e) {
-    await notifyError(t('settings.exportNotesFailed', { exported: 0, total: 0 }), { details: e.message || String(e) });
+    await notifyError(t('settings.directStopFailed') + ': ' + e);
   } finally {
-    noteExporting.value = false;
+    directBusy.value = false;
+  }
+};
+const startQQBot = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  try {
+    await electronService.invoke('bridge-save-config', {
+      qqbot: {
+        appid: qqbotAppid.value,
+        secret: qqbotSecret.value,
+        token: qqbotToken.value,
+        apiBase: qqbotApiBase.value,
+        gatewayUrl: qqbotGateway.value,
+        sandbox: true
+      }
+    });
+    const res = await electronService.invoke('bridge-qqbot-start');
+    if (res?.success) {
+      qqbotOn.value = !!res.status?.qqbot;
+      await notifySuccess(t('settings.qqbotConnected'));
+    } else {
+      await notifyError(t('settings.directStartFailed') + ': ' + (res?.error || ''));
+    }
+  } catch (e) {
+    await notifyError(t('settings.directStartFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
+    await refreshDirectStatus();
+  }
+};
+const stopQQBot = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  try {
+    const res = await electronService.invoke('bridge-qqbot-stop');
+    if (res?.success) qqbotOn.value = false;
+    else await notifyError(t('settings.directStopFailed') + ': ' + (res?.error || ''));
+  } catch (e) {
+    await notifyError(t('settings.directStopFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
   }
 };
 
@@ -809,6 +1023,32 @@ const setBackupInterval = (val) => {
   saveBackupConfig();
 };
 
+// 选择驱动器用于备份目录（Windows 下先选盘符，再选目录）
+const selectDriveForBackup = async () => {
+  if (window.electronAPI?.isElectron && process.platform !== 'win32') {
+    // 非 Windows 直接选目录
+    return selectBackupDir()
+  }
+  try {
+    const driveResult = await electronService.invoke('select-drive')
+    if (!driveResult.success) {
+      if (!driveResult.canceled) {
+        await notifyError(driveResult.error || t('settings.selectDirFailed'))
+      }
+      return
+    }
+    // 选中驱动器后，打开目录选择器
+    const result = await electronService.invoke('backup-select-dir')
+    if (result.success && result.dir) {
+      backupConfig.autoDir = result.dir
+      await saveBackupConfig()
+    }
+  } catch (e) {
+    await notifyError(t('settings.selectDirFailed') + ': ' + e)
+  }
+}
+
+// 直接选择备份目录（非 Windows 或跳过驱动器选择）
 const selectBackupDir = async () => {
   try {
     const result = await electronService.invoke('backup-select-dir');
@@ -862,6 +1102,130 @@ const handleRestore = async () => {
     await notifyError(t('settings.restoreFailed') + ': ' + e);
   } finally {
     backupState.restoring = false;
+  }
+};
+
+// ========== DeepSeek Harness 工作区 ==========
+const harnessWorkspace = reactive({ path: null, defaultPath: '', isCustom: false });
+const harnessSelecting = ref(false);
+const harnessWorkspaceError = ref('');
+
+const loadHarnessWorkspace = async () => {
+  try {
+    const res = await electronService.invoke('harness-get-workspace');
+    if (res) {
+      harnessWorkspace.path = res.path || null;
+      harnessWorkspace.defaultPath = res.defaultPath || '';
+      harnessWorkspace.isCustom = !!res.path;
+    }
+    harnessWorkspaceError.value = '';
+  } catch (e) {
+    console.error('加载 Harness 工作区配置失败:', e);
+  }
+};
+
+// 选择驱动器（Windows 下先选盘符，再选目录）
+const selectDriveForHarness = async () => {
+  if (harnessSelecting.value) return;
+  if (window.electronAPI?.isElectron && process.platform !== 'win32') {
+    // 非 Windows 直接选目录
+    return selectHarnessWorkspace()
+  }
+  harnessSelecting.value = true
+  harnessWorkspaceError.value = ''
+  try {
+    const driveResult = await electronService.invoke('select-drive')
+    if (!driveResult.success) {
+      if (!driveResult.canceled) {
+        harnessWorkspaceError.value = driveResult.error || t('settings.selectDirFailed')
+      }
+      return
+    }
+    // 选中驱动器后，打开目录选择器
+    const result = await electronService.invoke('harness-select-workspace')
+    if (result.success && result.dir) {
+      const saved = await electronService.invoke('harness-set-workspace', { dir: result.dir });
+      if (saved.success) {
+        harnessWorkspace.path = saved.dir || null;
+        harnessWorkspace.isCustom = !!saved.dir;
+        await notifySuccess(t('settings.harnessWorkspaceSaved'));
+      } else {
+        harnessWorkspaceError.value = saved.error || t('settings.unknownError');
+      }
+    } else if (!result.canceled) {
+      harnessWorkspaceError.value = t('settings.selectDirFailed');
+    }
+  } catch (e) {
+    harnessWorkspaceError.value = t('settings.selectDirFailed') + ': ' + e;
+  } finally {
+    harnessSelecting.value = false;
+  }
+};
+
+// 直接选择目录（非 Windows 或跳过驱动器选择）
+const selectHarnessWorkspace = async () => {
+  if (harnessSelecting.value) return;
+  harnessSelecting.value = true;
+  harnessWorkspaceError.value = '';
+  try {
+    const result = await electronService.invoke('harness-select-workspace');
+    if (result.success && result.dir) {
+      const saved = await electronService.invoke('harness-set-workspace', { dir: result.dir });
+      if (saved.success) {
+        harnessWorkspace.path = saved.dir || null;
+        harnessWorkspace.isCustom = !!saved.dir;
+        await notifySuccess(t('settings.harnessWorkspaceSaved'));
+      } else {
+        harnessWorkspaceError.value = saved.error || t('settings.unknownError');
+      }
+    } else if (!result.canceled) {
+      harnessWorkspaceError.value = t('settings.selectDirFailed');
+    }
+  } catch (e) {
+    harnessWorkspaceError.value = t('settings.selectDirFailed') + ': ' + e;
+  } finally {
+    harnessSelecting.value = false;
+  }
+};
+
+const resetHarnessWorkspace = async () => {
+  harnessWorkspaceError.value = '';
+  try {
+    const saved = await electronService.invoke('harness-set-workspace', { dir: null });
+    if (saved.success) {
+      harnessWorkspace.path = null;
+      harnessWorkspace.isCustom = false;
+      await notifySuccess(t('settings.harnessWorkspaceReset'));
+    } else {
+      harnessWorkspaceError.value = saved.error || t('settings.unknownError');
+    }
+  } catch (e) {
+    harnessWorkspaceError.value = t('settings.selectDirFailed') + ': ' + e;
+  }
+};
+
+// 在系统文件管理器中打开当前工作区目录
+const openHarnessWorkspace = async () => {
+  harnessWorkspaceError.value = '';
+  try {
+    const res = await electronService.invoke('harness-open-workspace');
+    if (!res.success) {
+      harnessWorkspaceError.value = res.error || t('settings.openFailed');
+    }
+  } catch (e) {
+    harnessWorkspaceError.value = t('settings.openFailed') + ': ' + e;
+  }
+};
+
+// 点击路径复制完整路径到剪贴板
+const copyHarnessWorkspace = async () => {
+  const p = harnessWorkspace.path || harnessWorkspace.defaultPath;
+  if (!p) return;
+  try {
+    await navigator.clipboard.writeText(p);
+    await notifySuccess(t('settings.pathCopied'));
+  } catch (e) {
+    harnessWorkspaceError.value = t('settings.copyFailed') + ': ' + e;
   }
 };
 
@@ -1295,6 +1659,7 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   document.addEventListener('keydown', handleKeydown);
   initTheme();
+  loadPetSettings();
   settings.displayMode = currentMode.value;
   currentLanguage.value = appStore.language || 'zh-CN';
   electronService.invoke('get-config').then((config) => {
@@ -1305,11 +1670,21 @@ onMounted(() => {
   });
   loadBackupConfig();
   loadHistoryConfig();
+  loadHarnessWorkspace();
   loadRagStats();
   loadPythonStatus();
   // 订阅备份进度事件（主进程 worker 推送）
   if (window.electronAPI) {
     unsubBackupProgress = window.electronAPI.on('backup-progress', handleBackupProgress);
+    // 订阅 QQ 二维码推送（主进程生成后立即发送，不依赖轮询）
+    unsubQrPush = electronService.listen('bridge-qq-qr', ({ payload }) => {
+      qqQrcode.value = payload || null;
+      if (payload) stopQrPoll();
+    });
+    // 订阅 QQ 官方机器人连接状态
+    qqbotStatusUnsub = electronService.listen('bridge-qqbot-status', ({ payload }) => {
+      qqbotOn.value = !!payload;
+    });
   }
 });
 
@@ -1317,6 +1692,9 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   document.removeEventListener('keydown', handleKeydown);
   if (unsubBackupProgress) unsubBackupProgress();
+  if (unsubQrPush) unsubQrPush();
+  if (qqbotStatusUnsub) qqbotStatusUnsub();
+  stopQrPoll();
 });
 
 onDeactivated(() => {
@@ -1333,19 +1711,13 @@ const goToModuleSettings = () => {
 };
 
 // ========== 关于 / 功能介绍 / 帮助与反馈 ==========
-const HELP_URL = 'https://github.com/cheney-plus/happy-friday-electron';
+const HELP_URL = 'https://github.com/shangpan666/friendly-octo-spork';
 
 const showAboutModal = ref(false);
 const showFeaturesModal = ref(false);
 const showAuthorModal = ref(false);
 
 const appVersion = packageJson.version;
-
-const aboutLogo = computed(() => {
-  return appliedTheme.value === 'dark'
-    ? new URL('@/assets/images/friday-b.png', import.meta.url).href
-    : new URL('@/assets/images/friday-w.png', import.meta.url).href;
-});
 
 const features = computed(() => [
   {
@@ -1397,11 +1769,137 @@ const checkForUpdate = () => {
 };
 
 const openAuthorHomepage = () => {
-  electronService.invoke('open-external', 'https://chenjie.blog.csdn.net');
+  electronService.invoke('open-external', 'https://github.com/shangpan666/friendly-octo-spork');
 };
 
-const openAuthorEmail = () => {
-  electronService.invoke('open-external', 'mailto:chenjie.plus@qq.com');
+const isElectronWin32 = computed(
+  () => typeof window !== 'undefined' && !!window.electronAPI?.isElectron && typeof process !== 'undefined' && process.platform === 'win32'
+);
+
+// ========== 直接连接（内嵌微信 / QQ 机器人） ==========
+const wechatOn = ref(false);
+const qqOn = ref(false);
+const directBusy = ref(false);
+const qqQrcode = ref(null);
+const qqPollTimer = null;
+
+// QQ 官方机器人（开放平台，合规）
+const qqbotAppid = ref('');
+const qqbotSecret = ref('');
+const qqbotToken = ref('');
+const qqbotApiBase = ref('https://api.bot.qq.com');
+const qqbotGateway = ref('');
+const qqbotOn = ref(false);
+let qqbotStatusUnsub = null;
+
+const refreshDirectStatus = async () => {
+  try {
+    const status = await electronService.invoke('bridge-get-status');
+    wechatOn.value = !!status?.wechat;
+    qqOn.value = !!status?.qq;
+    if (!qqOn.value) {
+      const qr = await electronService.invoke('bridge-qq-qr');
+      qqQrcode.value = qr?.qrcode || null;
+    } else {
+      qqQrcode.value = null;
+    }
+  } catch (_e) {
+    // 忽略
+  }
+};
+
+const startQrPoll = () => {
+  stopQrPoll();
+  qqPollTimer = setInterval(async () => {
+    try {
+      const status = await electronService.invoke('bridge-get-status');
+      qqOn.value = !!status?.qq;
+      if (qqOn.value) {
+        qqQrcode.value = null;
+        stopQrPoll();
+        return;
+      }
+      const qr = await electronService.invoke('bridge-qq-qr');
+      qqQrcode.value = qr?.qrcode || null;
+    } catch (_e) {
+      // 忽略
+    }
+  }, 1500);
+};
+const stopQrPoll = () => {
+  if (qqPollTimer) {
+    clearInterval(qqPollTimer);
+    qqPollTimer = null;
+  }
+};
+
+const startWechat = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  try {
+    const res = await electronService.invoke('bridge-wechat-start');
+    if (res?.success) {
+      wechatOn.value = !!res.status?.wechat;
+      await notifySuccess(t('settings.directWechatConnected'));
+    } else {
+      await notifyError(t('settings.directStartFailed') + ': ' + (res?.error || ''));
+    }
+  } catch (e) {
+    await notifyError(t('settings.directStartFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
+    await refreshDirectStatus();
+  }
+};
+const stopWechat = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  try {
+    const res = await electronService.invoke('bridge-wechat-stop');
+    if (res?.success) wechatOn.value = false;
+    else await notifyError(t('settings.directStopFailed') + ': ' + (res?.error || ''));
+  } catch (e) {
+    await notifyError(t('settings.directStopFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
+  }
+};
+const startQQ = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  qqQrcode.value = null;
+  try {
+    const res = await electronService.invoke('bridge-qq-start');
+    if (res?.success) {
+      await notifySuccess(t('settings.directQQScanHint'));
+      startQrPoll();
+    } else {
+      await notifyError(t('settings.directStartFailed') + ': ' + (res?.error || ''));
+    }
+  } catch (e) {
+    await notifyError(t('settings.directStartFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
+    await refreshDirectStatus();
+  }
+};
+const stopQQ = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  stopQrPoll();
+  try {
+    const res = await electronService.invoke('bridge-qq-stop');
+    if (res?.success) {
+      qqOn.value = false;
+      qqQrcode.value = null;
+    } else {
+      await notifyError(t('settings.directStopFailed') + ': ' + (res?.error || ''));
+    }
+  } catch (e) {
+    await notifyError(t('settings.directStopFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
+  }
 };
 </script>
 
@@ -1654,7 +2152,7 @@ const openAuthorEmail = () => {
   cursor: pointer;
   inset: 0;
   background-color: var(--text-tertiary);
-  border-radius: 24px;
+  border-radius: 8px;
   transition: background-color 0.25s ease;
 }
 
@@ -1672,7 +2170,7 @@ const openAuthorEmail = () => {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #10b981;
+  background-color: var(--success-color);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -1843,7 +2341,7 @@ const openAuthorEmail = () => {
 .author-modal {
   position: relative;
   background-color: var(--bg-primary);
-  border-radius: 16px;
+  border-radius: 8px;
   width: 90%;
   max-width: 420px;
   max-height: 90vh;
@@ -1859,147 +2357,58 @@ const openAuthorEmail = () => {
   top: 14px;
   right: 14px;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
+  background: none;
   border: none;
   cursor: pointer;
   padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  border-radius: 8px;
-  transition: background-color 0.15s;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .author-modal-close:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
-
-/* Banner 头部 */
-.author-banner {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 24px 24px;
-  overflow: hidden;
-}
-
-.author-banner-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
-}
-
-.author-banner-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
-}
-
-.author-avatar-lg {
-  position: relative;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.author-name-lg {
-  position: relative;
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 12px;
-  letter-spacing: 0.5px;
-}
-
-.author-badges {
-  position: relative;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.author-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 20px;
-  font-size: 12px;
-  color: #fff;
-  font-weight: 500;
-}
-
-.author-badge-link {
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.author-badge-link:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* 内容区 */
 .author-content {
-  padding: 22px 24px 24px;
+  padding: 26px 26px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
 }
 
+.author-name-lg {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.author-subtitle {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  margin: -8px 0 0;
+}
+
 .author-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .author-block-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.author-block-icon {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-
-.author-icon-research {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-}
-
-.author-icon-hobby {
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.5px;
 }
 
 .author-desc {
@@ -2007,69 +2416,26 @@ const openAuthorEmail = () => {
   color: var(--text-secondary);
   line-height: 1.65;
   margin: 0;
-  padding-left: 36px;
-}
-
-.author-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding-left: 36px;
-}
-
-.pub-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-
-.pub-tag-aaai {
-  background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
-}
-
-.pub-tag-ccf {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
 }
 
 .author-divider {
   height: 1px;
   background: var(--border-color);
-  margin: 0 -24px;
+  margin: 0 -26px;
 }
 
-/* 主页按钮 */
-.author-homepage-btn {
-  display: flex;
+.author-link {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #10b981, #3b82f6);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--accent-color);
   cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  align-self: flex-start;
 }
 
-.author-homepage-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-}
-
-.author-homepage-btn:active {
-  transform: translateY(0);
+.author-link:hover {
+  text-decoration: underline;
 }
 
 /* 关于 / 功能介绍 弹窗 */
@@ -2162,17 +2528,6 @@ const openAuthorEmail = () => {
   text-align: center;
 }
 
-.about-logo {
-  margin-bottom: 16px;
-}
-
-.about-logo-img {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  border-radius: 16px;
-}
-
 .about-title {
   font-size: 22px;
   font-weight: 600;
@@ -2200,7 +2555,7 @@ const openAuthorEmail = () => {
 
 .about-link {
   font-size: 13px;
-  color: #10b981;
+  color: var(--accent-color);
   cursor: pointer;
   text-decoration: none;
   transition: opacity 0.15s;
@@ -2220,26 +2575,28 @@ const openAuthorEmail = () => {
 
 .feature-item {
   display: flex;
-  gap: 14px;
-  padding: 14px 14px;
-  border-radius: 10px;
-  transition: background-color 0.15s;
+  gap: 12px;
+  padding: 10px 6px;
 }
 
-.feature-item:hover {
-  background-color: var(--bg-hover);
+.feature-item + .feature-item {
+  border-top: 1px solid var(--border-color);
 }
 
 .feature-icon {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background-color: var(--bg-hover);
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #10b981;
+  color: var(--text-secondary);
+}
+
+.feature-icon svg {
+  width: 17px;
+  height: 17px;
 }
 
 .feature-text {
@@ -2248,16 +2605,86 @@ const openAuthorEmail = () => {
 }
 
 .feature-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .feature-desc {
-  font-size: 13px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* 桌面宠物 */
+.pet-avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pet-avatar-preview {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.pet-mini-btn {
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.pet-mini-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.hidden-input {
+  display: none;
+}
+
+/* Harness 工作区 */
+.harness-workspace-path {
+  max-width: 360px;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.harness-workspace-path.copyable {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.harness-workspace-path.copyable:hover {
+  color: var(--text-primary);
+}
+
+.setting-item-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.harness-workspace-error {
+  padding-top: 0;
+}
+
+.harness-workspace-error .error-message {
+  color: var(--error-color, #e5484d);
+  font-size: 12.5px;
 }
 
 /* 运行日志 */
@@ -2289,12 +2716,12 @@ const openAuthorEmail = () => {
 
 /* Python 环境设置区块 */
 .python-ok {
-  color: #10b981;
+  color: var(--success-color);
   font-weight: 500;
 }
 
 .python-warn {
-  color: #ef4444;
+  color: var(--danger-color);
   font-weight: 500;
 }
 
@@ -2329,7 +2756,7 @@ const openAuthorEmail = () => {
 .backup-progress-fill {
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, #10b981, #34d399);
+  background: var(--success-color);
   transition: width 0.25s ease;
 }
 
@@ -2357,7 +2784,7 @@ const openAuthorEmail = () => {
 
 .appdlg-card {
   background: var(--bg-primary);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 30px 30px 22px;
   width: 400px;
   max-width: 90vw;
@@ -2375,7 +2802,7 @@ const openAuthorEmail = () => {
 .appdlg-icon {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2384,28 +2811,24 @@ const openAuthorEmail = () => {
 }
 
 .appdlg-card.is-success .appdlg-icon {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(16, 185, 129, 0.07));
-  color: #10b981;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12);
+  background: rgba(26, 127, 55, 0.1);
+  color: var(--success-color);
 }
 
 .appdlg-card.is-error .appdlg-icon {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(239, 68, 68, 0.07));
-  color: #ef4444;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);
+  background: rgba(207, 34, 46, 0.1);
+  color: var(--danger-color);
 }
 
 .appdlg-card.is-warning .appdlg-icon,
 .appdlg-card.is-confirm .appdlg-icon {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0.07));
-  color: #f59e0b;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);
+  background: rgba(154, 103, 0, 0.1);
+  color: var(--warning-color);
 }
 
 .appdlg-card.is-info .appdlg-icon {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(59, 130, 246, 0.07));
-  color: #3b82f6;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
+  background: var(--accent-light);
+  color: var(--accent-color);
 }
 
 .appdlg-title {
@@ -2477,38 +2900,33 @@ const openAuthorEmail = () => {
 }
 
 .appdlg-confirm {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--success-color);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
 }
 
 .appdlg-confirm:hover {
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-  transform: translateY(-1px);
+  filter: brightness(0.95);
 }
 
 .is-error .appdlg-confirm {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
+  background: var(--danger-color);
 }
 .is-error .appdlg-confirm:hover {
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+  filter: brightness(0.95);
 }
 
 .is-warning .appdlg-confirm {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+  background: var(--warning-color);
 }
 .is-warning .appdlg-confirm:hover {
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  filter: brightness(0.95);
 }
 
 .is-confirm .appdlg-confirm {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+  background: var(--accent-color);
 }
 .is-confirm .appdlg-confirm:hover {
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+  filter: brightness(0.95);
 }
 
 [data-theme='dark'] .appdlg-card {
@@ -2525,7 +2943,7 @@ const openAuthorEmail = () => {
 }
 
 .appdlg-scale-enter-active {
-  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.28s cubic-bezier(0.2, 0, 0, 1);
 }
 .appdlg-scale-leave-active {
   transition: all 0.16s ease;

@@ -10,6 +10,15 @@
  *   3. 完成，Agent 启动时自动加载
  */
 
+// 思考规划工具（think：复杂任务的规划与自我梳理）
+import './builtin/think.js'
+
+// 选项提问工具（ask_user：结构化问题 + 选项点选）
+import './builtin/askUser.js'
+
+// 内置浏览器工具（browser_*：导航/快照/控制台/点击/输入/执行 JS/截图）
+import './builtin/browser.js'
+
 // 知识库检索工具
 import './builtin/knowledgeBase.js'
 

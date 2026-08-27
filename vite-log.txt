@@ -1,0 +1,1484 @@
+npm warn Unknown project config "electron_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "electron_builder_binaries_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> happy-friday-lite@2.1.8 dev
+> vite
+
+
+  [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m1623[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+X [ERROR] Could not resolve "./icons/arrow-down-a-z.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:13:179:
+      13 │ ..., default as LucideArrowDownAz } from './icons/arrow-down-a-z.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-wide-narrow.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:14:194:
+      14 │ ...efault as SortDescIcon } from './icons/arrow-down-wide-narrow.js';
+         ╵                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-z-a.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:15:179:
+      15 │ ..., default as LucideArrowDownZa } from './icons/arrow-down-z-a.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/captions.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:26:164:
+      26 │ ... Subtitles, default as SubtitlesIcon } from './icons/captions.js';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-area.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:27:167:
+      27 │ ...aChart, default as LucideChartArea } from './icons/chart-area.js';
+         ╵                                              ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-bar-big.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:28:209:
+      28 │ ...g, default as LucideChartBarBig } from './icons/chart-bar-big.js';
+         ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-bar.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:29:191:
+      29 │ ...rizontal, default as LucideChartBar } from './icons/chart-bar.js';
+         ╵                                               ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-candlestick.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:30:209:
+      30 │ ...t as LucideChartCandlestick } from './icons/chart-candlestick.js';
+         ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-column-increasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:31:203:
+      31 │ ...ChartColumnIncreasing } from './icons/chart-column-increasing.js';
+         ╵                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-column.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:32:173:
+      32 │ ...t3, default as LucideChartColumn } from './icons/chart-column.js';
+         ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-column-big.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:33:188:
+      33 │ ...ault as LucideChartColumnBig } from './icons/chart-column-big.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:34:167:
+      34 │ ...rtLine, default as LucideLineChart } from './icons/chart-line.js';
+         ╵                                              ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-no-axes-column-increasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:35:218:
+      35 │ ...umnIncreasing } from './icons/chart-no-axes-column-increasing.js';
+         ╵                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-no-axes-column.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:36:191:
+      36 │ ... LucideChartNoAxesColumn } from './icons/chart-no-axes-column.js';
+         ╵                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-no-axes-gantt.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:37:191:
+      37 │ ...fault as LucideGanttChart } from './icons/chart-no-axes-gantt.js';
+         ╵                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-pie.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:38:161:
+      38 │ ...s PieChart, default as PieChartIcon } from './icons/chart-pie.js';
+         ╵                                               ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-scatter.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:39:185:
+      39 │ ...rt, default as ScatterChartIcon } from './icons/chart-scatter.js';
+         ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chromium.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:40:155:
+      40 │ ...ideChrome, default as LucideChromium } from './icons/chromium.js';
+         ╵                                                ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/circle-alert.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:41:179:
+      41 │ ...le, default as LucideCircleAlert } from './icons/circle-alert.js';
+         ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/circle-arrow-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:42:203:
+      42 │ ...lt as LucideCircleArrowDown } from './icons/circle-arrow-down.js';
+         ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/circle-arrow-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:43:203:
+      43 │ ...lt as LucideCircleArrowLeft } from './icons/circle-arrow-left.js';
+         ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-big-right-dash.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:298:115:
+      298 │ ...LucideArrowBigRightDash } from './icons/arrow-big-right-dash.js';
+          ╵                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-big-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:299:103:
+      299 │ ...fault as LucideArrowBigRight } from './icons/arrow-big-right.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-big-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:300:94:
+      300 │ ...on, default as LucideArrowBigUp } from './icons/arrow-big-up.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-big-up-dash.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:301:106:
+      301 │ ...lt as LucideArrowBigUpDash } from './icons/arrow-big-up-dash.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-from-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:302:115:
+      302 │ ...LucideArrowDownFromLine } from './icons/arrow-down-from-line.js';
+          ╵                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:303:103:
+      303 │ ...fault as LucideArrowDownLeft } from './icons/arrow-down-left.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-narrow-wide.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:304:121:
+      304 │ ...deArrowDownNarrowWide } from './icons/arrow-down-narrow-wide.js';
+          ╵                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:305:106:
+      305 │ ...ult as LucideArrowDownRight } from './icons/arrow-down-right.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-to-dot.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:306:106:
+      306 │ ...lt as LucideArrowDownToDot } from './icons/arrow-down-to-dot.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-to-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:307:109:
+      307 │ ... as LucideArrowDownToLine } from './icons/arrow-down-to-line.js';
+          ╵                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:308:97:
+      308 │ ..., default as LucideArrowDownUp } from './icons/arrow-down-up.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:309:91:
+      309 │ ...nIcon, default as LucideArrowDown } from './icons/arrow-down.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-left-from-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:310:115:
+      310 │ ...LucideArrowLeftFromLine } from './icons/arrow-left-from-line.js';
+          ╵                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-left-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:311:106:
+      311 │ ...ult as LucideArrowLeftRight } from './icons/arrow-left-right.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-left-to-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:312:109:
+      312 │ ... as LucideArrowLeftToLine } from './icons/arrow-left-to-line.js';
+          ╵                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-arrow-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:475:115:
+      475 │ ... LucideCalendarArrowDown } from './icons/calendar-arrow-down.js';
+          ╵                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-arrow-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:476:109:
+      476 │ ...t as LucideCalendarArrowUp } from './icons/calendar-arrow-up.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-check-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:477:106:
+      477 │ ...ult as LucideCalendarCheck2 } from './icons/calendar-check-2.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-check.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:478:103:
+      478 │ ...efault as LucideCalendarCheck } from './icons/calendar-check.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-clock.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:479:103:
+      479 │ ...efault as LucideCalendarClock } from './icons/calendar-clock.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-cog.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:480:97:
+      480 │ ...n, default as LucideCalendarCog } from './icons/calendar-cog.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-days.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:481:100:
+      481 │ ... default as LucideCalendarDays } from './icons/calendar-days.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-fold.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:482:100:
+      482 │ ... default as LucideCalendarFold } from './icons/calendar-fold.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-heart.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:483:103:
+      483 │ ...efault as LucideCalendarHeart } from './icons/calendar-heart.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-minus-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:484:106:
+      484 │ ...ult as LucideCalendarMinus2 } from './icons/calendar-minus-2.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-minus.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:485:103:
+      485 │ ...efault as LucideCalendarMinus } from './icons/calendar-minus.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:486:97:
+      486 │ ...n, default as LucideCalendarOff } from './icons/calendar-off.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-plus-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:487:103:
+      487 │ ...fault as LucideCalendarPlus2 } from './icons/calendar-plus-2.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-plus.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:488:100:
+      488 │ ... default as LucideCalendarPlus } from './icons/calendar-plus.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-range.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:489:103:
+      489 │ ...efault as LucideCalendarRange } from './icons/calendar-range.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-search.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:490:106:
+      490 │ ...ault as LucideCalendarSearch } from './icons/calendar-search.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-sync.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:491:100:
+      491 │ ... default as LucideCalendarSync } from './icons/calendar-sync.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-x-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:492:94:
+      492 │ ...on, default as LucideCalendarX2 } from './icons/calendar-x-2.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:493:88:
+      493 │ ...ndarIcon, default as LucideCalendar } from './icons/calendar.js';
+          ╵                                               ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendar-x.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:494:91:
+      494 │ ...XIcon, default as LucideCalendarX } from './icons/calendar-x.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/calendars.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:495:91:
+      495 │ ...rsIcon, default as LucideCalendars } from './icons/calendars.js';
+          ╵                                              ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/camera.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:496:82:
+      496 │ ...s CameraIcon, default as LucideCamera } from './icons/camera.js';
+          ╵                                                 ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/camera-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:497:91:
+      497 │ ...fIcon, default as LucideCameraOff } from './icons/camera-off.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/candy-cane.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:498:91:
+      498 │ ...eIcon, default as LucideCandyCane } from './icons/candy-cane.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/candy-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:499:88:
+      499 │ ...OffIcon, default as LucideCandyOff } from './icons/candy-off.js';
+          ╵                                              ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/candy.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:500:79:
+      500 │ ...t as CandyIcon, default as LucideCandy } from './icons/candy.js';
+          ╵                                                  ~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cannabis-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:501:97:
+      501 │ ...n, default as LucideCannabisOff } from './icons/cannabis-off.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cannabis.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:502:88:
+      502 │ ...abisIcon, default as LucideCannabis } from './icons/cannabis.js';
+          ╵                                               ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/captions-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:503:97:
+      503 │ ...n, default as LucideCaptionsOff } from './icons/captions-off.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/car-front.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:504:88:
+      504 │ ...ontIcon, default as LucideCarFront } from './icons/car-front.js';
+          ╵                                              ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/car-taxi-front.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:505:100:
+      505 │ ...default as LucideCarTaxiFront } from './icons/car-taxi-front.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/car.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:506:73:
+      506 │ ...default as CarIcon, default as LucideCar } from './icons/car.js';
+          ╵                                                    ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/caravan.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:507:85:
+      507 │ ...aravanIcon, default as LucideCaravan } from './icons/caravan.js';
+          ╵                                                ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/card-sim.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:508:85:
+      508 │ ...rdSimIcon, default as LucideCardSim } from './icons/card-sim.js';
+          ╵                                               ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/carrot.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:509:82:
+      509 │ ...s CarrotIcon, default as LucideCarrot } from './icons/carrot.js';
+          ╵                                                 ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/case-lower.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:510:91:
+      510 │ ...rIcon, default as LucideCaseLower } from './icons/case-lower.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/case-sensitive.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:511:103:
+      511 │ ...efault as LucideCaseSensitive } from './icons/case-sensitive.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/case-upper.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:512:91:
+      512 │ ...rIcon, default as LucideCaseUpper } from './icons/case-upper.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cassette-tape.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:513:100:
+      513 │ ... default as LucideCassetteTape } from './icons/cassette-tape.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cast.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:514:76:
+      514 │ ...ault as CastIcon, default as LucideCast } from './icons/cast.js';
+          ╵                                                   ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/castle.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:515:82:
+      515 │ ...s CastleIcon, default as LucideCastle } from './icons/castle.js';
+          ╵                                                 ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cat.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:516:73:
+      516 │ ...default as CatIcon, default as LucideCat } from './icons/cat.js';
+          ╵                                                    ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cctv-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:517:85:
+      517 │ ...tvOffIcon, default as LucideCctvOff } from './icons/cctv-off.js';
+          ╵                                               ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cctv.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:518:76:
+      518 │ ...ault as CctvIcon, default as LucideCctv } from './icons/cctv.js';
+          ╵                                                   ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-bar-decreasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:519:118:
+      519 │ ...ucideChartBarDecreasing } from './icons/chart-bar-decreasing.js';
+          ╵                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-bar-increasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:520:118:
+      520 │ ...ucideChartBarIncreasing } from './icons/chart-bar-increasing.js';
+          ╵                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-bar-stacked.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:521:109:
+      521 │ ...t as LucideChartBarStacked } from './icons/chart-bar-stacked.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-column-decreasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:522:127:
+      522 │ ...hartColumnDecreasing } from './icons/chart-column-decreasing.js';
+          ╵                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-column-stacked.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:523:118:
+      523 │ ...ucideChartColumnStacked } from './icons/chart-column-stacked.js';
+          ╵                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-network.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:524:100:
+      524 │ ... default as LucideChartNetwork } from './icons/chart-network.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-gantt.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:525:94:
+      525 │ ...con, default as LucideChartGantt } from './icons/chart-gantt.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-no-axes-column-decreasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:526:145:
+      526 │ ...mnDecreasing } from './icons/chart-no-axes-column-decreasing.js';
+          ╵                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-no-axes-combined.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:527:121:
+      527 │ ...deChartNoAxesCombined } from './icons/chart-no-axes-combined.js';
+          ╵                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chart-spline.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:528:97:
+      528 │ ...n, default as LucideChartSpline } from './icons/chart-spline.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/check-check.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:529:94:
+      529 │ ...con, default as LucideCheckCheck } from './icons/check-check.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/check-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:530:91:
+      530 │ ...eIcon, default as LucideCheckLine } from './icons/check-line.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chef-hat.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:531:85:
+      531 │ ...efHatIcon, default as LucideChefHat } from './icons/chef-hat.js';
+          ╵                                               ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/check.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:532:79:
+      532 │ ...t as CheckIcon, default as LucideCheck } from './icons/check.js';
+          ╵                                                  ~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cherry.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:533:82:
+      533 │ ...s CherryIcon, default as LucideCherry } from './icons/cherry.js';
+          ╵                                                 ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chess-bishop.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:534:97:
+      534 │ ...n, default as LucideChessBishop } from './icons/chess-bishop.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chess-king.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:535:91:
+      535 │ ...gIcon, default as LucideChessKing } from './icons/chess-king.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chess-knight.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:536:97:
+      536 │ ...n, default as LucideChessKnight } from './icons/chess-knight.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chess-pawn.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:537:91:
+      537 │ ...nIcon, default as LucideChessPawn } from './icons/chess-pawn.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chess-queen.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:538:94:
+      538 │ ...con, default as LucideChessQueen } from './icons/chess-queen.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chess-rook.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:539:91:
+      539 │ ...kIcon, default as LucideChessRook } from './icons/chess-rook.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevron-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:540:97:
+      540 │ ...n, default as LucideChevronDown } from './icons/chevron-down.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevron-first.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:541:100:
+      541 │ ... default as LucideChevronFirst } from './icons/chevron-first.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevron-last.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:542:97:
+      542 │ ...n, default as LucideChevronLast } from './icons/chevron-last.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevron-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:543:97:
+      543 │ ...n, default as LucideChevronLeft } from './icons/chevron-left.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevron-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:544:100:
+      544 │ ... default as LucideChevronRight } from './icons/chevron-right.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevron-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:545:91:
+      545 │ ...pIcon, default as LucideChevronUp } from './icons/chevron-up.js';
+          ╵                                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-down-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:546:106:
+      546 │ ...ult as LucideChevronsDownUp } from './icons/chevrons-down-up.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:547:100:
+      547 │ ... default as LucideChevronsDown } from './icons/chevrons-down.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-left-right-ellipsis.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:548:139:
+      548 │ ...ftRightEllipsis } from './icons/chevrons-left-right-ellipsis.js';
+          ╵                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-left-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:549:115:
+      549 │ ... LucideChevronsLeftRight } from './icons/chevrons-left-right.js';
+          ╵                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:550:100:
+      550 │ ... default as LucideChevronsLeft } from './icons/chevrons-left.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-right-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:551:115:
+      551 │ ... LucideChevronsRightLeft } from './icons/chevrons-right-left.js';
+          ╵                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:552:103:
+      552 │ ...efault as LucideChevronsRight } from './icons/chevrons-right.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-up-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:553:106:
+      553 │ ...ult as LucideChevronsUpDown } from './icons/chevrons-up-down.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/chevrons-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:554:94:
+      554 │ ...con, default as LucideChevronsUp } from './icons/chevrons-up.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/church.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:555:82:
+      555 │ ...s ChurchIcon, default as LucideChurch } from './icons/church.js';
+          ╵                                                 ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cigarette-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:556:100:
+      556 │ ... default as LucideCigaretteOff } from './icons/cigarette-off.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/cigarette.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:557:91:
+      557 │ ...teIcon, default as LucideCigarette } from './icons/cigarette.js';
+          ╵                                              ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-0-1.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:1710:97:
+      1710 │ ...default as LucideArrowDown01 } from './icons/arrow-down-0-1.js';
+           ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./icons/arrow-down-1-0.js"
+
+    node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:1711:97:
+      1711 │ ...default as LucideArrowDown10 } from './icons/arrow-down-1-0.js';
+           ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-big-right-dash.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:65:45:
+      65 │ ...{ default as ArrowBigRightDash } from './arrow-big-right-dash.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-big-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:66:41:
+      66 │ export { default as ArrowBigRight } from './arrow-big-right.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-big-up-dash.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:67:42:
+      67 │ export { default as ArrowBigUpDash } from './arrow-big-up-dash.js';
+         ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-big-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:68:38:
+      68 │ export { default as ArrowBigUp } from './arrow-big-up.js';
+         ╵                                       ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-0-1.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:69:39:
+      69 │ export { default as ArrowDown01 } from './arrow-down-0-1.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-1-0.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:70:39:
+      70 │ export { default as ArrowDown10 } from './arrow-down-1-0.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-a-z.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:71:39:
+      71 │ export { default as ArrowDownAZ } from './arrow-down-a-z.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-from-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:72:45:
+      72 │ ...{ default as ArrowDownFromLine } from './arrow-down-from-line.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:73:41:
+      73 │ export { default as ArrowDownLeft } from './arrow-down-left.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-narrow-wide.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:74:47:
+      74 │ ...fault as ArrowDownNarrowWide } from './arrow-down-narrow-wide.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-to-dot.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:75:42:
+      75 │ export { default as ArrowDownToDot } from './arrow-down-to-dot.js';
+         ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:76:42:
+      76 │ export { default as ArrowDownRight } from './arrow-down-right.js';
+         ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-to-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:77:43:
+      77 │ export { default as ArrowDownToLine } from './arrow-down-to-line.js';
+         ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:78:39:
+      78 │ export { default as ArrowDownUp } from './arrow-down-up.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-wide-narrow.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:79:47:
+      79 │ ...fault as ArrowDownWideNarrow } from './arrow-down-wide-narrow.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down-z-a.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:80:39:
+      80 │ export { default as ArrowDownZA } from './arrow-down-z-a.js';
+         ╵                                        ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:81:37:
+      81 │ export { default as ArrowDown } from './arrow-down.js';
+         ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-left-from-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:82:45:
+      82 │ ...{ default as ArrowLeftFromLine } from './arrow-left-from-line.js';
+         ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-left-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:83:42:
+      83 │ export { default as ArrowLeftRight } from './arrow-left-right.js';
+         ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./arrow-left-to-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:84:43:
+      84 │ export { default as ArrowLeftToLine } from './arrow-left-to-line.js';
+         ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-arrow-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:259:45:
+      259 │ ...{ default as CalendarArrowDown } from './calendar-arrow-down.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-arrow-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:260:43:
+      260 │ export { default as CalendarArrowUp } from './calendar-arrow-up.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-check-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:261:42:
+      261 │ export { default as CalendarCheck2 } from './calendar-check-2.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-check.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:262:41:
+      262 │ export { default as CalendarCheck } from './calendar-check.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-cog.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:263:39:
+      263 │ export { default as CalendarCog } from './calendar-cog.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-clock.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:264:41:
+      264 │ export { default as CalendarClock } from './calendar-clock.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-days.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:265:40:
+      265 │ export { default as CalendarDays } from './calendar-days.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-fold.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:266:40:
+      266 │ export { default as CalendarFold } from './calendar-fold.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-heart.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:267:41:
+      267 │ export { default as CalendarHeart } from './calendar-heart.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-minus-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:268:42:
+      268 │ export { default as CalendarMinus2 } from './calendar-minus-2.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-minus.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:269:41:
+      269 │ export { default as CalendarMinus } from './calendar-minus.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:270:39:
+      270 │ export { default as CalendarOff } from './calendar-off.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-plus-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:271:41:
+      271 │ export { default as CalendarPlus2 } from './calendar-plus-2.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-plus.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:272:40:
+      272 │ export { default as CalendarPlus } from './calendar-plus.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-range.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:273:41:
+      273 │ export { default as CalendarRange } from './calendar-range.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-search.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:274:42:
+      274 │ export { default as CalendarSearch } from './calendar-search.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-sync.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:275:40:
+      275 │ export { default as CalendarSync } from './calendar-sync.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-x-2.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:276:38:
+      276 │ export { default as CalendarX2 } from './calendar-x-2.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar-x.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:277:37:
+      277 │ export { default as CalendarX } from './calendar-x.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendar.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:278:36:
+      278 │ export { default as Calendar } from './calendar.js';
+          ╵                                     ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./calendars.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:279:37:
+      279 │ export { default as Calendars } from './calendars.js';
+          ╵                                      ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./camera-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:280:37:
+      280 │ export { default as CameraOff } from './camera-off.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./camera.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:281:34:
+      281 │ export { default as Camera } from './camera.js';
+          ╵                                   ~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./candy-cane.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:282:37:
+      282 │ export { default as CandyCane } from './candy-cane.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./candy-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:283:36:
+      283 │ export { default as CandyOff } from './candy-off.js';
+          ╵                                     ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./candy.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:284:33:
+      284 │ export { default as Candy } from './candy.js';
+          ╵                                  ~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cannabis-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:285:39:
+      285 │ export { default as CannabisOff } from './cannabis-off.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cannabis.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:286:36:
+      286 │ export { default as Cannabis } from './cannabis.js';
+          ╵                                     ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./captions.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:287:36:
+      287 │ export { default as Captions } from './captions.js';
+          ╵                                     ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./captions-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:288:39:
+      288 │ export { default as CaptionsOff } from './captions-off.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./car-front.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:289:36:
+      289 │ export { default as CarFront } from './car-front.js';
+          ╵                                     ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./car-taxi-front.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:290:40:
+      290 │ export { default as CarTaxiFront } from './car-taxi-front.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./car.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:291:31:
+      291 │ export { default as Car } from './car.js';
+          ╵                                ~~~~~~~~~~
+
+X [ERROR] Could not resolve "./caravan.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:292:35:
+      292 │ export { default as Caravan } from './caravan.js';
+          ╵                                    ~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./card-sim.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:293:35:
+      293 │ export { default as CardSim } from './card-sim.js';
+          ╵                                    ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./carrot.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:294:34:
+      294 │ export { default as Carrot } from './carrot.js';
+          ╵                                   ~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./case-lower.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:295:37:
+      295 │ export { default as CaseLower } from './case-lower.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./case-sensitive.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:296:41:
+      296 │ export { default as CaseSensitive } from './case-sensitive.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./case-upper.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:297:37:
+      297 │ export { default as CaseUpper } from './case-upper.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cassette-tape.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:298:40:
+      298 │ export { default as CassetteTape } from './cassette-tape.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./castle.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:299:34:
+      299 │ export { default as Castle } from './castle.js';
+          ╵                                   ~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cat.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:300:31:
+      300 │ export { default as Cat } from './cat.js';
+          ╵                                ~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cast.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:301:32:
+      301 │ export { default as Cast } from './cast.js';
+          ╵                                 ~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cctv-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:302:35:
+      302 │ export { default as CctvOff } from './cctv-off.js';
+          ╵                                    ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cctv.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:303:32:
+      303 │ export { default as Cctv } from './cctv.js';
+          ╵                                 ~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-area.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:304:37:
+      304 │ export { default as ChartArea } from './chart-area.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-bar-big.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:305:39:
+      305 │ export { default as ChartBarBig } from './chart-bar-big.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-bar-increasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:306:46:
+      306 │ ...default as ChartBarIncreasing } from './chart-bar-increasing.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-bar-decreasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:307:46:
+      307 │ ...default as ChartBarDecreasing } from './chart-bar-decreasing.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-bar.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:308:36:
+      308 │ export { default as ChartBar } from './chart-bar.js';
+          ╵                                     ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-bar-stacked.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:309:43:
+      309 │ export { default as ChartBarStacked } from './chart-bar-stacked.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-candlestick.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:310:44:
+      310 │ ...rt { default as ChartCandlestick } from './chart-candlestick.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-column-big.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:311:42:
+      311 │ export { default as ChartColumnBig } from './chart-column-big.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-column-increasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:312:49:
+      312 │ ...t as ChartColumnIncreasing } from './chart-column-increasing.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-column-decreasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:313:49:
+      313 │ ...t as ChartColumnDecreasing } from './chart-column-decreasing.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-column-stacked.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:314:46:
+      314 │ ...default as ChartColumnStacked } from './chart-column-stacked.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-column.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:315:39:
+      315 │ export { default as ChartColumn } from './chart-column.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-gantt.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:316:38:
+      316 │ export { default as ChartGantt } from './chart-gantt.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:317:37:
+      317 │ export { default as ChartLine } from './chart-line.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-network.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:318:40:
+      318 │ export { default as ChartNetwork } from './chart-network.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-no-axes-column-decreasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:319:55:
+      319 │ ...esColumnDecreasing } from './chart-no-axes-column-decreasing.js';
+          ╵                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-no-axes-column-increasing.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:320:55:
+      320 │ ...esColumnIncreasing } from './chart-no-axes-column-increasing.js';
+          ╵                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-no-axes-combined.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:321:47:
+      321 │ ...ault as ChartNoAxesCombined } from './chart-no-axes-combined.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-no-axes-column.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:322:45:
+      322 │ ... default as ChartNoAxesColumn } from './chart-no-axes-column.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-no-axes-gantt.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:323:44:
+      323 │ ... { default as ChartNoAxesGantt } from './chart-no-axes-gantt.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-scatter.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:324:40:
+      324 │ export { default as ChartScatter } from './chart-scatter.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-pie.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:325:36:
+      325 │ export { default as ChartPie } from './chart-pie.js';
+          ╵                                     ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chart-spline.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:326:39:
+      326 │ export { default as ChartSpline } from './chart-spline.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./check-check.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:327:38:
+      327 │ export { default as CheckCheck } from './check-check.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./check-line.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:328:37:
+      328 │ export { default as CheckLine } from './check-line.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./check.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:329:33:
+      329 │ export { default as Check } from './check.js';
+          ╵                                  ~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chef-hat.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:330:35:
+      330 │ export { default as ChefHat } from './chef-hat.js';
+          ╵                                    ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cherry.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:331:34:
+      331 │ export { default as Cherry } from './cherry.js';
+          ╵                                   ~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chess-bishop.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:332:39:
+      332 │ export { default as ChessBishop } from './chess-bishop.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chess-king.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:333:37:
+      333 │ export { default as ChessKing } from './chess-king.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chess-knight.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:334:39:
+      334 │ export { default as ChessKnight } from './chess-knight.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chess-pawn.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:335:37:
+      335 │ export { default as ChessPawn } from './chess-pawn.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chess-queen.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:336:38:
+      336 │ export { default as ChessQueen } from './chess-queen.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chess-rook.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:337:37:
+      337 │ export { default as ChessRook } from './chess-rook.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevron-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:338:39:
+      338 │ export { default as ChevronDown } from './chevron-down.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevron-first.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:339:40:
+      339 │ export { default as ChevronFirst } from './chevron-first.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevron-last.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:340:39:
+      340 │ export { default as ChevronLast } from './chevron-last.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevron-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:341:39:
+      341 │ export { default as ChevronLeft } from './chevron-left.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevron-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:342:40:
+      342 │ export { default as ChevronRight } from './chevron-right.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevron-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:343:37:
+      343 │ export { default as ChevronUp } from './chevron-up.js';
+          ╵                                      ~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-down-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:344:42:
+      344 │ export { default as ChevronsDownUp } from './chevrons-down-up.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:345:40:
+      345 │ export { default as ChevronsDown } from './chevrons-down.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-left-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:346:45:
+      346 │ ...{ default as ChevronsLeftRight } from './chevrons-left-right.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-left-right-ellipsis.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:347:53:
+      347 │ ...ronsLeftRightEllipsis } from './chevrons-left-right-ellipsis.js';
+          ╵                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:348:40:
+      348 │ export { default as ChevronsLeft } from './chevrons-left.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-right-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:349:45:
+      349 │ ...{ default as ChevronsRightLeft } from './chevrons-right-left.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-up-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:350:42:
+      350 │ export { default as ChevronsUpDown } from './chevrons-up-down.js';
+          ╵                                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-right.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:351:41:
+      351 │ export { default as ChevronsRight } from './chevrons-right.js';
+          ╵                                          ~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chevrons-up.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:352:38:
+      352 │ export { default as ChevronsUp } from './chevrons-up.js';
+          ╵                                       ~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./chromium.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:353:36:
+      353 │ export { default as Chromium } from './chromium.js';
+          ╵                                     ~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./church.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:354:34:
+      354 │ export { default as Church } from './church.js';
+          ╵                                   ~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cigarette-off.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:355:40:
+      355 │ export { default as CigaretteOff } from './cigarette-off.js';
+          ╵                                         ~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./cigarette.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:356:37:
+      356 │ export { default as Cigarette } from './cigarette.js';
+          ╵                                      ~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./circle-alert.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:357:39:
+      357 │ export { default as CircleAlert } from './circle-alert.js';
+          ╵                                        ~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./circle-arrow-down.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:358:43:
+      358 │ export { default as CircleArrowDown } from './circle-arrow-down.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+X [ERROR] Could not resolve "./circle-arrow-left.js"
+
+    node_modules/lucide-vue-next/dist/esm/icons/index.js:359:43:
+      359 │ export { default as CircleArrowLeft } from './circle-arrow-left.js';
+          ╵                                            ~~~~~~~~~~~~~~~~~~~~~~~~
+
+D:\ai agent\Ai agent\happy-friday-lite\node_modules\esbuild\lib\main.js:1467
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 242 errors:
+node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:13:179: ERROR: Could not resolve "./icons/arrow-down-a-z.js"
+node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:14:194: ERROR: Could not resolve "./icons/arrow-down-wide-narrow.js"
+node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:15:179: ERROR: Could not resolve "./icons/arrow-down-z-a.js"
+node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:26:164: ERROR: Could not resolve "./icons/captions.js"
+node_modules/lucide-vue-next/dist/esm/lucide-vue-next.js:27:167: ERROR: Could not resolve "./icons/chart-area.js"
+...
+    at failureErrorWithLog (D:\ai agent\Ai agent\happy-friday-lite\node_modules\esbuild\lib\main.js:1467:15)
+    at D:\ai agent\Ai agent\happy-friday-lite\node_modules\esbuild\lib\main.js:926:25
+    at D:\ai agent\Ai agent\happy-friday-lite\node_modules\esbuild\lib\main.js:1345:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v24.19.0

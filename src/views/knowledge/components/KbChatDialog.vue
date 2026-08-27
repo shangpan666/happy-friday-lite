@@ -513,7 +513,7 @@ onUnmounted(() => {
   height: 80vh;
   max-height: 800px;
   background: var(--bg-primary, #ffffff);
-  border-radius: 20px;
+  border-radius: 8px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
@@ -550,7 +550,7 @@ onUnmounted(() => {
 
   &.icon-kb {
     background: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    color: var(--success-color);
   }
 
   &.icon-folder {
@@ -676,7 +676,7 @@ onUnmounted(() => {
   gap: 8px;
   background: var(--bg-secondary, #f7f7f7);
   border: 1.5px solid transparent;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 8px 8px 8px 16px;
   transition: all 0.2s ease;
 }
@@ -712,7 +712,7 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border: none;
-  background: var(--text-tertiary, #ccc);
+  background: var(--accent-color);
   color: #ffffff;
   cursor: pointer;
   border-radius: 50%;
@@ -721,12 +721,14 @@ onUnmounted(() => {
 }
 
 .send-btn.active {
-  background: var(--text-primary, #1a1a1a);
+  background: var(--accent-hover);
 }
 
-.send-btn:hover:not(:disabled) {
-  transform: scale(1.06);
+.send-btn:hover:not(:disabled):not(.active) {
+  background: var(--accent-color);
 }
+
+
 
 .send-btn:disabled {
   cursor: not-allowed;
@@ -771,7 +773,7 @@ onUnmounted(() => {
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dialog-scale-enter-from,

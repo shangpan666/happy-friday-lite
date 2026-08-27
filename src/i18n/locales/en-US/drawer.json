@@ -3,7 +3,8 @@
     "memory": "Memory",
     "skills": "Skills",
     "mcp": "MCP",
-    "usage": "Usage"
+    "usage": "Usage",
+    "profile": "Assistant"
   },
   "skills": {
     "title": "Skills Management",
@@ -21,7 +22,7 @@
     "added": "Added MCP Servers",
     "emptyAdded": "No MCP servers added yet",
     "localService": "Local MCP Service",
-    "localDesc": "Expose Happy Friday's built-in tools to other local MCP clients",
+    "localDesc": "Expose Phronesis's built-in tools to other local MCP clients",
     "copyJson": "Copy JSON",
     "copied": "Copied",
     "tools": "tools",
@@ -60,13 +61,13 @@
   },
   "memory": {
     "title": "Memory Management",
-    "fridayCard": "Friday Assistant",
-    "fridayName": "Friday",
+    "fridayCard": "Phronesis",
+    "fridayName": "Phronesis",
     "name": "Name",
     "birthDate": "Birth Date",
     "fridayBirthDate": "2026.2.7",
     "memoryFiles": "Memory Files",
-    "memoryFilesHint": "Friday reads and updates these memory files during conversations",
+    "memoryFilesHint": "Phronesis reads and updates these memory files during conversations",
     "edit": "Edit",
     "editTitle": "Edit Memory File",
     "editMode": "Edit",
@@ -80,14 +81,27 @@
     "updated": "updated",
     "files": {
       "SOUL": "Soul",
-      "SOUL_desc": "Defines Friday's speaking and acting style",
+      "SOUL_desc": "Defines Phronesis's speaking and acting style",
       "USER": "User Profile",
       "USER_desc": "Records user habits and preferences",
       "MEMORY": "Long-term Memory",
       "MEMORY_desc": "Cross-session facts and events",
       "Agent": "Experience",
-      "Agent_desc": "Experience and tips Friday accumulates"
+      "Agent_desc": "Experience and tips Phronesis accumulates"
     }
+  },
+  "profile": {
+    "title": "Assistant Profile",
+    "avatar": "Avatar",
+    "avatarHint": "Click the avatar to change the image",
+    "name": "Name",
+    "birthDate": "Birth Date",
+    "namePlaceholder": "Name your assistant",
+    "reset": "Reset to default",
+    "resetDone": "Reset done",
+    "save": "Save",
+    "saved": "Saved",
+    "saveFailed": "Save failed"
   },
   "comingSoon": "Coming soon",
   "usage": {

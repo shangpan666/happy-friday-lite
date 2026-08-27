@@ -128,7 +128,7 @@
                 <span class="model-name">{{ model.name }}</span>
                 <span v-if="model.embeddingName" class="model-embedding-name">Embedding: {{ model.embeddingName }}</span>
               </div>
-              <svg v-if="modelSettings.modelId === model.id" class="model-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg v-if="modelSettings.modelId === model.id" class="model-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
           </div>
         </div>
@@ -424,7 +424,7 @@ onActivated(() => {
   margin: 0 auto;
   background: var(--bg-primary);
   border: 1.5px solid var(--border-color);
-  border-radius: 22px;
+  border-radius: 6px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -491,8 +491,8 @@ onActivated(() => {
     width: 22px;
     height: 22px;
     border-radius: 6px;
-    background: color-mix(in srgb, var(--tag-accent, #10b981) 12%, transparent);
-    color: var(--tag-accent, #10b981);
+    background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 12%, transparent);
+    color: var(--tag-accent, var(--success-color));
     flex-shrink: 0;
   }
 
@@ -549,7 +549,7 @@ onActivated(() => {
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: 16px;
+  border-radius: 8px;
   font-size: 12.5px;
   font-weight: 500;
   transition: all 0.15s ease;
@@ -607,7 +607,7 @@ onActivated(() => {
   width: 32px;
   height: 32px;
   border: none;
-  background: var(--text-tertiary);
+  background: var(--accent-color);
   color: #ffffff;
   cursor: pointer;
   border-radius: 50%;
@@ -616,11 +616,13 @@ onActivated(() => {
 }
 
 .send-btn.active {
-  background: var(--text-primary);
+  background: var(--accent-color);
   color: #ffffff;
 }
 
-.send-btn:hover { transform: scale(1.06); }
+.send-btn.active:hover {
+  background: var(--accent-hover);
+}
 
 /* 下拉菜单 */
 .dropdown-overlay {
@@ -635,7 +637,7 @@ onActivated(() => {
 .dropdown-panel {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 

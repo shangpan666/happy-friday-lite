@@ -1,0 +1,18 @@
+{
+  "--begin--": "该设备为随机生成，丢失后不能得到原先配置",
+  "product": "ICQQ-1DA6D",
+  "device": "DC641",
+  "board": "D7CCC",
+  "brand": "ACC4",
+  "model": "ICQQ 2005",
+  "wifi_ssid": "HUAWEI-444803b",
+  "bootloader": "U-boot",
+  "display": "IC.3744589.5585",
+  "boot_id": "933eabe9-fa95-c0ed-103a-2923f9db20eb",
+  "proc_version": "Linux version 5.10.101-android10-3399246d",
+  "mac_address": "02:00:00:00:00:00",
+  "ip_address": "192.168.69.57",
+  "android_id": "44749f4c3600c2d5",
+  "incremental": "9564083905",
+  "--end--": "修改后可能需要重新验证设备。"
+}

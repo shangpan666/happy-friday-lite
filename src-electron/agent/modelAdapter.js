@@ -109,6 +109,9 @@ export function createLangChainModel(modelConfig) {
     // 启用流式 usage 上报：SDK 会自动附加 stream_options.include_usage=true，
     // 并在流结束时通过 handleLLMEnd 回调聚合出 usage 数据，用于 Token 用量统计
     streamUsage: true,
+    // 429/网络抖动自动指数退避重试（免费模型限流常见）
+    maxRetries: 5,
+    timeout: 120000,
     modelKwargs,
     callbacks: [usageCallback]
   })

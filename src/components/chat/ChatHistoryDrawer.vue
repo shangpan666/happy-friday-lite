@@ -674,7 +674,7 @@ defineExpose({ loadSessions });
   width: 200px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 18px;
+  border-radius: 8px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: 99;
   display: flex;
@@ -905,7 +905,7 @@ defineExpose({ loadSessions });
 
 .rename-modal {
   background: var(--bg-primary);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 24px;
   width: 360px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);

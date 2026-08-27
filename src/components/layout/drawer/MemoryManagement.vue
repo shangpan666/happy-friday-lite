@@ -17,16 +17,16 @@
           <div
             class="friday-avatar-wrap"
           >
-            <img :src="avatarSrc" class="friday-avatar" :alt="t('drawer.memory.fridayName')" />
+            <img :src="assistantAvatar" class="friday-avatar" :alt="assistantName" />
           </div>
           <div class="friday-info">
             <div class="info-row">
               <span class="info-label">{{ t('drawer.memory.name') }}</span>
-              <span class="info-value name">{{ t('drawer.memory.fridayName') }}</span>
+              <span class="info-value name">{{ assistantName }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">{{ t('drawer.memory.birthDate') }}</span>
-              <span class="info-value">{{ t('drawer.memory.fridayBirthDate') }}</span>
+              <span class="info-value">{{ assistantBirthDate }}</span>
             </div>
           </div>
         </div>
@@ -162,6 +162,40 @@ const emit = defineEmits(['close']);
 
 const avatarSrc = `${import.meta.env.BASE_URL}images/icon.png`;
 
+// ---- 助手资料（与 AssistantProfile 共享 config.assistantProfile）----
+const readLocalProfile = () => {
+  try {
+    return JSON.parse(localStorage.getItem('phronesis-assistant-profile') || 'null');
+  } catch (_e) {
+    return null;
+  }
+};
+// 先用 localStorage 同步初始化，避免默认头像闪烁
+const assistantProfile = ref(readLocalProfile());
+const assistantName = computed(() => assistantProfile.value?.name || t('drawer.memory.fridayName'));
+const assistantAvatar = computed(() => assistantProfile.value?.avatar || avatarSrc);
+const assistantBirthDate = computed(() => {
+  const raw = assistantProfile.value?.birthDate;
+  if (!raw) return t('drawer.memory.fridayBirthDate');
+  const parts = raw.split('-');
+  if (parts.length !== 3) return raw;
+  return `${parts[0]}.${Number(parts[1])}.${Number(parts[2])}`;
+});
+
+const loadAssistantProfile = async () => {
+  let profile = null;
+  try {
+    const config = await window.electronAPI?.invoke('get-config');
+    if (config?.assistantProfile) profile = config.assistantProfile;
+  } catch (_e) {}
+  if (!profile) {
+    try {
+      profile = JSON.parse(localStorage.getItem('phronesis-assistant-profile') || 'null');
+    } catch (_e) {}
+  }
+  assistantProfile.value = profile;
+};
+
 // ---- 记忆文件 ----
 const memoryFiles = ref([]);
 const memoryLoading = ref(false);
@@ -274,8 +308,18 @@ const saveEdit = async () => {
   }
 };
 
+const refreshAssistantProfile = () => {
+  loadAssistantProfile();
+};
+
 onMounted(() => {
   loadMemoryFiles();
+  loadAssistantProfile();
+  window.addEventListener('assistant-profile-changed', refreshAssistantProfile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('assistant-profile-changed', refreshAssistantProfile);
 });
 
 onUnmounted(() => {

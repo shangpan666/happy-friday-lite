@@ -84,7 +84,39 @@ export function streamChat(mainWindow, messages, model, requestId, sessionId, en
   let partialContent = ''
   let partialReasoning = ''
   return new Promise((resolve, reject) => {
-    const req = client.request(options, (res) => {
+    let req = null
+    const MAX_ATTEMPTS = 4
+    let attempt = 0
+
+    const run = () => {
+      attempt++
+      req = client.request(options, (res) => {
+      // 429 限流 / 5xx 服务端异常：指数退避后自动重试（尚未消费任何流数据，可安全重发）
+      if (res.statusCode === 429 || res.statusCode >= 500) {
+        let errorData = ''
+        res.on('data', chunk => { errorData += chunk.toString() })
+        res.on('end', () => {
+          if (attempt < MAX_ATTEMPTS) {
+            const delay = Math.min(2000 * 2 ** (attempt - 1), 15000)
+            mainWindow.webContents.send(CHAT_CHUNK, {
+              requestId,
+              sessionId: sessionId || null,
+              content: `\n\n[服务繁忙 (${res.statusCode})，${Math.round(delay / 1000)} 秒后自动重试 ${attempt}/${MAX_ATTEMPTS - 1}…]\n\n`
+            })
+            setTimeout(run, delay)
+            return
+          }
+          const errorMsg = `API request failed (${res.statusCode}): ${errorData}`
+          mainWindow.webContents.send(CHAT_ERROR, {
+            requestId,
+            sessionId: sessionId || null,
+            error: errorMsg
+          })
+          reject(AppError.llm(errorMsg))
+        })
+        return
+      }
+
       if (res.statusCode !== 200) {
         let errorData = ''
         res.on('data', chunk => { errorData += chunk.toString() })
@@ -214,6 +246,9 @@ export function streamChat(mainWindow, messages, model, requestId, sessionId, en
 
     req.write(bodyStr)
     req.end()
+    }
+
+    run()
   })
 }
 
@@ -770,7 +805,7 @@ export async function streamChatWithRagAgent(mainWindow, messages, model, reques
   return { fullContent, fullReasoning }
 }
 
-const NOTE_AI_SYSTEM_PROMPT = `你是 Friday，一个专业的智能写作助手。
+const NOTE_AI_SYSTEM_PROMPT = `你是 斐思（Phronesis），一个专业的智能写作助手。
 
 ## 核心能力
 你具备文本解读、精炼、润色、扩写、翻译、总结、续写、语法修正、任务规划和数据整理等全方位写作能力。你能够深入理解文本含义，结合上下文背景对文本进行精准处理。

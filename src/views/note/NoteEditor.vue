@@ -1838,7 +1838,7 @@ const highlightColorPalette = [
   '#ffffff', '#fef3c7', '#fef9c3', '#ecfccb', '#d1fae5', '#ccfbf1', '#cffafe', '#dbeafe', '#ede9fe', '#fce7f3',
   '#f3f4f6', '#fde68a', '#fef08a', '#bef264', '#86efac', '#5eead4', '#67e8f9', '#93c5fd', '#c4b5fd', '#fbcfe8',
   '#f9fafb', '#fcd34d', '#facc15', '#a3e635', '#4ade80', '#2dd4bf', '#22d3ee', '#60a5fa', '#a78bfa', '#f472b6',
-  '#f3f4f6', '#fbbf24', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#f3f4f6', '#fbbf24', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', 'var(--accent-color)', '#ec4899',
   '#e5e7eb', '#f59e0b', '#d97706', '#65a30d', '#16a34a', '#0d9488', '#0891b2', '#2563eb', '#7c3aed', '#db2777'
 ];
 
@@ -1847,7 +1847,7 @@ const textColorPalette = [
   '#f3f4f6', '#9ca3af', '#93c5fd', '#a7f3d0', '#bbf7d0', '#fecaca', '#fef08a', '#ddd6fe', '#fce7f3',
   '#f9fafb', '#6b7280', '#bfdbfe', '#99f6e4', '#86efac', '#fca5a5', '#fde047', '#c4b5fd', '#fbcfe8',
   '#f3f4f6', '#4b5563', '#60a5fa', '#5eead4', '#4ade80', '#f87171', '#facc15', '#a78bfa', '#f472b6',
-  '#e5e7eb', '#374151', '#2563eb', '#2dd4bf', '#16a34a', '#dc2626', '#eab308', '#8b5cf6', '#ec4899',
+  '#e5e7eb', '#374151', '#2563eb', '#2dd4bf', '#16a34a', '#dc2626', '#eab308', 'var(--accent-color)', '#ec4899',
   '#1f2937', '#111827', '#1d4ed8', '#0891b2', '#15803d', '#b91c1c', '#ca8a04', '#7c3aed', '#db2777'
 ];
 
@@ -3738,7 +3738,7 @@ const fixEmptyTableCells = (html) => {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+  background: var(--online-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3819,7 +3819,7 @@ const fixEmptyTableCells = (html) => {
 .sidebar-empty-icon {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--bg-hover);
   display: flex;
   align-items: center;

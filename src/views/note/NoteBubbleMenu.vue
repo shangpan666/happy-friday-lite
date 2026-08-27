@@ -386,7 +386,7 @@ function setupNoteAIListeners() {
   unlistenNoteAIError = electronService.listen('note-ai-error', (event) => {
     if (event.payload.requestId !== activeNoteAIRequestId) return;
     isStreaming.value = false;
-    aiOutputContent.value += `\n\n❌ ${t('note.bubbleMenu.error', { error: event.payload.error })}`;
+    aiOutputContent.value += `${t('note.bubbleMenu.error', { error: event.payload.error })}`;
   });
 }
 
@@ -443,7 +443,7 @@ const startStreaming = async (action, userInstruction) => {
   const model = loadModelConfig();
   if (!model) {
     isStreaming.value = false;
-    aiOutputContent.value = `❌ ${t('note.bubbleMenu.noModelConfigured')}`;
+    aiOutputContent.value = `${t('note.bubbleMenu.noModelConfigured')}`;
     return;
   }
 
@@ -464,7 +464,7 @@ const startStreaming = async (action, userInstruction) => {
   } catch (err) {
     console.error('Note AI action error:', err);
     isStreaming.value = false;
-    aiOutputContent.value += `\n\n❌ ${t('note.bubbleMenu.requestFailed', { message: err.message || t('note.bubbleMenu.unknownError') })}`;
+    aiOutputContent.value += `${t('note.bubbleMenu.requestFailed', { message: err.message || t('note.bubbleMenu.unknownError') })}`;
   }
 };
 
@@ -946,7 +946,7 @@ onBeforeUnmount(() => {
   max-width: 480px;
   background: var(--bg-primary, #ffffff);
   border: 1.5px solid var(--border-color, #e5e7eb);
-  border-radius: 20px;
+  border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.04);
   animation: panel-in 0.18s ease-out;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -995,7 +995,7 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
-  border-radius: 20px 20px 0 0;
+  border-radius: 8px 20px 0 0;
 }
 
 .ai-textarea::-webkit-scrollbar {
@@ -1052,7 +1052,7 @@ onBeforeUnmount(() => {
   gap: 4px;
   padding: 6px 10px;
   border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 16px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-secondary, #6b7280);
   cursor: pointer;
@@ -1070,8 +1070,8 @@ onBeforeUnmount(() => {
 
 .command-btn.active {
   background: var(--bg-secondary, #f9fafb);
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .is-dark .command-btn {
@@ -1087,7 +1087,7 @@ onBeforeUnmount(() => {
 
 .is-dark .command-btn.active {
   background: #374151;
-  border-color: #667eea;
+  border-color: var(--accent-color);
   color: #a78bfa;
 }
 
@@ -1172,7 +1172,7 @@ onBeforeUnmount(() => {
 }
 
 .command-item:hover svg {
-  color: #667eea;
+  color: var(--accent-color);
 }
 
 .send-btn {
@@ -1183,7 +1183,7 @@ onBeforeUnmount(() => {
   height: 30px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent-color);
   color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1237,7 +1237,7 @@ onBeforeUnmount(() => {
   max-height: 400px;
   background: var(--bg-primary, #ffffff);
   border: 1.5px solid var(--border-color, #e5e7eb);
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.06);
   animation: panel-in 0.18s ease-out;
   overflow: hidden;
@@ -1359,7 +1359,7 @@ onBeforeUnmount(() => {
   display: inline-block;
   width: 2px;
   height: 16px;
-  background: #667eea;
+  background: var(--accent-color);
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.8s infinite;
@@ -1390,7 +1390,7 @@ onBeforeUnmount(() => {
   padding: 12px 14px;
   background: var(--bg-hover, #f9fafb);
   border-radius: 10px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--accent-color);
 }
 
 .is-dark .polish-suggestions {
@@ -1443,7 +1443,7 @@ onBeforeUnmount(() => {
 }
 
 .ai-badge svg {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .char-count {
@@ -1486,7 +1486,7 @@ onBeforeUnmount(() => {
 }
 
 .footer-action-btn.liked {
-  color: #10b981;
+  color: var(--success-color);
   background: rgba(16, 185, 129, 0.1);
 }
 
@@ -1496,7 +1496,7 @@ onBeforeUnmount(() => {
 }
 
 .footer-action-btn.copied {
-  color: #10b981;
+  color: var(--success-color);
   background: rgba(16, 185, 129, 0.1);
 }
 
@@ -1548,7 +1548,7 @@ onBeforeUnmount(() => {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent-color);
   color: #ffffff;
   border-color: transparent;
   font-weight: 600;
@@ -1557,7 +1557,7 @@ onBeforeUnmount(() => {
 }
 
 .action-btn.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5568d3 0%, #653d91 100%);
+  background: var(--accent-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
 }
@@ -1586,12 +1586,12 @@ onBeforeUnmount(() => {
 }
 
 .is-dark .action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent-color);
   border-color: transparent;
 }
 
 .is-dark .action-btn.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5568d3 0%, #653d91 100%);
+  background: var(--accent-hover);
 }
 
 .is-dark .action-btn.danger {
@@ -1607,8 +1607,8 @@ onBeforeUnmount(() => {
 
 .action-btn.primary-outline {
   background: transparent;
-  color: #667eea;
-  border-color: #667eea;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
   font-weight: 600;
 }
 
@@ -1627,8 +1627,8 @@ onBeforeUnmount(() => {
 
 .is-dark .action-btn.primary-outline:hover:not(:disabled) {
   background: rgba(167, 139, 250, 0.12);
-  border-color: #8b5cf6;
-  color: #8b5cf6;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .btn-switch-enter-active {

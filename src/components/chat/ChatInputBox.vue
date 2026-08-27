@@ -85,7 +85,7 @@
               :class="{ active: modelValue.trim() }"
               @click="$emit('send')"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"></line>
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
@@ -289,7 +289,7 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   background: var(--bg-primary);
   border: 1.5px solid var(--border-color);
-  border-radius: 22px;
+  border-radius: 6px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -333,11 +333,11 @@ onBeforeUnmount(() => {
 }
 
 .attachment-tag.tag-kb {
-  --tag-accent: #10b981;
+  --tag-accent: var(--success-color);
 }
 
 .attachment-tag.tag-note {
-  --tag-accent: #6366f1;
+  --tag-accent: var(--accent-color);
 }
 
 .attachment-tag.tag-kb-file {
@@ -351,8 +351,8 @@ onBeforeUnmount(() => {
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--tag-accent, #10b981) 12%, transparent);
-  color: var(--tag-accent, #10b981);
+  background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 12%, transparent);
+  color: var(--tag-accent, var(--success-color));
   flex-shrink: 0;
 }
 
@@ -368,8 +368,8 @@ onBeforeUnmount(() => {
 .tag-type-badge {
   font-size: 10px;
   font-weight: 500;
-  color: var(--tag-accent, #10b981);
-  background: color-mix(in srgb, var(--tag-accent, #10b981) 10%, transparent);
+  color: var(--tag-accent, var(--success-color));
+  background: color-mix(in srgb, var(--tag-accent, var(--success-color)) 10%, transparent);
   padding: 1px 5px;
   border-radius: 4px;
   flex-shrink: 0;
@@ -468,7 +468,7 @@ onBeforeUnmount(() => {
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: 16px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
   transition: all 0.15s ease;
@@ -498,48 +498,48 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: none;
-  background: var(--text-tertiary);
-  color: #ffffff;
+  background: var(--accent-color);
+  color: var(--accent-text-on);
   cursor: pointer;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: background-color 0.12s, opacity 0.12s;
   margin-left: 2px;
+  opacity: 0.45;
 }
 
 .send-btn.active {
-  background: var(--text-primary);
-  color: #ffffff;
+  opacity: 1;
 }
 
-.send-btn:hover {
-  transform: scale(1.06);
+.send-btn.active:hover {
+  background: var(--accent-hover);
+}
+
+.send-btn:not(.active):hover {
+  opacity: 0.7;
 }
 
 .stop-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: var(--text-primary);
-  color: #ffffff;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--danger-color);
   cursor: pointer;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: background-color 0.12s, border-color 0.12s;
   margin-left: 2px;
 }
 
 .stop-btn:hover {
-  transform: scale(1.06);
-  opacity: 0.85;
-}
-
-.stop-btn:active {
-  transform: scale(0.94);
+  background: rgba(207, 34, 46, 0.08);
+  border-color: var(--danger-color);
 }
 
 .btn-switch-enter-active {
@@ -572,7 +572,7 @@ onBeforeUnmount(() => {
 .dropdown-panel {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -650,7 +650,7 @@ onBeforeUnmount(() => {
 }
 
 .kb-item:hover .kb-item-icon-fallback {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .kb-item-icon {

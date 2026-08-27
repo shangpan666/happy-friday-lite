@@ -187,7 +187,7 @@ async function handler(args, ctx) {
 
   // 执行脚本文件（-u unbuffered，-I 隔离环境）
   return new Promise(resolve => {
-    const child = spawn(pythonPath, ['-u', '-I', scriptPath], {
+    const child = spawn(pythonPath, ['-u', '-B', scriptPath], {
       cwd,
       env: {
         ...process.env,
@@ -195,7 +195,9 @@ async function handler(args, ctx) {
         PYTHONPATH: cwd,
         // 禁用用户 site-packages，避免污染
         PYTHONNOUSERSITE: '1',
-        // 设置默认编码
+        // 强制 UTF-8 模式与 IO 编码：Windows 控制台默认 GBK，
+        // 脚本打印 emoji/特殊字符会触发 UnicodeEncodeError
+        PYTHONUTF8: '1',
         PYTHONIOENCODING: 'utf-8'
       },
       stdio: ['pipe', 'pipe', 'pipe']

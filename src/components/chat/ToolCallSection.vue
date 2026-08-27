@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-call-section" :class="`status-${status}`">
+  <div class="tool-call-section think-section" :class="`status-${status}`">
     <!-- 紧凑标题栏：点击切换展开/收缩 -->
     <span class="tool-call-toggle" @click="toggleCollapsed">
       <!-- 状态圆点（小） -->
@@ -7,13 +7,18 @@
         <span v-if="status === 'running'" class="dot-pulse"></span>
       </span>
 
-      <!-- 工具图标：扳手（统一风格） -->
-      <svg class="tool-glyph" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 工具图标：think 用灯泡，其余用扳手 -->
+      <svg v-if="isThink" class="tool-glyph" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18h6"></path>
+        <path d="M10 22h4"></path>
+        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+      </svg>
+      <svg v-else class="tool-glyph" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
       </svg>
 
       <!-- 标题文案 -->
-      <span class="toggle-label">{{ titleText }}</span>
+      <span class="toggle-label" :class="{ 'think-label': isThink }">{{ titleText }}</span>
 
       <!-- 折叠指示符：展开时 ∨，收缩时 › -->
       <svg v-if="!collapsed" class="toggle-arrow" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -26,31 +31,45 @@
 
     <!-- 展开内容：左侧细线 + 参数 + 输出 -->
     <div v-show="!collapsed" class="tool-call-body">
-      <!-- 参数区 -->
-      <div v-if="argEntries.length > 0" class="tool-call-block">
-        <div class="block-label">参数</div>
-        <div class="arg-list">
-          <div v-for="entry in argEntries" :key="entry.key" class="arg-row">
-            <div class="arg-key">{{ entry.key }}</div>
-            <div class="arg-value" :class="{ 'arg-value-block': entry.isLong }">{{ entry.value }}</div>
+      <!-- think：思考正文直接展示 -->
+      <div v-if="isThink && thoughtText" class="think-body">{{ thoughtText }}</div>
+
+      <!-- 写文件：逐字流式展示写入过程 -->
+      <div v-if="isFileWrite && status === 'running' && writeContent" class="write-live">
+        <div class="write-live-head">
+          <span class="write-live-path">正在写入 {{ writePath }}</span>
+          <span class="write-live-count">{{ writeLines }} 行</span>
+        </div>
+        <pre ref="writePreRef" class="write-live-pre">{{ revealedText }}<span class="write-cursor"></span></pre>
+      </div>
+
+      <template v-else>
+        <!-- 参数区 -->
+        <div v-if="argEntries.length > 0" class="tool-call-block">
+          <div class="block-label">参数</div>
+          <div class="arg-list">
+            <div v-for="entry in argEntries" :key="entry.key" class="arg-row">
+              <div class="arg-key">{{ entry.key }}</div>
+              <div class="arg-value" :class="{ 'arg-value-block': entry.isLong }">{{ entry.value }}</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 输出区 -->
-      <div v-if="hasOutput" class="tool-call-block">
-        <div class="block-label">结果</div>
-        <div v-if="isShortOutput" class="output-inline">{{ formattedOutput }}</div>
-        <div v-else class="output-block markdown-body" v-html="renderedOutput"></div>
-      </div>
+        <!-- 输出区 -->
+        <div v-if="hasOutput" class="tool-call-block">
+          <div class="block-label">结果</div>
+          <div v-if="isShortOutput" class="output-inline">{{ formattedOutput }}</div>
+          <div v-else class="output-block markdown-body" v-html="renderedOutput"></div>
+        </div>
+      </template>
 
-      <span v-if="status === 'running'" class="streaming-cursor"></span>
+      <span v-if="status === 'running' && !isFileWrite" class="streaming-cursor"></span>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { marked } from 'marked'
 
 const props = defineProps({
@@ -67,8 +86,74 @@ function toggleCollapsed() {
   collapsed.value = !collapsed.value
 }
 
+// ========== 写文件直播（逐字展示写入过程）==========
+const FILE_WRITE_TOOLS = ['write_agent_file', 'write_file']
+const isFileWrite = computed(() => FILE_WRITE_TOOLS.includes(props.toolName))
+
+function parseToolArgs() {
+  try {
+    return typeof props.arguments === 'string' ? JSON.parse(props.arguments) : (props.arguments || {})
+  } catch (_e) {
+    return {}
+  }
+}
+
+const writePath = computed(() => String(parseToolArgs().filePath || parseToolArgs().path || ''))
+const writeContent = computed(() => String(parseToolArgs().content || ''))
+const writeLines = computed(() => writeContent.value.split('\n').length)
+const revealedChars = ref(0)
+const revealedText = computed(() => writeContent.value.slice(0, revealedChars.value))
+const writePreRef = ref(null)
+let revealTimer = null
+
+function autoScrollWrite() {
+  const el = writePreRef.value
+  if (el) el.scrollTop = el.scrollHeight
+}
+
+watch(
+  [() => props.status, writeContent],
+  ([status]) => {
+    clearInterval(revealTimer)
+    if (isFileWrite.value && status === 'running' && writeContent.value) {
+      revealedChars.value = 0
+      const total = writeContent.value.length
+      const step = Math.max(6, Math.ceil(total / 100))
+      revealTimer = setInterval(() => {
+        revealedChars.value = Math.min(total, revealedChars.value + step)
+        autoScrollWrite()
+        if (revealedChars.value >= total) clearInterval(revealTimer)
+      }, 40)
+    } else if (status !== 'running') {
+      revealedChars.value = writeContent.value.length
+    }
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => clearInterval(revealTimer))
+
+// ========== 思考过程（think 工具）==========
+const isThink = computed(() => props.toolName === 'think')
+const thoughtText = computed(() => {
+  if (!isThink.value) return ''
+  const args = typeof props.arguments === 'string'
+    ? (() => { try { return JSON.parse(props.arguments) } catch (_e) { return { thought: props.arguments } } })()
+    : (props.arguments || {})
+  return String(args.thought || args.content || '')
+})
+
+// think 运行中默认展开，完成后自动折叠
+watch(isThink, () => {}, { immediate: true })
+watch(() => props.status, (s) => {
+  if (isThink.value && s !== 'running') collapsed.value = true
+  if (isThink.value && s === 'running') collapsed.value = false
+}, { immediate: true })
+
 // ========== 友好文案映射 ==========
 const ACTION_LABELS = {
+  think: '思考',
+  ask_user: '向用户提问',
   retrieve_knowledge: '检索知识库',
   search_notes: '搜索笔记',
   get_note: '查看笔记',
@@ -93,6 +178,11 @@ const STATUS_PREFIX = {
 
 const titleText = computed(() => {
   const action = ACTION_LABELS[props.toolName] || `调用 ${props.toolName}`
+  if (isThink.value) {
+    if (props.status === 'running') return '思考中…'
+    if (props.status === 'success') return '思考过程'
+    return action
+  }
   const prefix = STATUS_PREFIX[props.status] || ''
   return prefix + action
 })
@@ -263,7 +353,7 @@ const hasOutput = computed(() => {
 
 .status-dot.status-running { background: #1560F7; }
 .status-dot.status-pending_approval { background: #f59e0b; }
-.status-dot.status-success { background: #10b981; }
+.status-dot.status-success { background: var(--success-color); }
 .status-dot.status-rejected { background: #ef4444; }
 
 /* 运行中圆点脉冲 */
@@ -287,6 +377,90 @@ const hasOutput = computed(() => {
   flex-shrink: 0;
   opacity: 0.7;
 }
+
+/* 写文件直播 */
+.write-live {
+  border-left: 2px solid var(--accent-color);
+  padding: 4px 0 4px 10px;
+  margin: 2px 0;
+}
+
+.write-live-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.write-live-path {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.write-live-count {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.write-live-pre {
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.write-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  background: var(--accent-color);
+  vertical-align: text-bottom;
+  animation: blink 0.8s infinite;
+}
+
+/* 思考过程：无边框，融入块内的轻量引用样式 */
+.think-section {
+  background: transparent;
+  border: none;
+  padding: 2px 0;
+}
+
+.think-section .tool-glyph {
+  color: var(--text-tertiary);
+  opacity: 0.8;
+}
+
+.think-section .think-label {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.think-body {
+  padding: 2px 0 2px 12px;
+  margin: 4px 0 2px 2px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-tertiary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-left: 2px solid var(--border-strong);
+}
+
 
 .toggle-label {
   font-size: 13px;

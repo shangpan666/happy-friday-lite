@@ -104,7 +104,7 @@ defineEmits(['close', 'confirm', 'update:form', 'select-cover']);
 
 .create-kb-dialog {
   background: var(--bg-primary);
-  border-radius: 16px;
+  border-radius: 8px;
   width: 400px;
   max-width: 90vw;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);

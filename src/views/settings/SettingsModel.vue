@@ -154,7 +154,7 @@
               <div class="custom-select" ref="providerSelectRef">
                 <div class="select-trigger" @click="toggleProviderDropdown">
                   <div v-if="selectedProvider" class="selected-option">
-                    <img :src="selectedProvider.icon" :alt="selectedProvider.label" class="provider-icon" />
+                    <img v-if="selectedProvider.icon" :src="selectedProvider.icon" :alt="selectedProvider.label" class="provider-icon" />
                     <span>{{ selectedProvider.label }}</span>
                   </div>
                   <span v-else class="placeholder">选择模型厂商</span>
@@ -200,7 +200,50 @@
 
             <div class="form-group">
               <label class="form-label">对话模型名称</label>
+              <div
+                v-if="formData.provider !== 'other' && !manualChatModel"
+                class="custom-select"
+                ref="chatModelSelectRef"
+              >
+                <div class="select-trigger" @click="toggleChatModelDropdown">
+                  <span v-if="formData.modelName" class="selected-option"><span>{{ formData.modelName }}</span></span>
+                  <span v-else-if="chatModelsLoading" class="placeholder">正在获取模型列表…</span>
+                  <span v-else class="placeholder">选择对话模型</span>
+                  <svg class="select-arrow" :class="{ expanded: showChatModelDropdown }" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div v-if="showChatModelDropdown" class="dropdown-menu">
+                  <div v-if="chatModelsLoading" class="dropdown-hint">正在获取模型列表…</div>
+                  <template v-else-if="chatModelOptions.length">
+                    <div
+                      v-for="m in chatModelOptions"
+                      :key="m.id"
+                      class="dropdown-item"
+                      @click="selectChatModel(m.id)"
+                    >
+                      <span>{{ m.id }}</span>
+                    </div>
+
+                    <div class="dropdown-item manual-item" @click="manualChatModel = true">手动输入…</div>
+                  </template>
+                  <div v-else-if="!canFetchModels" class="dropdown-hint">
+                    请先输入 API Key
+                    <span class="hint-actions">
+                      <button class="hint-link" @click.stop="manualChatModel = true">手动输入</button>
+                    </span>
+                  </div>
+                  <div v-else class="dropdown-hint">
+                    获取失败（{{ chatModelsError }}）
+                    <span class="hint-actions">
+                      <button class="hint-link" @click.stop="fetchModelOptions">重试</button>
+                      <button class="hint-link" @click.stop="manualChatModel = true">手动输入</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
               <input
+                v-else
                 type="text"
                 v-model="formData.modelName"
                 placeholder="输入对话模型名称"
@@ -209,8 +252,62 @@
             </div>
 
             <div class="form-group">
+              <div class="item-label-group">
+                <label class="form-label">{{ t('settings.modelSupportsVision') }}</label>
+                <span class="item-hint">{{ t('settings.modelSupportsVisionHint') }}</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" v-model="formData.supportsVision" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group">
               <label class="form-label">Embedding 模型<span class="optional-tag">可选</span></label>
+              <div
+                v-if="formData.provider !== 'other' && !manualEmbeddingModel"
+                class="custom-select"
+                ref="embeddingModelSelectRef"
+              >
+                <div class="select-trigger" @click="toggleEmbeddingModelDropdown">
+                  <span v-if="formData.embeddingModelName" class="selected-option"><span>{{ formData.embeddingModelName }}</span></span>
+                  <span v-else-if="chatModelsLoading" class="placeholder">正在获取模型列表…</span>
+                  <span v-else class="placeholder">选择 Embedding 模型</span>
+                  <svg class="select-arrow" :class="{ expanded: showEmbeddingModelDropdown }" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div v-if="showEmbeddingModelDropdown" class="dropdown-menu">
+                  <div v-if="chatModelsLoading" class="dropdown-hint">正在获取模型列表…</div>
+                  <template v-else-if="chatModelOptions.length">
+                    <div
+                      v-for="m in chatModelOptions"
+                      :key="m.id"
+                      class="dropdown-item"
+                      @click="selectEmbeddingModel(m.id)"
+                    >
+                      <span>{{ m.id }}</span>
+                    </div>
+
+                    <div class="dropdown-item manual-item" @click="manualEmbeddingModel = true">手动输入…</div>
+                  </template>
+                  <div v-else-if="!canFetchModels" class="dropdown-hint">
+                    请先输入 API Key
+                    <span class="hint-actions">
+                      <button class="hint-link" @click.stop="manualEmbeddingModel = true">手动输入</button>
+                    </span>
+                  </div>
+                  <div v-else class="dropdown-hint">
+                    获取失败（{{ chatModelsError }}）
+                    <span class="hint-actions">
+                      <button class="hint-link" @click.stop="fetchModelOptions">重试</button>
+                      <button class="hint-link" @click.stop="manualEmbeddingModel = true">手动输入</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
               <input
+                v-else
                 type="text"
                 v-model="formData.embeddingModelName"
                 placeholder="输入 Embedding 模型名称，如 text-embedding-v4"
@@ -298,7 +395,7 @@
               </div>
             </div>
             <div class="model-item-actions">
-              <svg v-if="selectedModel === model.id" class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg v-if="selectedModel === model.id" class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
               <button class="edit-btn" @click.stop="editModel(model)" title="编辑模型">
@@ -336,7 +433,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, onDeactivated } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, onDeactivated } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { electronService } from '@/services/electron';
@@ -368,6 +465,7 @@ const providerList = [
   { value: 'deepseek', label: 'DeepSeek', icon: new URL('@/assets/images/deepseek.png', import.meta.url).href, baseUrl: 'https://api.deepseek.com' },
   { value: 'kimi', label: 'Kimi', icon: new URL('@/assets/images/kimi-icon.png', import.meta.url).href, baseUrl: 'https://api.moonshot.cn/v1' },
   { value: 'minimax', label: 'MiniMax', icon: new URL('@/assets/images/MiniMax.png', import.meta.url).href, baseUrl: 'https://api.minimaxi.com/v1' },
+  { value: 'openrouter', label: 'OpenRouter', icon: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23646AE8%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2715%27 font-family=%27Arial%27 font-weight=%27bold%27 fill=%27white%27 text-anchor=%27middle%27%3EO%3C/text%3E%3C/svg%3E', baseUrl: 'https://openrouter.ai/api/v1' },
   { value: 'other', label: '其他', icon: new URL('@/assets/images/其他模型.png', import.meta.url).href, baseUrl: '' }
 ];
 
@@ -383,7 +481,8 @@ const formData = ref({
   modelUrl: '',
   useSeparateEmbeddingConfig: false,
   embeddingApiKey: '',
-  embeddingUrl: ''
+  embeddingUrl: '',
+  supportsVision: false
 });
 
 const customModels = ref([]);
@@ -410,7 +509,8 @@ const getModelDescription = (model) => {
     zhipu: '复杂任务分析',
     deepseek: '逻辑推理与代码',
     kimi: '长文本处理',
-    minimax: '智能对话助手'
+    minimax: '智能对话助手',
+    openrouter: '免费模型聚合'
   };
   return descriptions[model.provider] || '自定义模型';
 };
@@ -440,7 +540,8 @@ const editModel = (model) => {
     modelUrl: model.provider === 'other' ? (model.baseUrl || '') : '',
     useSeparateEmbeddingConfig: model.useSeparateEmbeddingConfig || false,
     embeddingApiKey: model.embeddingApiKey || '',
-    embeddingUrl: model.embeddingBaseUrl || ''
+    embeddingUrl: model.embeddingBaseUrl || '',
+    supportsVision: !!model.supportsVision
   };
   showModelDropdown.value = false;
   showAddModal.value = true;
@@ -495,9 +596,114 @@ const selectProvider = (provider) => {
   showProviderDropdown.value = false;
 };
 
+// ===== 自动获取厂商模型列表 =====
+const chatModelOptions = ref([]);
+const chatModelsLoading = ref(false);
+const chatModelsError = ref('');
+const showChatModelDropdown = ref(false);
+const showEmbeddingModelDropdown = ref(false);
+const manualChatModel = ref(false);
+const manualEmbeddingModel = ref(false);
+const chatModelSelectRef = ref(null);
+const embeddingModelSelectRef = ref(null);
+let fetchModelsTimer = null;
+
+const canFetchModels = computed(() => {
+  return (
+    formData.value.provider &&
+    formData.value.provider !== 'other' &&
+    formData.value.apiKey &&
+    formData.value.apiKey.trim().length >= 8
+  );
+});
+
+const scheduleFetchModels = () => {
+  clearTimeout(fetchModelsTimer);
+  fetchModelsTimer = setTimeout(() => {
+    if (canFetchModels.value) {
+      fetchModelOptions();
+    }
+  }, 500);
+};
+
+const fetchModelOptions = async () => {
+  if (!canFetchModels.value) return;
+  chatModelsLoading.value = true;
+  chatModelsError.value = '';
+  try {
+    const provider = providerList.find((p) => p.value === formData.value.provider);
+    const res = await electronService.invoke('fetch-provider-models', {
+      baseUrl: provider?.baseUrl || '',
+      apiKey: formData.value.apiKey.trim()
+    });
+    if (res?.success && Array.isArray(res.models)) {
+      let models = [...res.models];
+      // OpenRouter：默认只展示免费模型（:free 后缀或定价为 0），用户可手动展开全部
+      if (formData.value.provider === 'openrouter') {
+        const free = models.filter((m) => m.isFree);
+        if (free.length > 0) {
+          models = free;
+        }
+      }
+      chatModelOptions.value = models.sort((a, b) => a.id.localeCompare(b.id));
+    } else {
+      chatModelsError.value = res?.error || '未知错误';
+      chatModelOptions.value = [];
+    }
+  } catch (e) {
+    chatModelsError.value = e?.message || '网络请求失败';
+    chatModelOptions.value = [];
+  } finally {
+    chatModelsLoading.value = false;
+  }
+};
+
+watch(() => formData.value.apiKey, scheduleFetchModels);
+
+watch(() => formData.value.provider, () => {
+  chatModelOptions.value = [];
+  manualChatModel.value = false;
+  manualEmbeddingModel.value = false;
+  showChatModelDropdown.value = false;
+  showEmbeddingModelDropdown.value = false;
+  scheduleFetchModels();
+});
+
+const toggleChatModelDropdown = () => {
+  showChatModelDropdown.value = !showChatModelDropdown.value;
+  if (showChatModelDropdown.value && canFetchModels.value && !chatModelOptions.value.length && !chatModelsLoading.value) {
+    fetchModelOptions();
+  }
+};
+
+const toggleEmbeddingModelDropdown = () => {
+  showEmbeddingModelDropdown.value = !showEmbeddingModelDropdown.value;
+  if (showEmbeddingModelDropdown.value && canFetchModels.value && !chatModelOptions.value.length && !chatModelsLoading.value) {
+    fetchModelOptions();
+  }
+};
+
+const selectChatModel = (m) => {
+  formData.value.modelName = m;
+  showChatModelDropdown.value = false;
+};
+
+const selectEmbeddingModel = (m) => {
+  formData.value.embeddingModelName = m;
+  showEmbeddingModelDropdown.value = false;
+};
+
 const handleClickOutside = (event) => {
   if (providerSelectRef.value && !providerSelectRef.value.contains(event.target)) {
     showProviderDropdown.value = false;
+  }
+  if (showChatModelDropdown.value &&
+      chatModelSelectRef.value && !chatModelSelectRef.value.contains(event.target)) {
+    showChatModelDropdown.value = false;
+  }
+  if (showEmbeddingModelDropdown.value &&
+      embeddingModelSelectRef.value && !embeddingModelSelectRef.value.contains(event.target)) {
+    showEmbeddingModelDropdown.value = false;
   }
   if (showModelDropdown.value &&
       modelSelectRef.value && !modelSelectRef.value.contains(event.target) &&
@@ -518,6 +724,8 @@ onUnmounted(() => {
 onDeactivated(() => {
   showModelDropdown.value = false;
   showProviderDropdown.value = false;
+  showChatModelDropdown.value = false;
+  showEmbeddingModelDropdown.value = false;
   showAddModal.value = false;
   showDeleteConfirm.value = false;
 });
@@ -610,11 +818,18 @@ const resetForm = () => {
     modelUrl: '',
     useSeparateEmbeddingConfig: false,
     embeddingApiKey: '',
-    embeddingUrl: ''
+    embeddingUrl: '',
+    supportsVision: false
   };
   showApiKey.value = false;
   showEmbeddingApiKey.value = false;
   editingModelId.value = null;
+  chatModelOptions.value = [];
+  chatModelsLoading.value = false;
+  showChatModelDropdown.value = false;
+  showEmbeddingModelDropdown.value = false;
+  manualChatModel.value = false;
+  manualEmbeddingModel.value = false;
 };
 
 const handleSave = () => {
@@ -627,7 +842,8 @@ const handleSave = () => {
       apiKey: formData.value.apiKey,
       modelName: formData.value.modelName,
       embeddingModelName: formData.value.embeddingModelName || '',
-      baseUrl: isOther ? formData.value.modelUrl : (provider?.baseUrl || '')
+      baseUrl: isOther ? formData.value.modelUrl : (provider?.baseUrl || ''),
+      supportsVision: !!formData.value.supportsVision
     };
 
     if (isOther) {
@@ -867,28 +1083,18 @@ function formatTime(ts) {
 
 /* 未选择首选模型时：高亮边框 + 脉冲动画，引导用户点击 */
 .model-select-trigger.no-selection {
-  border-color: var(--accent-color, #3b82f6);
-  background-color: var(--bg-primary);
-  animation: highlightPulse 2s ease-in-out infinite;
+  border-color: var(--accent-color);
+  background-color: var(--accent-light);
 }
 
 .model-select-trigger.no-selection:hover {
-  border-color: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color);
   background-color: var(--bg-hover);
-}
-
-@keyframes highlightPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
-  }
 }
 
 .select-hint-text {
   font-size: 14px;
-  color: var(--accent-color, #3b82f6);
+  color: var(--accent-color);
   font-weight: 500;
 }
 
@@ -1074,7 +1280,7 @@ function formatTime(ts) {
 }
 
 .edit-btn:hover {
-  color: var(--accent-color, #3b82f6);
+  color: var(--accent-color);
   background-color: rgba(59, 130, 246, 0.1);
 }
 
@@ -1340,6 +1546,41 @@ function formatTime(ts) {
 
 .dropdown-item:hover {
   background-color: var(--bg-hover);
+}
+
+.dropdown-item.manual-item {
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.dropdown-hint {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hint-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.hint-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-color);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.hint-link:hover {
+  text-decoration: underline;
 }
 
 .input-wrapper {
@@ -1628,7 +1869,7 @@ function formatTime(ts) {
 
 .balance-available-tag.available {
   background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .balance-available-tag.unavailable {
@@ -1649,7 +1890,7 @@ function formatTime(ts) {
 }
 
 .balance-amount-item.primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--accent-color);
   color: #fff;
 }
 
@@ -1691,7 +1932,6 @@ function formatTime(ts) {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-
 
 .delete-confirm-actions {
   display: flex;

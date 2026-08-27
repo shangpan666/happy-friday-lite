@@ -1,10 +1,9 @@
 <template>
-  <div class="tab-bar-container">
-    <div v-if="isMac" class="mac-traffic-lights-spacer"></div>
-    <div class="tab-bar-left" :class="{ 'linux-left': !isMac }">
-      <button class="sidebar-toggle-btn" @click="appStore.toggleSidebar()">
-        <PanelLeftClose v-if="appStore.sidebarVisible" :size="16" :stroke-width="1.8" />
-        <PanelLeftOpen v-else :size="16" :stroke-width="1.8" />
+  <div class="title-strip">
+    <div v-if="isMac && !appStore.sidebarVisible" class="mac-traffic-lights-spacer"></div>
+    <div v-if="!appStore.sidebarVisible" class="strip-left">
+      <button class="strip-btn" @click="appStore.toggleSidebar()">
+        <PanelLeftOpen :size="15" :stroke-width="1.8" />
       </button>
     </div>
 
@@ -24,38 +23,38 @@
             <component
               v-if="tab.icon"
               :is="iconMap[tab.icon]"
-              :size="14"
+              :size="13"
               :stroke-width="2"
               class="tab-icon"
             />
             <span class="tab-title">{{ tab.title || t(tab.i18nKey) }}</span>
             <button v-show="(hoveredTabId === tab.id || tabStore.activeTabId === tab.id) && !(tabStore.openedTabs.length === 1 && tab.path === '/friday')" class="tab-close-btn" @click.stop="closeTab(tab.id)">
-              <X :size="12" :stroke-width="2" />
+              <X :size="11" :stroke-width="2" />
             </button>
           </div>
         </template>
       </div>
 
-      <button class="add-tab-btn" @click="addFridayTab">
-        <Plus :size="16" :stroke-width="2.5" />
+      <button class="strip-btn add-tab-btn" @click="addFridayTab">
+        <Plus :size="15" :stroke-width="2.2" />
       </button>
 
       <div class="tabs-area-spacer"></div>
     </div>
 
-    <div v-if="!isMac" class="linux-window-controls">
-      <button class="window-ctrl-btn minimize-btn" @click="handleMinimize">
-        <Minus :size="15" :stroke-width="1.5" />
+    <div v-if="!isMac" class="window-controls">
+      <button class="win-ctrl-btn minimize-btn" @click="handleMinimize">
+        <Minus :size="14" :stroke-width="1.5" />
       </button>
-      <button class="window-ctrl-btn maximize-btn" @click="handleToggleMaximize">
-        <Square :size="13" :stroke-width="1.5" />
+      <button class="win-ctrl-btn maximize-btn" @click="handleToggleMaximize">
+        <Square :size="12" :stroke-width="1.5" />
       </button>
-      <button class="window-ctrl-btn close-btn" @click="handleClose">
-        <X :size="15" :stroke-width="1.5" />
+      <button class="win-ctrl-btn close-btn" @click="handleClose">
+        <X :size="14" :stroke-width="1.5" />
       </button>
     </div>
 
-    <div v-else class="tab-bar-right-spacer"></div>
+    <div v-else class="strip-right-spacer"></div>
 
     <Teleport to="body">
       <div
@@ -71,20 +70,20 @@
           @click.stop
         >
           <button class="tab-context-menu-item" role="menuitem" :disabled="!canCloseOthers" @click="closeOtherTabs">
-            <Layers :size="15" :stroke-width="1.8" />
+            <Layers :size="14" :stroke-width="1.8" />
             <span>关闭其他</span>
           </button>
           <button class="tab-context-menu-item" role="menuitem" @click="closeAllTabs">
-            <X :size="15" :stroke-width="1.8" />
+            <X :size="14" :stroke-width="1.8" />
             <span>全部关闭</span>
           </button>
           <div class="tab-context-menu-divider"></div>
           <button class="tab-context-menu-item" role="menuitem" :disabled="!canMoveLeft" @click="moveContextTab(-1)">
-            <ArrowLeft :size="15" :stroke-width="1.8" />
+            <ArrowLeft :size="14" :stroke-width="1.8" />
             <span>向左移动</span>
           </button>
           <button class="tab-context-menu-item" role="menuitem" :disabled="!canMoveRight" @click="moveContextTab(1)">
-            <ArrowRight :size="15" :stroke-width="1.8" />
+            <ArrowRight :size="14" :stroke-width="1.8" />
             <span>向右移动</span>
           </button>
         </div>
@@ -127,7 +126,6 @@ const router = useRouter();
 
 const userAgent = navigator.userAgent || '';
 const isMac = /Macintosh/.test(userAgent);
-const isLinux = /Linux/.test(userAgent) && !/Android/.test(userAgent);
 
 const iconMap = {
   FolderKanban,
@@ -147,10 +145,10 @@ const tabsAreaWidth = ref(0);
 const hoveredTabId = ref('');
 const contextMenu = ref({ visible: false, x: 0, y: 0, tabId: '' });
 
-const ADD_BTN_WIDTH = 28;
+const ADD_BTN_WIDTH = 26;
 const TAB_GAP = 3;
-const MAX_TAB_WIDTH = 150;
-const MIN_TAB_WIDTH = 100;
+const MAX_TAB_WIDTH = 160;
+const MIN_TAB_WIDTH = 90;
 
 const tabWidth = computed(() => {
   const count = tabStore.openedTabs.length;
@@ -307,11 +305,12 @@ const handleClose = () => {
 </script>
 
 <style scoped>
-.tab-bar-container {
+.title-strip {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   height: var(--tab-bar-height);
   background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
@@ -322,61 +321,52 @@ const handleClose = () => {
 
 .mac-traffic-lights-spacer {
   width: 80px;
-  height: 100%;
   flex-shrink: 0;
 }
 
-.tab-bar-left {
+.strip-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 100%;
+  padding-left: 6px;
   flex-shrink: 0;
 }
 
-.tab-bar-left.linux-left {
-  width: var(--sidebar-width);
-}
-
-.sidebar-toggle-btn {
+.strip-btn {
   background: none;
   border: none;
-  color: var(--text-primary);
-  opacity: 0.5;
+  color: var(--text-secondary);
   cursor: pointer;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: background-color 0.15s, opacity 0.15s;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.12s, color 0.12s;
   -webkit-app-region: no-drag;
   app-region: no-drag;
   flex-shrink: 0;
 }
 
-.sidebar-toggle-btn:hover {
+.strip-btn:hover {
   background-color: var(--bg-hover);
-  opacity: 0.85;
+  color: var(--text-primary);
 }
 
 .tabs-area {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 2px;
-  height: 100%;
   flex: 1;
   min-width: 0;
   -webkit-app-region: no-drag;
   app-region: no-drag;
-  padding-left: 4px;
+  padding: 5px 4px 0;
 }
 
 .tabs-scroll {
   display: flex;
-  align-items: center;
-  height: 100%;
+  align-items: flex-end;
   flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
@@ -389,13 +379,12 @@ const handleClose = () => {
 }
 
 .tab-divider {
-  width: 1.5px;
-  height: 16px;
-  background-color: var(--text-tertiary);
+  width: 1px;
+  height: 14px;
+  background-color: var(--border-strong);
   flex-shrink: 0;
-  margin: 0 1px;
-  opacity: 0.4;
-  transition: opacity 0.15s;
+  margin: 0 1px 6px;
+  transition: opacity 0.12s;
 }
 
 .tab-divider.hidden {
@@ -405,28 +394,41 @@ const handleClose = () => {
 .tab-item {
   display: flex;
   align-items: center;
-  height: 32px;
-  padding: 0 10px;
-  border-radius: 10px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   cursor: pointer;
-  color: var(--text-primary);
-  opacity: 0.7;
-  transition: background-color 0.15s, opacity 0.15s, width 0.2s ease;
-  gap: 5px;
+  color: var(--text-secondary);
+  transition: background-color 0.1s, color 0.1s;
+  gap: 6px;
   flex-shrink: 0;
-  font-weight: 600;
+  font-size: 12px;
   overflow: hidden;
 }
 
 .tab-item:hover {
   background-color: var(--bg-hover);
-  opacity: 0.8;
+  color: var(--text-primary);
 }
 
 .tab-item.active {
   background-color: var(--bg-primary);
-  opacity: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  font-weight: 500;
+  position: relative;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background-color: var(--bg-primary);
 }
 
 .tab-icon {
@@ -439,9 +441,7 @@ const handleClose = () => {
   flex: 1;
   overflow: hidden;
   white-space: nowrap;
-  font-size: 12.5px;
   line-height: 1;
-  font-weight: inherit;
   -webkit-mask-image: linear-gradient(to right, #000 70%, transparent 100%);
   mask-image: linear-gradient(to right, #000 70%, transparent 100%);
 }
@@ -452,56 +452,36 @@ const handleClose = () => {
   color: var(--text-tertiary);
   cursor: pointer;
   margin-left: 2px;
-  border-radius: 4px;
-  width: 18px;
-  height: 18px;
+  border-radius: 3px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.12s, color 0.12s;
   flex-shrink: 0;
 }
 
 .tab-close-btn:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--bg-active);
   color: var(--text-primary);
 }
 
 .add-tab-btn {
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  opacity: 0.5;
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: background-color 0.15s, opacity 0.15s;
-  flex-shrink: 0;
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-
-.add-tab-btn:hover {
-  background-color: var(--bg-hover);
-  opacity: 0.85;
+  margin: 0 0 5px 2px;
+  align-self: flex-end;
 }
 
 .tabs-area-spacer {
   flex: 1;
   min-width: 0;
-  height: 100%;
   -webkit-app-region: drag;
   app-region: drag;
 }
 
-.tab-bar-right-spacer {
+.strip-right-spacer {
   flex-shrink: 0;
   min-width: 50px;
-  height: 100%;
 }
 
 .tab-context-menu-overlay {
@@ -522,8 +502,8 @@ const handleClose = () => {
   padding: 4px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
@@ -536,7 +516,7 @@ const handleClose = () => {
   align-items: center;
   gap: 8px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
@@ -544,7 +524,7 @@ const handleClose = () => {
   font-size: 12.5px;
   text-align: left;
   white-space: nowrap;
-  transition: background-color 0.15s, color 0.15s;
+  transition: background-color 0.12s, color 0.12s;
 }
 
 .tab-context-menu-item:hover:not(:disabled) {
@@ -562,32 +542,30 @@ const handleClose = () => {
   background: var(--border-color);
 }
 
-.linux-window-controls {
+.window-controls {
   display: flex;
-  align-items: center;
-  height: 100%;
+  align-items: stretch;
   flex-shrink: 0;
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
-.window-ctrl-btn {
+.win-ctrl-btn {
   background: none;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   cursor: pointer;
-  width: 32px;
-  height: 28px;
-  margin: 0 2px;
+  width: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: background-color 0.15s;
+  border-radius: 0;
+  transition: background-color 0.1s;
 }
 
-.window-ctrl-btn:hover {
+.win-ctrl-btn:hover {
   background-color: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .close-btn:hover {

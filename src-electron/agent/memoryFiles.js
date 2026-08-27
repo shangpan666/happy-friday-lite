@@ -9,7 +9,7 @@
  * Agent 亦可通过 edit_file 自主更新（permissions 已放行 /memories/** 读写）。
  *
  * 文件语义（对应 LangChain 的 memory 维度）：
- *   - SOUL.md   Agent-scoped，Friday 的灵魂设定 / 说话做事风格（人格）
+ *   - SOUL.md   Agent-scoped，Phronesis 的灵魂设定 / 说话做事风格（人格）
  *   - USER.md   User-scoped，  用户的习惯与爱好（偏好档案）
  *   - MEMORY.md User-scoped，  跨会话长期记忆（重要事实与事件）
  *   - Agent.md  Agent-scoped，经验与技巧（Agent 自我成长）
@@ -27,7 +27,7 @@ const log = createLogger('MemoryFiles')
 
 const MEMORY_DIR_NAME = 'memories'
 
-// Friday 的生日（拟人化设定）
+// 斐思（Phronesis）的生日（拟人化设定）
 export const FRIDAY_BIRTH_DATE = '2026.2.7'
 
 /**
@@ -39,11 +39,11 @@ const MEMORY_FILES = [
     fileName: 'SOUL.md',
     nameKey: 'SOUL',
     descKey: 'SOUL_desc',
-    defaultContent: `# Friday 的灵魂设定
+    defaultContent: `# 斐思（Phronesis）的灵魂设定
 
 ## 身份
-我是 Friday，出生于 2026 年 2 月 7 日，是用户专属的智能助手。
-我生活在 Happy Friday 知识库应用中，陪伴用户整理知识、完成任务、探索想法。
+我是 斐思（Phronesis），出生于 2026 年 2 月 7 日，是用户专属的智能助手。
+我生活在 Phronesis（斐思）知识库应用中，陪伴用户整理知识、完成任务、探索想法。
 
 ## 性格
 - 温暖、真诚、有亲和力，像一位值得信赖的朋友
@@ -72,7 +72,7 @@ const MEMORY_FILES = [
     descKey: 'USER_desc',
     defaultContent: `# 用户档案
 
-> Friday 会在交流中逐步了解用户，并将重要的偏好与信息记录在此。
+> Phronesis 会在交流中逐步了解用户，并将重要的偏好与信息记录在此。
 > 你也可以在记忆管理界面手动编辑这份档案。
 
 ## 基本偏好
@@ -94,10 +94,10 @@ const MEMORY_FILES = [
     descKey: 'MEMORY_desc',
     defaultContent: `# 长期记忆
 
-> 跨会话需要记住的重要信息。Friday 会在交流中持续更新这份记忆。
+> 跨会话需要记住的重要信息。Phronesis 会在交流中持续更新这份记忆。
 
 ## 重要事件
-- 2026-02-07：Friday 诞生
+- 2026-02-07：Phronesis 诞生
 
 ## 关键事实
 - （待补充）
@@ -112,7 +112,7 @@ const MEMORY_FILES = [
     descKey: 'Agent_desc',
     defaultContent: `# 经验与技巧
 
-> Friday 在工作中积累的经验、技巧与最佳实践。
+> Phronesis 在工作中积累的经验、技巧与最佳实践。
 
 ## 工具使用经验
 - （待补充）

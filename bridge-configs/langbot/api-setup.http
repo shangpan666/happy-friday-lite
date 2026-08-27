@@ -1,0 +1,27 @@
+### LangBot（QQ）接入 Friday 本地位点
+### 两步：1) 创建 OpenAI 兼容 Provider  2) 创建绑定到该 Provider 的模型
+### 说明：base_url 必须带 /v1 后缀；api_key 若本地位点未设置密钥可填任意占位串（如 sk-noauth）。
+
+### 1) 创建 Provider（openai-chat-completions）
+POST http://127.0.0.1:9090/api/v1/provider/providers
+Content-Type: application/json
+X-API-Key: lbk_your_langbot_api_key
+
+{
+  "name": "Friday Local",
+  "requester": "openai-chat-completions",
+  "base_url": "http://127.0.0.1:18790/v1",
+  "api_keys": ["YOUR_API_KEY_PLACEHOLDER"]
+}
+
+### 2) 创建模型（把 provider_uuid 替换为上一步返回 data.uuid）
+POST http://127.0.0.1:9090/api/v1/provider/models/llm
+Content-Type: application/json
+X-API-Key: lbk_your_langbot_api_key
+
+{
+  "name": "YOUR_MODEL_NAME_PLACEHOLDER",
+  "provider_uuid": "<provider_uuid_from_step_1>",
+  "abilities": ["chat"],
+  "extra_args": {}
+}

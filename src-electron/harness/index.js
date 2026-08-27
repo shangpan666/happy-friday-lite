@@ -18,10 +18,10 @@ import { listRegisteredTools } from '../agent/tools/registry.js'
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const HARNESS_CONSUMER = 'deepseek-harness'
-const HARNESS_PROVIDER = 'happy-friday'
-const HARNESS_CREDENTIAL = 'HAPPY_FRIDAY_HARNESS_API_KEY'
-const MCP_SERVER_NAME = 'happy-friday'
-const START_TIMEOUT_MS = 45_000
+const HARNESS_PROVIDER = 'phronesis'
+const HARNESS_CREDENTIAL = 'PHRONESIS_HARNESS_API_KEY'
+const MCP_SERVER_NAME = 'phronesis'
+const START_TIMEOUT_MS = 180_000
 
 let mainWindow = null
 let sidecar = null
@@ -53,14 +53,20 @@ function updateState(patch) {
 
 function harnessPaths() {
   const root = path.join(getDataDir(), 'deepseek-harness')
+  // 允许用户将工作区指定到其他盘/目录（如 D:\\harness-workspace），
+  // 配置为空时回退到数据目录内的默认工作区。
+  const config = loadConfig()
+  const customWorkspace = config && typeof config.harnessWorkspace === 'string'
+    ? config.harnessWorkspace.trim()
+    : ''
   return {
     root,
     home: path.join(root, 'home'),
-    workspace: path.join(root, 'workspace'),
+    workspace: customWorkspace ? customWorkspace : path.join(root, 'workspace'),
     settings: path.join(root, 'home', 'settings.yaml'),
     credentials: path.join(root, 'home', '.credentials.yaml'),
-    patch: path.join(root, 'home', 'happy-friday.patch.yml'),
-    policy: path.join(root, 'home', 'happy-friday-tool-policy.mjs')
+    patch: path.join(root, 'home', 'phronesis.patch.yml'),
+    policy: path.join(root, 'home', 'phronesis-tool-policy.mjs')
   }
 }
 
@@ -137,7 +143,10 @@ function selectedModel() {
     providerLabel: model.providerLabel || model.provider || 'Custom',
     apiKey: String(model.apiKey),
     modelName: String(model.modelName),
-    baseUrl
+    baseUrl,
+    // 是否声明该模型支持图片输入（Vision）。为 true 时向 Harness 声明 image 模态，
+    // 否则 dsh 会拒绝读取/发送图片并报告 "model does not support image input"。
+    supportsVision: !!model.supportsVision
   }
 }
 
@@ -188,7 +197,13 @@ function syncConfiguration(model, mcpUrl) {
         apiKeyEnv: HARNESS_CREDENTIAL,
         api: 'openai-completions',
         baseURL: model.baseUrl,
-        models: [{ id: model.modelName, name: model.modelName }]
+        // 声明该模型的输入模态：支持 Vision 时加入 image，否则仅 text。
+        // 不声明 image 会导致 dsh 拒绝读取/发送图片（报 "does not support image input"）。
+        models: [{
+          id: model.modelName,
+          name: model.modelName,
+          input: model.supportsVision ? ['text', 'image'] : ['text']
+        }]
       }
     }
   }
@@ -219,11 +234,11 @@ function syncConfiguration(model, mcpUrl) {
           {
             insert: [
               {
-                id: 'happy-friday-directory-picker',
+                id: 'phronesis-directory-picker',
                 name: '@deepseek-ai/dsh-host-directory-picker-browse'
               },
               {
-                id: 'happy-friday-directory-picker-ui',
+                id: 'phronesis-directory-picker-ui',
                 name: '@deepseek-ai/dsh-client-ui-directory-picker-browse'
               }
             ]
@@ -233,7 +248,7 @@ function syncConfiguration(model, mcpUrl) {
     {
       insert: [
         {
-          id: 'mcp-happy-friday',
+          id: 'mcp-phronesis',
           name: '@deepseek-ai/dsh-mcp-client',
           config: {
             serverName: MCP_SERVER_NAME,
@@ -244,7 +259,7 @@ function syncConfiguration(model, mcpUrl) {
           }
         },
         {
-          id: 'happy-friday-tool-approval',
+          id: 'phronesis-tool-approval',
           name: pathToFileURL(paths.policy).href,
           inject: ['tools'],
           config: { approvalTools }
@@ -316,7 +331,7 @@ async function waitUntilReady(url, child, expectedGeneration) {
     if (await probe(url)) return
     await new Promise(resolve => setTimeout(resolve, 250))
   }
-  throw new Error('Harness startup timed out')
+  throw new Error(failureDetail('Harness startup timed out'))
 }
 
 function captureOutput(stream) {
@@ -352,14 +367,16 @@ async function bootHarness() {
 
   let acquiredMcp = false
   let launchedChild = null
+  let profilesRoot = null
   try {
     const mcp = await acquireLocalMcpServer(HARNESS_CONSUMER)
     acquiredMcp = true
     const mcpStatus = getLocalMcpStatus()
-    if (!mcp.success || !mcpStatus.url) throw new Error('Happy Friday MCP server failed to start')
+    if (!mcp.success || !mcpStatus.url) throw new Error('Phronesis MCP server failed to start')
     if (expectedGeneration !== generation) throw new Error('Harness startup was superseded')
 
     const { paths, toolCount } = syncConfiguration(model, mcpStatus.url)
+    profilesRoot = path.join(paths.home, 'profiles')
     clearStaleAppImageModuleLinks(paths)
     const port = await findOpenPort()
     if (expectedGeneration !== generation) throw new Error('Harness startup was superseded')
@@ -429,15 +446,26 @@ async function bootHarness() {
     if (expectedGeneration === generation) {
       activeModelSignature = null
       if (sidecar === launchedChild) sidecar = null
+      const detail = error.message || String(error)
+      // 插件依赖安装被打断会留下残缺的 profiles/node_modules，清掉让下次启动重装
+      if (profilesRoot && /Cannot find module|ERR_MODULE_NOT_FOUND|failed to read overlay/i.test(detail)) {
+        try {
+          fs.rmSync(profilesRoot, { recursive: true, force: true })
+          console.warn('[Harness] Removed corrupted profiles directory for reinstall')
+        } catch (_e) {}
+      }
+      if (recentOutput.length) {
+        console.error(`[Harness] Recent sidecar output:\n${recentOutput.join('\n')}`)
+      }
       updateState({
         status: error.code === 'HARNESS_MODEL_REQUIRED' ? 'config-required' : 'error',
         url: null,
         port: null,
         model: null,
         toolCount: 0,
-        error: error.message || String(error)
+        error: detail
       })
-      console.error(`[Harness] Startup failed: ${error.message || String(error)}`)
+      console.error(`[Harness] Startup failed: ${detail}`)
     }
     return publicStatus()
   }

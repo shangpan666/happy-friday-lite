@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, powerSaveBlocker } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, powerSaveBlocker, screen } from 'electron'
 import { fileURLToPath } from 'url'
 import path from 'path'
 import fs from 'fs'
@@ -13,6 +13,8 @@ import { initLogger, setLoggingEnabled } from './src-electron/logger.js'
 import { startShareServer, stopShareServer } from './src-electron/shareServer.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './src-electron/automation.js'
 import { stopHarnessSidecar } from './src-electron/harness/index.js'
+import { initPet } from './src-electron/pet.js'
+import { registerMobileSyncHandlers, stopMobileSync } from './src-electron/mobileSync.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -33,7 +35,9 @@ if (isDev) {
   app.commandLine.appendSwitch('disable-gpu-sandbox')
   app.commandLine.appendSwitch('no-sandbox')
   app.commandLine.appendSwitch('disable-setuid-sandbox')
-  app.setPath('userData', path.join(__dirname, 'app-data', 'electron-user-data'))
+  // dev 下把 Electron userData 放到系统用户目录，避免与 Vite 文件监听冲突（EBUSY）。
+  // 日志/配置/数据库/knowledge 仍保留在项目 app-data/ 内。
+  app.setPath('userData', path.join(app.getPath('appData'), 'phronesis-lite-dev'))
 }
 
 // 尽早初始化文件日志器，接管 console.* 与未捕获异常，
@@ -68,11 +72,65 @@ async function ensureDataDir() {
   return dataDir
 }
 
+// ===== 窗口大小与位置记忆 =====
+function getBoundsPath() {
+  const dir = isDev
+    ? path.join(__dirname, 'app-data')
+    : app.getPath('userData')
+  return path.join(dir, 'window-bounds.json')
+}
+
+function loadWindowBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(getBoundsPath(), 'utf-8'))
+    if (
+      typeof saved?.x !== 'number' || typeof saved?.y !== 'number' ||
+      typeof saved?.width !== 'number' || typeof saved?.height !== 'number'
+    ) {
+      return null
+    }
+    // 校验保存的位置至少与某个显示器的工作区有可见交集，避免窗口跑出屏幕外
+    const visible = screen.getAllDisplays().some((d) => {
+      const { x, y, width, height } = d.workArea
+      return (
+        saved.x + saved.width > x + 40 &&
+        saved.x < x + width - 40 &&
+        saved.y + saved.height > y + 40 &&
+        saved.y < y + height - 40
+      )
+    })
+    if (!visible) {
+      // 位置无效时仍保留尺寸，仅丢弃坐标
+      return { width: saved.width, height: saved.height, isMaximized: !!saved.isMaximized }
+    }
+    return { ...saved, isMaximized: !!saved.isMaximized }
+  } catch (_e) {
+    return null
+  }
+}
+
+function saveWindowBounds() {
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  try {
+    const isMaximized = mainWindow.isMaximized() || mainWindow.isFullScreen()
+    const bounds = isMaximized ? mainWindow.getNormalBounds() : mainWindow.getBounds()
+    const dir = path.dirname(getBoundsPath())
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    fs.writeFileSync(getBoundsPath(), JSON.stringify({ ...bounds, isMaximized }), 'utf-8')
+  } catch (e) {
+    console.warn('[Main] Failed to save window bounds:', e.message)
+  }
+}
+
 function createWindow() {
   const isMac = process.platform === 'darwin'
+  const saved = loadWindowBounds()
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: saved?.width ?? 1200,
+    height: saved?.height ?? 800,
+    ...(saved && saved.x !== undefined ? { x: saved.x, y: saved.y } : {}),
     minWidth: 800,
     minHeight: 600,
     icon: path.join(__dirname, 'build', 'icons', 'icon.png'),
@@ -87,8 +145,16 @@ function createWindow() {
     show: false
   })
 
+  if (saved?.isMaximized) {
+    mainWindow.maximize()
+  }
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  mainWindow.on('close', () => {
+    saveWindowBounds()
   })
 
   Menu.setApplicationMenu(null)
@@ -104,6 +170,7 @@ function createWindow() {
 app.whenReady().then(async () => {
   // 1. 先创建窗口，让 splash 立即显示（窗口加载 index.html 与主进程初始化并行）
   createWindow()
+  initPet(mainWindow)
 
   // 阻止操作系统将应用挂起
   // - macOS：阻止 AppNap 导致的进程冻结
@@ -129,6 +196,14 @@ app.whenReady().then(async () => {
     console.log('[Main] ✅ IPC commands registered successfully')
   } catch (error) {
     console.error('[Main] ❌ Failed to register IPC commands:', error)
+  }
+
+  // 注册手机同步 IPC（二维码、隧道等）
+  try {
+    registerMobileSyncHandlers()
+    console.log('[Main] ✅ Mobile sync handlers registered')
+  } catch (error) {
+    console.error('[Main] ❌ Failed to register mobile sync handlers:', error)
   }
 
   startAutomationScheduler(mainWindow)
@@ -175,6 +250,11 @@ app.whenReady().then(async () => {
   // 启动内网分享服务（只读 HTTP，供局域网浏览器查看对话）
   startShareServer().catch(e => console.error('[Main] Share server failed to start:', e))
 
+  // 启动消息桥接服务（OpenAI 兼容端点）：供 QQ(LangBot) / 微信 ClawBot(OpenClaw 网关) 接入 Friday
+  import('./src-electron/bridge/index.js')
+    .then(({ startBridge }) => startBridge())
+    .catch(e => console.error('[Main] Bridge failed to start:', e))
+
   // 若用户曾开启本机 MCP 服务，则自动拉起（异步，不阻塞窗口）
   import('./src-electron/agent/mcp.js')
     .then(({ autoStartLocalIfEnabled }) => autoStartLocalIfEnabled())
@@ -198,6 +278,7 @@ app.on('window-all-closed', function () {
     powerBlockerId = null
   }
   stopShareServer()
+  stopMobileSync()
   stopAutomationScheduler()
   closeDb()
   if (process.platform !== 'darwin') {

@@ -223,7 +223,7 @@ onUnmounted(() => {
 }
 
 .ai-avatar {
-  background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+  background: var(--online-color);
 }
 
 .avatar-icon {
@@ -338,7 +338,7 @@ onUnmounted(() => {
 .markdown-body :deep(blockquote) {
   margin: 10px 0;
   padding: 8px 14px;
-  border-left: 3px solid #10b981;
+  border-left: 3px solid var(--success-color);
   background: rgba(16, 185, 129, 0.06);
   border-radius: 0 8px 8px 0;
   color: var(--text-secondary);
@@ -406,7 +406,7 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(.code-copy-btn.copied) {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .markdown-body :deep(.code-block-wrapper pre) {
@@ -487,7 +487,7 @@ onUnmounted(() => {
   display: inline-block;
   width: 2px;
   height: 16px;
-  background: #10b981;
+  background: var(--success-color);
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.8s infinite;
@@ -534,7 +534,7 @@ onUnmounted(() => {
 }
 
 .action-icon-btn.copied {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .action-icon-btn.copied:hover {

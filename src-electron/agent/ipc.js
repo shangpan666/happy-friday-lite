@@ -21,6 +21,7 @@
  */
 
 import { ipcMain, dialog } from 'electron'
+import path from 'path'
 import { Command } from '@langchain/langgraph'
 import { CHAT_CHUNK, CHAT_REASONING_CHUNK, CHAT_DONE, CHAT_ERROR, CONFIG_CHANGED } from '../events.js'
 import { CancellationTokens } from '../cancellation.js'
@@ -28,6 +29,7 @@ import { getDataDir, loadConfig } from '../config.js'
 import * as db from '../db.js'
 import { buildLlmMessage } from '../attachmentContext.js'
 import { createAgentWithContext } from './index.js'
+import { getAgentRootDir } from './backend.js'
 import { createLogger } from './logger.js'
 import { listSkills, generateSkillIndex, deleteSkill, importSkill } from './skills.js'
 import { listRegisteredTools, listToolNames } from './tools/registry.js'
@@ -46,6 +48,8 @@ import {
   resolveApprove,
   resolveReject,
   cancelApproval,
+  resolveUserAnswer,
+  cancelUserAnswer,
   buildResumeCommand,
   emitApprovalRequest
 } from './humanInTheLoop.js'
@@ -247,10 +251,19 @@ export function registerAgentCommands(mainWindow) {
     log.info(`agent-stop: requestId=${requestId}`)
     cancelTokens.cancel(requestId)
     cancelApproval(requestId)
+    cancelUserAnswer(requestId)
     return { ok: true }
   })
 
   // ========== agent-tool-approval-resume: 审批决策回传 ==========
+    // ========== ask_user：用户点选选项后回传答案 ==========
+  ipcMain.handle('agent-ask-user-answer', async (_event, args) => {
+    const { requestId, toolCallId, answers } = args || {}
+    if (!requestId || !toolCallId) return { success: false }
+    resolveUserAnswer(requestId, toolCallId, Array.isArray(answers) ? answers : [])
+    return { success: true }
+  })
+
   ipcMain.handle('agent-tool-approval-resume', async (_event, args) => {
     const { requestId, decision } = args
     log.info(`agent-tool-approval-resume: requestId=${requestId}, decision=${decision.type}`)
@@ -313,6 +326,63 @@ export function registerAgentCommands(mainWindow) {
     return importSkill(dlg.filePaths[0])
   })
 
+  // ========== agent-select-folder: 选择 Agent 工作目录 ==========
+  // 弹出目录选择框（可任选磁盘上的文件夹）。
+  // - 选中的文件夹在 Agent 工作区内：直接返回相对虚拟路径
+  // - 在工作区外（其他磁盘等）：在 /SANDBOX/links/ 下创建目录联接（junction）映射到真实
+  //   文件夹，Agent 沿虚拟路径写入，实际文件落在用户选择的位置
+  ipcMain.handle('agent-select-folder', async () => {
+    const rootDir = getAgentRootDir()
+    const dlg = await dialog.showOpenDialog(mainWindow, {
+      title: '选择 Agent 工作目录（Agent 生成的文件将保存到这里）',
+      defaultPath: path.join(rootDir, 'SANDBOX'),
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (dlg.canceled || !dlg.filePaths.length) {
+      return { success: false, canceled: true }
+    }
+    const realDir = dlg.filePaths[0]
+    const rel = path.relative(rootDir, realDir)
+    if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) {
+      // 工作区内：直接使用相对虚拟路径
+      const virtualPath = '/' + rel.split(path.sep).join('/')
+      return { success: true, path: virtualPath, name: path.basename(realDir) }
+    }
+
+    // 工作区外：创建 junction 映射到 /SANDBOX/links/<名称>
+    const fs = await import('fs')
+    const linksDir = path.join(rootDir, 'SANDBOX', 'links')
+    fs.mkdirSync(linksDir, { recursive: true })
+    let name = path.basename(realDir) || 'folder'
+    let linkPath = path.join(linksDir, name)
+    let suffix = 2
+    while (fs.existsSync(linkPath)) {
+      // 已存在的联接指向同一目录则直接复用
+      try {
+        if (fs.realpathSync(linkPath).toLowerCase() === fs.realpathSync(realDir).toLowerCase()) {
+          return {
+            success: true,
+            path: '/SANDBOX/links/' + name,
+            name,
+            linked: true
+          }
+        }
+      } catch (_e) { /* 联接已失效，覆盖重建 */ }
+      name = `${path.basename(realDir)}-${suffix++}`
+      linkPath = path.join(linksDir, name)
+    }
+    try {
+      fs.symlinkSync(realDir, linkPath, 'junction')
+    } catch (e) {
+      return { success: false, error: `创建目录映射失败: ${e.message}` }
+    }
+    return {
+      success: true,
+      path: '/SANDBOX/links/' + name,
+      name,
+      linked: true
+    }
+  })
   // ========== MCP 连接管理 ==========
   // 设计参考：src-electron/agent/mcp.js
   // 通道：
@@ -462,14 +532,16 @@ async function streamAgentWithHITL({ agent, input, config, requestId, mainWindow
   let fullReasoning = ''
   let currentInput = input
   let iteration = 0
-  const MAX_ITERATIONS = 20 // 防止无限循环
+  // 单次任务最大执行步数：0 = 不限制（默认）。可在 config.json 的 agent.maxSteps 中设置上限。
+  let maxSteps = Number(loadConfig().agent?.maxSteps)
+  if (!Number.isFinite(maxSteps) || maxSteps <= 0) maxSteps = Infinity
 
   // 收集工具调用时间线段，用于持久化到消息 metadata
   // 段类型: { type: 'text', content } 或 { type: 'tool', toolCallId, toolName, arguments, status, output, requireApproval }
   const segments = []
   let currentTextSegment = null // 当前正在构建的 text 段引用
 
-  while (iteration < MAX_ITERATIONS) {
+  while (iteration < maxSteps) {
     if (cancelToken?.cancelled) {
       log.info(`Agent 已取消，退出 HITL 循环`)
       break
@@ -746,8 +818,19 @@ async function streamAgentWithHITL({ agent, input, config, requestId, mainWindow
     break
   }
 
-  if (iteration >= MAX_ITERATIONS) {
-    log.warn(`HITL 循环达到最大次数 ${MAX_ITERATIONS}，强制退出`)
+  if (Number.isFinite(maxSteps) && iteration >= maxSteps) {
+    log.warn(`HITL 循环达到最大次数 ${maxSteps}，强制退出`)
+    // 明确告知用户：任务因步数上限被暂停，而不是无声结束
+    const notice =
+      `\n\n---\n**⚠ 已达到单次任务的最大执行步数（${maxSteps} 步），任务在此暂停。**\n` +
+      '以上是已完成的部分。如需继续，请回复"继续"，我会接着未完成的步骤执行。'
+    segments.push({ type: 'text', content: notice })
+    fullContent += notice
+    mainWindow.webContents.send(CHAT_CHUNK, {
+      requestId,
+      sessionId: config.configurable.thread_id,
+      content: notice
+    })
   }
 
   return { fullContent, fullReasoning, segments }

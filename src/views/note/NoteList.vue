@@ -1583,7 +1583,7 @@ onDeactivated(() => {
 }
 
 .toc-level-2 .toc-item-prefix {
-  color: #8b5cf6;
+  color: var(--accent-color);
   background-color: rgba(139, 92, 246, 0.1);
 }
 

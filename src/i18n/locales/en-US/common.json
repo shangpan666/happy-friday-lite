@@ -3,10 +3,15 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "save": "Save",
-    "delete": "Delete"
+    "delete": "Delete",
+    "newChat": "New chat"
+  },
+  "nav": {
+    "groupChat": "Chat",
+    "groupWorkspace": "Workspace"
   },
   "user": {
-    "name": "Master",
+    "name": "Assistant",
     "online": "Online",
     "greetingMorning": "Good morning",
     "greetingAfternoon": "Good afternoon",
@@ -14,6 +19,6 @@
     "quickTheme": "Theme",
     "quickLanguage": "Language",
     "settings": "Settings",
-    "about": "About Happy Friday"
+    "about": "About Phronesis"
   }
 }

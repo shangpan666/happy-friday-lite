@@ -22,7 +22,7 @@
         <div class="local-card">
           <div class="local-head">
             <div class="local-title-row">
-              <span class="local-name">Happy Friday</span>
+              <span class="local-name">Phronesis</span>
               <span class="status-badge" :class="localStatus.running ? 'on' : 'off'">
                 <span class="status-dot"></span>
                 {{ localStatus.running ? t('drawer.mcp.statusOn') : t('drawer.mcp.statusOff') }}

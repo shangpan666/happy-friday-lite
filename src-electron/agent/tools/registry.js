@@ -114,7 +114,8 @@ export function buildLangChainTools(ctx) {
       let output = ''
       let status = 'success'
       try {
-        output = await handler(args, ctx)
+        // 第三个参数携带本次调用的 toolCallId，供 ask_user 等交互型工具做事件关联
+        output = await handler(args, ctx, { toolCallId })
         log.info(`工具完成: ${name}, duration=${Date.now() - startTime}ms, outputLen=${String(output).length}`)
       } catch (e) {
         status = 'error'

@@ -19,7 +19,7 @@ let serverPort = null
 const PREFERRED_PORT = 17918
 
 // 获取本机内网 IPv4 地址（非回环）
-function getLocalIp() {
+export function getLocalIp() {
   const interfaces = os.networkInterfaces()
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
@@ -121,6 +121,25 @@ function serveNoteShareApi(res, noteId) {
   }
 }
 
+// 搜索笔记
+function serveMobileSearchNotesApi(res, query) {
+  try {
+    const notes = db.searchNotes(query)
+    const lite = notes.map(n => ({
+      id: n.id,
+      title: n.title || '无标题笔记',
+      contentText: (n.contentText || '').substring(0, 200),
+      createdAt: n.createdAt,
+      updatedAt: n.updatedAt
+    }))
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, notes: lite }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
 function handleRequest(req, res) {
   try {
     // 仅允许 GET 请求
@@ -136,6 +155,31 @@ function handleRequest(req, res) {
     if (url.pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ ok: true }))
+      return
+    }
+
+    // ===== 手机端 API =====
+    if (url.pathname === '/api/mobile/sessions') {
+      serveMobileSessionsApi(res)
+      return
+    }
+    if (url.pathname === '/api/mobile/notes') {
+      serveMobileNotesApi(res)
+      return
+    }
+    const mobileNoteSearch = url.pathname.match(/^\/api\/mobile\/notes\/search$/)
+    if (mobileNoteSearch) {
+      serveMobileSearchNotesApi(res, url.searchParams.get('q') || '')
+      return
+    }
+    const mobileSessionMatch = url.pathname.match(/^\/api\/mobile\/session\/(.+)$/)
+    if (mobileSessionMatch) {
+      serveMobileSessionDetailApi(res, decodeURIComponent(mobileSessionMatch[1]))
+      return
+    }
+    const mobileNoteMatch = url.pathname.match(/^\/api\/mobile\/note\/(.+)$/)
+    if (mobileNoteMatch) {
+      serveMobileNoteDetailApi(res, decodeURIComponent(mobileNoteMatch[1]))
       return
     }
 
@@ -210,4 +254,21 @@ export function getNoteShareUrl(noteId) {
   if (!serverPort) return null
   const ip = getLocalIp()
   return `http://${ip}:${serverPort}/#/share/note/${encodeURIComponent(noteId)}`
+}
+
+// 生成手机端链接
+export function getMobileUrl() {
+  if (!serverPort) return null
+  const ip = getLocalIp()
+  return `http://${ip}:${serverPort}/#/mobile`
+}
+
+export function getMobileUrlWithPort(port) {
+  if (!port) return null
+  const ip = getLocalIp()
+  return `http://${ip}:${port}/#/mobile`
+}
+
+export function getServerPort() {
+  return serverPort
 }

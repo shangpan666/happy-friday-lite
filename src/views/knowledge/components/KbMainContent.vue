@@ -1546,7 +1546,7 @@ onBeforeUnmount(() => {
 
 .dialog-card {
   background: var(--bg-primary);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 28px 32px 24px;
   width: 400px;
   max-width: 90vw;
@@ -1630,7 +1630,7 @@ onBeforeUnmount(() => {
 }
 
 .dialog-scale-enter-active {
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .dialog-scale-leave-active {
