@@ -22,10 +22,6 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.journeyapps.barcodescanner.IntentIntegrator;
-import com.journeyapps.barcodescanner.IntentResult;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -35,6 +31,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private SpeechRecognizer speechRecognizer;
     private static final int PERM_REQ = 2001;
+    private static final int SCAN_REQ = 2002;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,11 +79,14 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void scanQR() {
-            runOnUiThread(() -> new IntentIntegrator(MainActivity.this)
-                    .setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-                    .setPrompt("扫描电脑端二维码")
-                    .setBeepEnabled(false)
-                    .initiateScan());
+            runOnUiThread(() -> {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    toast("请先授予相机权限");
+                    return;
+                }
+                startActivityForResult(new Intent(MainActivity.this, ScanActivity.class), SCAN_REQ);
+            });
         }
 
         @JavascriptInterface
@@ -157,10 +157,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null && result.getContents() != null) {
-            String js = "if(window.onQRResult)window.onQRResult(" + JSONObject.quote(result.getContents()) + ");";
-            webView.evaluateJavascript(js, null);
+        if (requestCode == SCAN_REQ && resultCode == RESULT_OK && data != null) {
+            String value = data.getStringExtra("SCAN_RESULT");
+            if (value != null) {
+                String js = "if(window.onQRResult)window.onQRResult(" + JSONObject.quote(value) + ");";
+                webView.evaluateJavascript(js, null);
+            }
         }
     }
 
