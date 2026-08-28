@@ -121,6 +121,42 @@ function serveNoteShareApi(res, noteId) {
   }
 }
 
+// 返回所有笔记（手机端导入用）
+function serveMobileNotesApi(res) {
+  try {
+    const notes = db.getNotes().map(n => ({
+      id: n.id,
+      title: n.title || '无标题笔记',
+      content: n.content || '',
+      contentText: (n.contentText || '').substring(0, 5000),
+      createdAt: n.createdAt,
+      updatedAt: n.updatedAt
+    }))
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, notes }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
+// 返回所有会话（手机端导入用）
+function serveMobileSessionsApi(res) {
+  try {
+    const sessions = db.getSessions().map(s => ({
+      id: s.id,
+      title: s.title || '未命名对话',
+      preview: s.preview || '',
+      updatedAt: s.updatedAt
+    }))
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, sessions }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
 // 搜索笔记
 function serveMobileSearchNotesApi(res, query) {
   try {

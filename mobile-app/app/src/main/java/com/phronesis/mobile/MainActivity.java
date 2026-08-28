@@ -1,24 +1,40 @@
 package com.phronesis.mobile;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.journeyapps.barcodescanner.IntentIntegrator;
+import com.journeyapps.barcodescanner.IntentResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Locale;
+
 public class MainActivity extends Activity {
     private WebView webView;
-    private ValueCallback<Uri[]> fileChooserCallback;
-    private static final int FILE_CHOOSER_REQUEST = 1001;
-    private String savedServerUrl = "";
+    private SpeechRecognizer speechRecognizer;
+    private static final int PERM_REQ = 2001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,107 +42,141 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-
         webView.addJavascriptInterface(new WebAppInterface(), "Android");
+        webView.setWebViewClient(new WebViewClient());
 
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith("http://") || url.startsWith("https://")) {
-                    return false;
-                }
-                return true;
-            }
+        webView.loadUrl("file:///android_asset/index.html");
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                if (!savedServerUrl.isEmpty()) {
-                    view.evaluateJavascript(
-                        "localStorage.setItem('serverUrl', '" + savedServerUrl + "')", null);
-                }
-            }
-        });
+        requestPermissions();
+    }
 
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> callback,
-                    FileChooserParams fileChooserParams) {
-                if (fileChooserCallback != null) {
-                    fileChooserCallback.onReceiveValue(null);
-                }
-                fileChooserCallback = callback;
-                try {
-                    Intent intent = fileChooserParams.createIntent();
-                    startActivityForResult(intent, FILE_CHOOSER_REQUEST);
-                } catch (Exception e) {
-                    fileChooserCallback = null;
-                    return false;
-                }
-                return true;
-            }
-        });
-
-        savedServerUrl = getSharedPreferences("phronesis", MODE_PRIVATE)
-            .getString("server_url", "");
-
-        if (!savedServerUrl.isEmpty()) {
-            webView.loadUrl(savedServerUrl + "/#/mobile");
-        } else {
-            webView.loadUrl("file:///android_asset/connect.html");
-        }
+    private void requestPermissions() {
+        ArrayList<String> need = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            need.add(Manifest.permission.CAMERA);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+            need.add(Manifest.permission.RECORD_AUDIO);
+        if (!need.isEmpty())
+            ActivityCompat.requestPermissions(this, need.toArray(new String[0]), PERM_REQ);
     }
 
     public class WebAppInterface {
         @JavascriptInterface
-        public void connectToServer(String url) {
+        public void onReady() { }
+
+        @JavascriptInterface
+        public String getConfig() {
+            return getSharedPreferences("phronesis", MODE_PRIVATE).getString("ph_config", "");
+        }
+
+        @JavascriptInterface
+        public void setConfig(String json) {
+            getSharedPreferences("phronesis", MODE_PRIVATE).edit().putString("ph_config", json).apply();
+        }
+
+        @JavascriptInterface
+        public void scanQR() {
+            runOnUiThread(() -> new IntentIntegrator(MainActivity.this)
+                    .setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
+                    .setPrompt("扫描电脑端二维码")
+                    .setBeepEnabled(false)
+                    .initiateScan());
+        }
+
+        @JavascriptInterface
+        public void startVoice() {
             runOnUiThread(() -> {
-                savedServerUrl = url;
-                getSharedPreferences("phronesis", MODE_PRIVATE)
-                    .edit().putString("server_url", url).apply();
-                webView.loadUrl(url + "/#/mobile");
-                Toast.makeText(MainActivity.this, "已连接", Toast.LENGTH_SHORT).show();
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    toast("请先授予麦克风权限");
+                    return;
+                }
+                startSpeech();
             });
         }
 
         @JavascriptInterface
-        public String getServerUrl() {
-            return savedServerUrl;
+        public void showToast(String msg) {
+            runOnUiThread(() -> toast(msg));
         }
 
         @JavascriptInterface
-        public void showToast(String msg) {
-            runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
+        public String loadData(String key) {
+            return getSharedPreferences("phronesis", MODE_PRIVATE).getString("ph_" + key, "");
+        }
+
+        @JavascriptInterface
+        public void saveData(String key, String value) {
+            getSharedPreferences("phronesis", MODE_PRIVATE).edit().putString("ph_" + key, value).apply();
+        }
+    }
+
+    private void startSpeech() {
+        if (speechRecognizer == null) {
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                @Override public void onReadyForSpeech(Bundle params) { }
+                @Override public void onBeginningOfSpeech() { }
+                @Override public void onRmsChanged(float rmsdB) { }
+                @Override public void onBufferReceived(byte[] buffer) { }
+                @Override public void onEndOfSpeech() { }
+                @Override public void onError(int error) {
+                    new Handler(Looper.getMainLooper()).post(() -> toast("语音识别失败，请重试"));
+                }
+                @Override public void onResults(Bundle results) {
+                    sendVoice(results);
+                }
+                @Override public void onPartialResults(Bundle partialResults) {
+                    sendVoice(partialResults);
+                }
+                @Override public void onEvent(int eventType, Bundle params) { }
+            });
+        }
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.CHINESE.toString());
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+        speechRecognizer.startListening(intent);
+    }
+
+    private void sendVoice(Bundle results) {
+        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        if (matches != null && !matches.isEmpty()) {
+            String text = matches.get(0);
+            String js = "if(window.onVoiceResult)window.onVoiceResult(" + JSONObject.quote(text) + ");";
+            new Handler(Looper.getMainLooper()).post(() -> webView.evaluateJavascript(js, null));
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_CHOOSER_REQUEST) {
-            if (resultCode == RESULT_OK && data != null && fileChooserCallback != null) {
-                fileChooserCallback.onReceiveValue(new Uri[]{data.getData()});
-                fileChooserCallback = null;
-            } else if (fileChooserCallback != null) {
-                fileChooserCallback.onReceiveValue(null);
-                fileChooserCallback = null;
-            }
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null && result.getContents() != null) {
+            String js = "if(window.onQRResult)window.onQRResult(" + JSONObject.quote(result.getContents()) + ");";
+            webView.evaluateJavascript(js, null);
         }
+    }
+
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        if (webView != null && webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (speechRecognizer != null) { speechRecognizer.destroy(); speechRecognizer = null; }
+        super.onDestroy();
     }
 }
