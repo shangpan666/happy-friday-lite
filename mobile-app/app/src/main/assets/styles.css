@@ -535,3 +535,45 @@ body {
 .typing span:nth-child(2) { animation-delay: 0.2s; }
 .typing span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+/* 空状态（贴近桌面：无欢迎语/无推荐） */
+.empty-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.empty-hint { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; }
+
+/* 导入弹窗 */
+.modal-mask {
+  position: absolute; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.4);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-mask.show { display: flex; }
+.modal {
+  width: 86%; max-width: 320px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-md);
+}
+.modal-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.modal-desc { font-size: 12px; color: var(--text-tertiary); margin: 6px 0 12px; line-height: 1.5; }
+.modal input {
+  width: 100%; height: 40px;
+  border: 1.5px solid var(--border-color); border-radius: var(--radius-md);
+  padding: 0 12px; font-size: 14px; color: var(--text-primary);
+  background: var(--bg-primary); outline: none;
+}
+.modal input:focus { border-color: var(--accent-color); }
+.modal-actions { display: flex; gap: 10px; margin-top: 14px; }
+.m-btn {
+  flex: 1; height: 38px; border-radius: var(--radius-md);
+  border: none; font-size: 14px; cursor: pointer; font-weight: 500;
+}
+.m-btn.primary { background: var(--accent-color); color: #fff; }
+.m-btn.primary:hover { background: var(--accent-hover); }
+.m-btn.ghost { background: var(--bg-secondary); color: var(--text-secondary); }
+.m-btn.ghost:hover { background: var(--bg-hover); }
+.modal-cancel {
+  width: 100%; margin-top: 10px; background: none; border: none;
+  color: var(--text-tertiary); font-size: 13px; cursor: pointer; padding: 4px;
+}

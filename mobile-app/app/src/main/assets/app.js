@@ -145,17 +145,7 @@
     if (!state.activeConv && state.conversations.length) state.activeConv = state.conversations[0];
     return state.activeConv;
   }
-  function renderSuggestions() {
-    var box = $('suggestions');
-    box.innerHTML = '';
-    SUGGESTIONS.forEach(function (s) {
-      var el = document.createElement('div');
-      el.className = 'sugg';
-      el.textContent = s;
-      el.onclick = function () { $('input').value = s; sendMessage(); };
-      box.appendChild(el);
-    });
-  }
+  function renderSuggestions() { }
   function renderConversation() {
     var c = getActive();
     var empty = $('chatEmpty'), msg = $('messages');
@@ -357,15 +347,18 @@
     if (window.Android && window.Android.scanQR) window.Android.scanQR();
     else toast('当前环境不支持扫码');
   }
-  function onQRResult(text) {
-    if (!text) return;
-    var base = text.split('/#/')[0].split('?')[0];
-    if (!/^https?:\/\//.test(base)) { toast('二维码内容无效'); return; }
+  function openImport() { $('importUrl').value = ''; $('importMask').classList.add('show'); }
+  function closeImport() { $('importMask').classList.remove('show'); }
+  function importFromUrl(raw) {
+    if (!raw) { toast('请输入电脑端地址'); return; }
+    var base = String(raw).trim().split('/#/')[0].split('?')[0].replace(/\/+$/, '');
+    if (!/^https?:\/\//.test(base)) { toast('地址格式不正确'); return; }
+    closeImport();
     toast('正在从电脑导入笔记…');
     fetch(base + '/api/mobile/notes')
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data.success || !data.notes) { toast('电脑端未返回笔记'); return; }
+        if (!data || !data.success || !data.notes) { toast('电脑端未返回笔记'); return; }
         var added = 0;
         data.notes.forEach(function (n) {
           if (state.notes.some(function (x) { return x.id === 'd_' + n.id; })) return;
@@ -373,10 +366,14 @@
           added++;
         });
         saveNotes();
-        toast('已导入 ' + added + ' 条笔记');
+        toast(added > 0 ? ('已导入 ' + added + ' 条笔记') : '没有新笔记');
         if (state.tab === 'note') renderNotes();
       })
       .catch(function (e) { toast('导入失败：' + e.message); });
+  }
+  function onQRResult(text) {
+    if (!text) return;
+    importFromUrl(text);
   }
   function startVoice() {
     if (window.Android && window.Android.startVoice) window.Android.startVoice();
@@ -413,7 +410,11 @@
     input.addEventListener('input', function () { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 160) + 'px'; });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
     $('voiceBtn').onclick = startVoice;
-    $('noteScan').onclick = scanQR;
+    $('noteScan').onclick = openImport;
+    $('importScan').onclick = function () { closeImport(); scanQR(); };
+    $('importConfirm').onclick = function () { importFromUrl($('importUrl').value); };
+    $('importCancel').onclick = closeImport;
+    $('importMask').onclick = function (e) { if (e.target === $('importMask')) closeImport(); };
     $('newNote').onclick = function () { openEditor(null); };
     $('noteCancel').onclick = function () { $('noteEditor').classList.remove('show'); };
     $('noteSave').onclick = saveEditor;
