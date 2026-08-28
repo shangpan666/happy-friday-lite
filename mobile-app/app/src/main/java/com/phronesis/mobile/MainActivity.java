@@ -10,9 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -29,7 +26,6 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private WebView webView;
-    private SpeechRecognizer speechRecognizer;
     private static final int PERM_REQ = 2001;
     private static final int SCAN_REQ = 2002;
 
@@ -57,8 +53,6 @@ public class MainActivity extends Activity {
         ArrayList<String> need = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
             need.add(Manifest.permission.CAMERA);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-            need.add(Manifest.permission.RECORD_AUDIO);
         if (!need.isEmpty())
             ActivityCompat.requestPermissions(this, need.toArray(new String[0]), PERM_REQ);
     }
@@ -90,18 +84,6 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void startVoice() {
-            runOnUiThread(() -> {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    toast("请先授予麦克风权限");
-                    return;
-                }
-                startSpeech();
-            });
-        }
-
-        @JavascriptInterface
         public void showToast(String msg) {
             runOnUiThread(() -> toast(msg));
         }
@@ -114,43 +96,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void saveData(String key, String value) {
             getSharedPreferences("phronesis", MODE_PRIVATE).edit().putString("ph_" + key, value).apply();
-        }
-    }
-
-    private void startSpeech() {
-        if (speechRecognizer == null) {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-            speechRecognizer.setRecognitionListener(new RecognitionListener() {
-                @Override public void onReadyForSpeech(Bundle params) { }
-                @Override public void onBeginningOfSpeech() { }
-                @Override public void onRmsChanged(float rmsdB) { }
-                @Override public void onBufferReceived(byte[] buffer) { }
-                @Override public void onEndOfSpeech() { }
-                @Override public void onError(int error) {
-                    new Handler(Looper.getMainLooper()).post(() -> toast("语音识别失败，请重试"));
-                }
-                @Override public void onResults(Bundle results) {
-                    sendVoice(results);
-                }
-                @Override public void onPartialResults(Bundle partialResults) {
-                    sendVoice(partialResults);
-                }
-                @Override public void onEvent(int eventType, Bundle params) { }
-            });
-        }
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.CHINESE.toString());
-        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-        speechRecognizer.startListening(intent);
-    }
-
-    private void sendVoice(Bundle results) {
-        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        if (matches != null && !matches.isEmpty()) {
-            String text = matches.get(0);
-            String js = "if(window.onVoiceResult)window.onVoiceResult(" + JSONObject.quote(text) + ");";
-            new Handler(Looper.getMainLooper()).post(() -> webView.evaluateJavascript(js, null));
         }
     }
 
@@ -178,7 +123,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (speechRecognizer != null) { speechRecognizer.destroy(); speechRecognizer = null; }
         super.onDestroy();
     }
 }

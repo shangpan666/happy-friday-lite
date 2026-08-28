@@ -1,7 +1,8 @@
 package com.phronesis.mobile;
 
+import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.Bundle;
-import android.util.Size;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,9 +16,10 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.mlkit.vision.barcode.BarcodeScanning;
-import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.common.InputImage;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,6 +28,7 @@ public class ScanActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ExecutorService executor;
     private volatile boolean scanning = true;
+    private final MultiFormatReader reader = new MultiFormatReader();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,41 +48,47 @@ public class ScanActivity extends AppCompatActivity {
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
                 ImageAnalysis analysis = new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
-                analysis.setAnalyzer(executor, new ImageAnalysis.Analyzer() {
-                    @Override
-                    public void analyze(@NonNull ImageProxy imageProxy) {
-                        if (!scanning) { imageProxy.close(); return; }
-                        try {
-                            InputImage img = InputImage.fromMediaImage(
-                                    imageProxy.getImage(),
-                                    imageProxy.getImageInfo().getRotationDegrees());
-                            BarcodeScanning.getClient().process(img)
-                                    .addOnSuccessListener(barcodes -> {
-                                        for (Barcode b : barcodes) {
-                                            String v = b.getRawValue();
-                                            if (v != null && !v.isEmpty()) {
-                                                scanning = false;
-                                                returnResult(v);
-                                                break;
-                                            }
-                                        }
-                                    })
-                                    .addOnCompleteListener(t -> imageProxy.close());
-                        } catch (Exception e) {
-                            imageProxy.close();
-                        }
-                    }
-                });
-
+                analysis.setAnalyzer(executor, this::analyze);
                 provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis);
             } catch (Exception e) {
-                Toast.makeText(this, "相机启动失败", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "相机启动失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                 finish();
             }
         }, ContextCompat.getMainExecutor(this));
+    }
+
+    private void analyze(@NonNull ImageProxy imageProxy) {
+        if (!scanning) { imageProxy.close(); return; }
+        try {
+            Bitmap bitmap = imageProxy.toBitmap();
+            if (bitmap == null) { imageProxy.close(); return; }
+
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            if (width > 1000) {
+                float scale = 1000f / width;
+                bitmap = Bitmap.createScaledBitmap(bitmap, 1000, (int) (height * scale), true);
+                width = bitmap.getWidth();
+                height = bitmap.getHeight();
+            }
+            int[] pixels = new int[width * height];
+            bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+            bitmap.recycle();
+
+            RGBLuminanceSource source = new RGBLuminanceSource(width, height, pixels);
+            BinaryBitmap binary = new BinaryBitmap(new HybridBinarizer(source));
+            String value = reader.decode(binary).getText();
+            if (value != null && !value.isEmpty()) {
+                scanning = false;
+                returnResult(value);
+            }
+        } catch (Throwable ignored) {
+            // 未识别到二维码，继续下一帧
+        } finally {
+            imageProxy.close();
+        }
     }
 
     private void returnResult(String value) {

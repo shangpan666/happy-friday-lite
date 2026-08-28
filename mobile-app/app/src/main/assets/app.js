@@ -375,18 +375,8 @@
     if (!text) return;
     importFromUrl(text);
   }
-  function startVoice() {
-    if (window.Android && window.Android.startVoice) window.Android.startVoice();
-    else toast('当前环境不支持语音');
-  }
-  function onVoiceResult(text) {
-    if (!text) return;
-    var inp = $('input');
-    inp.value = (inp.value ? inp.value + ' ' : '') + text;
-    inp.focus();
-  }
+  function startVoice() { }
   window.onQRResult = onQRResult;
-  window.onVoiceResult = onVoiceResult;
 
   // ===== Bind =====
   function bind() {
@@ -409,7 +399,6 @@
     var input = $('input');
     input.addEventListener('input', function () { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 160) + 'px'; });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-    $('voiceBtn').onclick = startVoice;
     $('noteScan').onclick = openImport;
     $('importScan').onclick = function () { closeImport(); scanQR(); };
     $('importConfirm').onclick = function () { importFromUrl($('importUrl').value); };
