@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  // ====================== 状态 ======================
   var state = {
     tab: 'chat',
     config: null,
@@ -19,16 +18,12 @@
     '把这段文字翻译成英文'
   ];
 
-  // ====================== 工具 ======================
   function $(id) { return document.getElementById(id); }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
   function nowISO() { return new Date().toISOString(); }
-  function fmtDate(s) {
-    if (!s) return '';
-    var d = new Date(s);
-    if (isNaN(d)) return '';
+  function fmtTime(d) {
     var p = function (n) { return (n < 10 ? '0' : '') + n; };
-    return (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    return p(d.getHours()) + ':' + p(d.getMinutes());
   }
   var toastTimer = null;
   function toast(msg) {
@@ -40,14 +35,8 @@
   }
 
   function defaultConfig() {
-    return {
-      baseUrl: 'https://api.openai.com/v1',
-      apiKey: '',
-      model: 'gpt-3.5-turbo',
-      dark: false
-    };
+    return { baseUrl: 'https://api.openai.com/v1', apiKey: '', model: 'gpt-3.5-turbo', dark: false };
   }
-
   function loadConfig() {
     try {
       if (window.Android && window.Android.getConfig) {
@@ -55,10 +44,7 @@
         if (s) { state.config = JSON.parse(s); return; }
       }
     } catch (e) {}
-    try {
-      var l = localStorage.getItem('ph_cfg');
-      state.config = l ? JSON.parse(l) : defaultConfig();
-    } catch (e) { state.config = defaultConfig(); }
+    try { state.config = JSON.parse(localStorage.getItem('ph_cfg') || ''); } catch (e) { state.config = defaultConfig(); }
   }
   function saveConfig(c) {
     state.config = c;
@@ -78,7 +64,6 @@
     try { if (window.Android && window.Android.saveData) { window.Android.saveData(key, s); return; } } catch (e) {}
     try { localStorage.setItem('ph_' + key, s); } catch (e) {}
   }
-
   function loadData() {
     state.conversations = storeGet('conv', []);
     state.notes = storeGet('notes', []);
@@ -86,7 +71,7 @@
   function saveConv() { storeSet('conv', state.conversations); }
   function saveNotes() { storeSet('notes', state.notes); }
 
-  // ====================== Markdown ======================
+  // ===== Markdown =====
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -101,9 +86,7 @@
   function mdToHtml(text) {
     if (!text) return '';
     var lines = text.split('\n');
-    var html = '';
-    var i = 0;
-    var inCode = false, codeBuf = [], listType = null, listBuf = [];
+    var html = '', i = 0, inCode = false, codeBuf = [], listType = null, listBuf = [];
     function flushList() {
       if (listBuf.length) { html += '<' + listType + '>' + listBuf.join('') + '</' + listType + '>'; listBuf = []; listType = null; }
     }
@@ -111,14 +94,17 @@
       var line = lines[i];
       var fence = line.match(/^```(\w*)\s*$/);
       if (fence) {
-        if (inCode) { html += '<pre><code>' + escapeHtml(codeBuf.join('\n')) + '</code></pre>'; codeBuf = []; inCode = false; }
-        else { flushList(); inCode = true; }
+        if (inCode) {
+          var code = codeBuf.join('\n');
+          html += '<div class="code-block-wrapper"><div class="code-block-header"><span class="code-block-lang">' + (fence[1] || '') + '</span><button class="code-copy-btn" data-code="' + encodeURIComponent(code) + '">复制</button></div><pre><code>' + escapeHtml(code) + '</code></pre></div>';
+          codeBuf = []; inCode = false;
+        } else { flushList(); inCode = true; }
         i++; continue;
       }
       if (inCode) { codeBuf.push(line); i++; continue; }
       if (!line.trim()) { flushList(); i++; continue; }
       var h = line.match(/^(#{1,4})\s+(.*)$/);
-      if (h) { flushList(); var lv = h[1].length; html += '<p><strong>' + inlineMd(h[2]) + '</strong></p>'; i++; continue; }
+      if (h) { flushList(); html += '<p><strong>' + inlineMd(h[2]) + '</strong></p>'; i++; continue; }
       var ol = line.match(/^\s*\d+\.\s+(.*)$/);
       if (ol) { if (listType !== 'ol') { flushList(); listType = 'ol'; } listBuf.push('<li>' + inlineMd(ol[1]) + '</li>'); i++; continue; }
       var ul = line.match(/^\s*[-*]\s+(.*)$/);
@@ -134,56 +120,30 @@
     return html;
   }
 
-  // ====================== 标签切换 ======================
+  // ===== Tabs =====
   function switchTab(tab) {
     state.tab = tab;
-    var tabs = document.querySelectorAll('.tabbar .tab');
-    tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.tab === tab); });
-    $('chatTop').style.display = tab === 'chat' ? 'flex' : 'none';
-    $('chatView').style.display = tab === 'chat' ? 'block' : 'none';
-    $('composer').style.display = tab === 'chat' ? 'flex' : 'none';
-    $('noteTop').style.display = tab === 'note' ? 'flex' : 'none';
-    $('noteView').style.display = tab === 'note' ? 'block' : 'none';
-    $('meTop').style.display = tab === 'me' ? 'flex' : 'none';
-    $('meView').style.display = tab === 'me' ? 'block' : 'none';
+    var items = document.querySelectorAll('.nav-item');
+    items.forEach(function (t) { t.classList.toggle('active', t.dataset.tab === tab); });
+    $('chatView').style.display = tab === 'chat' ? 'flex' : 'none';
+    $('composer').style.display = tab === 'chat' ? 'block' : 'none';
+    $('noteView').style.display = tab === 'note' ? 'flex' : 'none';
+    $('meView').style.display = tab === 'me' ? 'flex' : 'none';
     if (tab === 'note') renderNotes();
     if (tab === 'me') renderSettings();
+    closeDrawer();
   }
 
-  // ====================== 对话 ======================
+  // ===== Conversation =====
   function newConversation() {
     state.activeConv = { id: uid(), title: '新对话', messages: [], createdAt: nowISO() };
     state.conversations.unshift(state.activeConv);
     saveConv();
     renderConversation();
-    renderConvList();
   }
   function getActive() {
     if (!state.activeConv && state.conversations.length) state.activeConv = state.conversations[0];
     return state.activeConv;
-  }
-  function renderConvList() {
-    var box = $('convList');
-    box.innerHTML = '';
-    state.conversations.forEach(function (c) {
-      var d = document.createElement('div');
-      d.className = 'conv' + (state.activeConv && state.activeConv.id === c.id ? ' active' : '');
-      var title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = c.title || '新对话';
-      var del = document.createElement('span');
-      del.className = 'del';
-      del.textContent = '🗑';
-      del.onclick = function (e) {
-        e.stopPropagation();
-        state.conversations = state.conversations.filter(function (x) { return x.id !== c.id; });
-        if (state.activeConv && state.activeConv.id === c.id) state.activeConv = state.conversations[0] || null;
-        saveConv(); renderConvList(); renderConversation();
-      };
-      d.appendChild(title); d.appendChild(del);
-      d.onclick = function () { state.activeConv = c; saveConv(); renderConversation(); renderConvList(); closeDrawer(); };
-      box.appendChild(d);
-    });
   }
   function renderSuggestions() {
     var box = $('suggestions');
@@ -201,39 +161,43 @@
     var empty = $('chatEmpty'), msg = $('messages');
     if (!c || c.messages.length === 0) {
       empty.style.display = 'flex'; msg.style.display = 'none';
-      $('chatTitle').textContent = '对话';
+      $('chatTitle').textContent = '与 Phronesis 的对话';
+      $('chatTime').textContent = fmtTime(new Date());
       return;
     }
     empty.style.display = 'none'; msg.style.display = 'block';
     msg.innerHTML = '';
     c.messages.forEach(function (m) { msg.appendChild(buildMsg(m.role, m.content, false)); });
-    $('chatTitle').textContent = c.title || '对话';
+    $('chatTitle').textContent = c.title || '与 Phronesis 的对话';
+    $('chatTime').textContent = fmtTime(new Date());
     scrollBottom();
   }
   function buildMsg(role, content, streaming) {
-    var wrap = document.createElement('div');
-    wrap.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
-    var av = document.createElement('div');
-    av.className = 'avatar ' + (role === 'user' ? 'me' : 'ai');
-    av.textContent = role === 'user' ? '我' : '🤖';
-    var b = document.createElement('div');
-    b.className = 'bubble';
-    if (streaming) { b.innerHTML = mdToHtml(content) + '<span class="typing"><span>.</span><span>.</span><span>.</span></span>'; }
-    else { b.innerHTML = mdToHtml(content); }
-    wrap.appendChild(av); wrap.appendChild(b);
-    return wrap;
+    if (role === 'user') {
+      var row = document.createElement('div'); row.className = 'user-message-row';
+      var wrap = document.createElement('div'); wrap.className = 'message-content-wrap';
+      var b = document.createElement('div'); b.className = 'message-bubble user'; b.textContent = content;
+      wrap.appendChild(b); row.appendChild(wrap); return row;
+    }
+    var ar = document.createElement('div'); ar.className = 'ai-message-row';
+    var av = document.createElement('div'); av.className = 'ai-avatar'; av.textContent = '✦';
+    var body = document.createElement('div'); body.className = 'ai-body';
+    var name = document.createElement('div'); name.className = 'ai-name'; name.textContent = '周五';
+    var mb = document.createElement('div'); mb.className = 'markdown-body';
+    mb.innerHTML = streaming ? mdToHtml(content) + '<span class="typing"><span>.</span><span>.</span><span>.</span></span>' : mdToHtml(content);
+    body.appendChild(name); body.appendChild(mb);
+    ar.appendChild(av); ar.appendChild(body);
+    return ar;
   }
   function scrollBottom() {
     var v = $('chatView');
     setTimeout(function () { v.scrollTop = v.scrollHeight; }, 30);
   }
-
   function setSending(sending) {
     var btn = $('sendBtn');
-    btn.textContent = sending ? '■' : '↑';
-    btn.classList.toggle('stop', sending);
+    if (sending) { btn.className = 'stop-btn'; btn.textContent = '■'; }
+    else { btn.className = 'send-btn'; btn.textContent = '↑'; }
     btn.disabled = false;
-    $('input').disabled = sending;
   }
 
   function sendMessage() {
@@ -253,18 +217,18 @@
     var aiEl = buildMsg('assistant', '', true);
     msgBox.appendChild(aiEl);
     scrollBottom();
-    saveConv(); renderConvList();
+    saveConv();
     streamReply(c, aiMsg, aiEl);
   }
 
   function streamReply(conv, aiMsg, aiEl) {
     var cfg = state.config;
-    if (!cfg.apiKey) { toast('请先在「我的」填写 API Key'); aiMsg.content = '⚠️ 未配置 API Key，请到「我的」填写。'; aiEl.querySelector('.bubble').innerHTML = mdToHtml(aiMsg.content); setSending(false); return; }
+    if (!cfg.apiKey) { toast('请先在「我的」填写 API Key'); aiMsg.content = '⚠️ 未配置 API Key，请到「我的」填写。'; aiEl.querySelector('.markdown-body').innerHTML = mdToHtml(aiMsg.content); setSending(false); return; }
     var base = (cfg.baseUrl || '').replace(/\/+$/, '');
     var controller = new AbortController();
     state.abort = controller;
     setSending(true);
-    var bubble = aiEl.querySelector('.bubble');
+    var bubble = aiEl.querySelector('.markdown-body');
     fetch(base + '/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.apiKey },
@@ -277,12 +241,7 @@
       var buf = '';
       function pump() {
         return reader.read().then(function (r) {
-          if (r.done) {
-            aiMsg.content = aiMsg.content.replace(/\s*$/, '');
-            bubble.innerHTML = mdToHtml(aiMsg.content);
-            finish();
-            return;
-          }
+          if (r.done) { bubble.innerHTML = mdToHtml(aiMsg.content); finish(); return; }
           buf += dec.decode(r.value, { stream: true });
           var idx;
           while ((idx = buf.indexOf('\n')) >= 0) {
@@ -302,18 +261,14 @@
       }
       return pump();
     }).catch(function (err) {
-      if (err.name === 'AbortError') { toast('已停止'); }
+      if (err.name === 'AbortError') toast('已停止');
       else { aiMsg.content = '⚠️ 请求失败：' + err.message; bubble.innerHTML = mdToHtml(aiMsg.content); toast('请求失败'); }
       finish();
     });
-    function finish() {
-      setSending(false);
-      state.abort = null;
-      saveConv();
-    }
+    function finish() { setSending(false); state.abort = null; saveConv(); }
   }
 
-  // ====================== 笔记 ======================
+  // ===== Notes =====
   function renderNotes() {
     var q = ($('noteSearch').value || '').toLowerCase();
     var list = $('noteList');
@@ -322,15 +277,12 @@
       if (!q) return true;
       return (n.title + ' ' + n.content).toLowerCase().indexOf(q) >= 0;
     });
-    if (!arr.length) {
-      list.innerHTML = '<div style="text-align:center;color:var(--text-3);padding:40px">还没有笔记</div>';
-      return;
-    }
+    if (!arr.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:40px">还没有笔记</div>'; return; }
     arr.forEach(function (n) {
       var el = document.createElement('div');
       el.className = 'note-item';
       var plain = (n.content || '').replace(/[#*`>]/g, '').replace(/\n+/g, ' ');
-      el.innerHTML = '<div class="nt"></div><div class="nc"></div><div class="nm"><span>' + (n.source === 'desktop' ? '📥 来自电脑' : '📱 本地') + '</span><span>' + fmtDate(n.updatedAt) + '</span></div>';
+      el.innerHTML = '<div class="nt"></div><div class="nc"></div><div class="nm"><span>' + (n.source === 'desktop' ? '📥 来自电脑' : '📱 本地') + '</span><span>' + fmtTime(new Date(n.updatedAt || n.createdAt)) + '</span></div>';
       el.querySelector('.nt').textContent = n.title || '无标题';
       el.querySelector('.nc').textContent = plain || '（空）';
       el.onclick = function () { openEditor(n); };
@@ -355,7 +307,7 @@
     toast('已保存');
   }
 
-  // ====================== 设置 ======================
+  // ===== Settings =====
   function renderSettings() {
     var c = state.config;
     var box = $('settings');
@@ -365,69 +317,42 @@
       row('API Key', 'apiKey', c.apiKey, '仅存于本机'),
       row('模型名称', 'model', c.model, '如 gpt-3.5-turbo')
     ]));
-    var g2 = document.createElement('div');
-    g2.className = 'set-group';
-    var r = document.createElement('div');
-    r.className = 'set-row';
+    var g2 = document.createElement('div'); g2.className = 'set-group';
+    var r = document.createElement('div'); r.className = 'set-row';
     r.innerHTML = '<label>深色模式</label>';
-    var sw = document.createElement('div');
-    sw.className = 'switch' + (c.dark ? ' on' : '');
-    sw.onclick = function () {
-      c.dark = !c.dark;
-      sw.classList.toggle('on', c.dark);
-      applyTheme(); saveConfig(c);
-    };
+    var sw = document.createElement('div'); sw.className = 'switch' + (c.dark ? ' on' : '');
+    sw.onclick = function () { c.dark = !c.dark; sw.classList.toggle('on', c.dark); applyTheme(); saveConfig(c); };
     r.appendChild(sw); g2.appendChild(r);
     box.appendChild(g2);
 
-    var g3 = document.createElement('div');
-    g3.className = 'set-group';
-    var dr = document.createElement('div');
-    dr.className = 'set-row';
+    var g3 = document.createElement('div'); g3.className = 'set-group';
+    var dr = document.createElement('div'); dr.className = 'set-row';
     dr.innerHTML = '<label>清空所有对话</label>';
-    var b1 = document.createElement('span');
-    b1.className = 'act';
-    b1.style.color = 'var(--danger)'; b1.textContent = '清除';
-    b1.onclick = function () {
-      if (confirm('确定清空所有本地对话？')) { state.conversations = []; state.activeConv = null; saveConv(); renderConvList(); renderConversation(); toast('已清空'); }
-    };
+    var b1 = document.createElement('span'); b1.className = 'act'; b1.style.color = 'var(--danger-color)'; b1.textContent = '清除';
+    b1.onclick = function () { if (confirm('确定清空所有本地对话？')) { state.conversations = []; state.activeConv = null; saveConv(); renderConversation(); toast('已清空'); } };
     dr.appendChild(b1); g3.appendChild(dr);
-    var dr2 = document.createElement('div');
-    dr2.className = 'set-row';
+    var dr2 = document.createElement('div'); dr2.className = 'set-row';
     dr2.innerHTML = '<label>清空所有笔记</label>';
-    var b2 = document.createElement('span');
-    b2.className = 'act'; b2.style.color = 'var(--danger)'; b2.textContent = '清除';
-    b2.onclick = function () {
-      if (confirm('确定清空所有本地笔记？')) { state.notes = []; saveNotes(); renderNotes(); toast('已清空'); }
-    };
+    var b2 = document.createElement('span'); b2.className = 'act'; b2.style.color = 'var(--danger-color)'; b2.textContent = '清除';
+    b2.onclick = function () { if (confirm('确定清空所有本地笔记？')) { state.notes = []; saveNotes(); renderNotes(); toast('已清空'); } };
     dr2.appendChild(b2); g3.appendChild(dr2);
     box.appendChild(g3);
   }
-  function group(rows) {
-    var g = document.createElement('div');
-    g.className = 'set-group';
-    rows.forEach(function (r) { g.appendChild(r); });
-    return g;
-  }
+  function group(rows) { var g = document.createElement('div'); g.className = 'set-group'; rows.forEach(function (r) { g.appendChild(r); }); return g; }
   function row(label, key, val, desc) {
-    var r = document.createElement('div');
-    r.className = 'set-row';
-    var left = document.createElement('div');
-    left.style.flex = '0 0 90px';
+    var r = document.createElement('div'); r.className = 'set-row';
+    var left = document.createElement('div'); left.style.flex = '0 0 90px';
     left.innerHTML = '<label>' + label + '</label>' + (desc ? '<div class="desc">' + desc + '</div>' : '');
-    var inp = document.createElement('input');
-    inp.value = val || '';
-    inp.placeholder = desc || '';
+    var inp = document.createElement('input'); inp.value = val || ''; inp.placeholder = desc || '';
     inp.onchange = function () { state.config[key] = inp.value; saveConfig(state.config); toast('已保存'); };
     r.appendChild(left); r.appendChild(inp);
     return r;
   }
-
   function applyTheme() {
     document.documentElement.setAttribute('data-theme', state.config.dark ? 'dark' : 'light');
   }
 
-  // ====================== 原生桥接 ======================
+  // ===== Native bridges =====
   function scanQR() {
     if (window.Android && window.Android.scanQR) window.Android.scanQR();
     else toast('当前环境不支持扫码');
@@ -466,42 +391,48 @@
   window.onQRResult = onQRResult;
   window.onVoiceResult = onVoiceResult;
 
-  // ====================== 事件绑定 ======================
+  // ===== Bind =====
   function bind() {
-    document.querySelectorAll('.tabbar .tab').forEach(function (t) {
-      t.onclick = function () { switchTab(t.dataset.tab); };
-    });
-    $('newChat').onclick = function () { newConversation(); };
+    document.querySelectorAll('.nav-item').forEach(function (t) { t.onclick = function () { switchTab(t.dataset.tab); }; });
+    $('newChat').onclick = newConversation;
+    $('drawerNewChat').onclick = newConversation;
     $('openDrawer').onclick = function () { $('drawer').classList.add('show'); $('drawerMask').classList.add('show'); };
-    $('closeDrawer').onclick = closeDrawer;
     $('drawerMask').onclick = closeDrawer;
-    $('sendBtn').onclick = function () {
-      if (state.abort) { state.abort.abort(); return; }
-      sendMessage();
+    $('saveNote').onclick = function () {
+      var c = getActive();
+      if (!c) { toast('暂无对话'); return; }
+      var last = null;
+      for (var i = c.messages.length - 1; i >= 0; i--) { if (c.messages[i].role === 'assistant') { last = c.messages[i]; break; } }
+      if (!last || !last.content.trim()) { toast('暂无可保存的回复'); return; }
+      var d = new Date().toLocaleDateString('zh-CN').replace(/\//g, '-');
+      state.notes.unshift({ id: 'c_' + uid(), title: (c.title || '对话') + ' ' + d, content: last.content, createdAt: nowISO(), updatedAt: nowISO(), source: 'local' });
+      saveNotes(); toast('已保存为笔记');
     };
+    $('sendBtn').onclick = function () { if (state.abort) state.abort.abort(); else sendMessage(); };
     var input = $('input');
-    input.addEventListener('input', function () { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 120) + 'px'; });
+    input.addEventListener('input', function () { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 160) + 'px'; });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
     $('voiceBtn').onclick = startVoice;
-
     $('noteScan').onclick = scanQR;
     $('newNote').onclick = function () { openEditor(null); };
     $('noteCancel').onclick = function () { $('noteEditor').classList.remove('show'); };
     $('noteSave').onclick = saveEditor;
     $('noteSearch').addEventListener('input', renderNotes);
-
+    $('messages').addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.code-copy-btn');
+      if (btn) {
+        try { navigator.clipboard.writeText(decodeURIComponent(btn.dataset.code)); toast('已复制'); } catch (er) {}
+      }
+    });
     renderSuggestions();
-    renderConvList();
     renderConversation();
   }
   function closeDrawer() { $('drawer').classList.remove('show'); $('drawerMask').classList.remove('show'); }
 
-  // ====================== 启动 ======================
   loadConfig();
   loadData();
   applyTheme();
   bind();
   switchTab('chat');
-  // 通知原生已就绪
   try { if (window.Android && window.Android.onReady) window.Android.onReady(); } catch (e) {}
 })();
