@@ -18,6 +18,16 @@ void main() {
       ),
     );
   };
+  // 记录并兜底未捕获的异常，避免异步错误直接导致进程退出（release 下表现为"闪退"）
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.dumpErrorToConsole(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FlutterError.dumpErrorToConsole(
+      FlutterErrorDetails(exception: error, stack: stack as StackTrace?),
+    );
+    return true; // 已处理，阻止未捕获的异步 Dart 错误杀掉进程
+  };
   runApp(const MyApp());
 }
 
