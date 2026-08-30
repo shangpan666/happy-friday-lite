@@ -616,14 +616,15 @@ async function doRegister() {
 .radio input[type="radio"] {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border-strong);
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border-strong);
   border-radius: 50%;
   background: transparent;
   cursor: pointer;
   position: relative;
   transition: border-color 0.15s;
+  flex-shrink: 0;
 }
 
 .radio input[type="radio"]:checked {
@@ -636,8 +637,8 @@ async function doRegister() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--accent-color);
 }
