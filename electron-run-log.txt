@@ -81,3 +81,8 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 [1] [Main] ✅ RAG module initialized
 [1] [Agent][BridgeHTTP] Bridge 未启用（config.bridge.enabled=false 且未设置 FRIDAY_BRIDGE=1）
 [1] [ShareServer] ✅ Share server running on http://0.0.0.0:17918
+[1] [Commands] get_notebooks called
+[1] [FileWatcher] 已停止 knowledge 目录监听
+[1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
+[1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
+[1] wait-on http://localhost:5173 && electron . exited with code 0
