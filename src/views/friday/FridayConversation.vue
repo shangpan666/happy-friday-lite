@@ -34,7 +34,7 @@
               <div class="avatar ai-avatar">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"></path><path d="M16 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18v4"></path><path d="M8 22h8"></path></svg>
               </div>
-              <span class="ai-name">周五</span>
+              <span class="ai-name">斐思</span>
             </div>
             <div class="agent-timeline">
               <template v-for="(seg, si) in msg.segments" :key="`${msg.id}-seg-${si}`">
@@ -107,7 +107,7 @@
               <div class="avatar ai-avatar">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"></path><path d="M16 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18v4"></path><path d="M8 22h8"></path></svg>
               </div>
-              <span class="ai-name">周五</span>
+              <span class="ai-name">斐思</span>
             </div>
             <!-- 执行进度：当前步骤与活动 -->
             <div v-if="isStreaming || agentSegments.length > 0" class="agent-progress">
@@ -516,13 +516,13 @@ async function doSummarize(model) {
         return `【用户】${msg.content}`;
       } else if (msg.role === 'assistant') {
         if (msg.content) {
-          return `【周五】${msg.content}`;
+          return `【斐思】${msg.content}`;
         }
         if (msg.segments && msg.segments.length) {
           const textParts = msg.segments
             .filter(s => s.type === 'text' && s.content)
             .map(s => s.content);
-          return textParts.length ? `【周五】${textParts.join('\n')}` : '';
+          return textParts.length ? `【斐思】${textParts.join('\n')}` : '';
         }
         return '';
       }
