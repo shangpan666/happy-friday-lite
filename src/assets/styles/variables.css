@@ -84,44 +84,44 @@
   --window-close-hover-text: #ffffff;
 }
 
-/* ===== Glassmorphism Theme ===== */
+/* ===== Glassmorphism Theme (Apple-style frosted white) ===== */
 [data-theme='glass'] {
-  --bg-primary: rgba(18, 20, 28, 0.72);
-  --bg-secondary: rgba(22, 25, 35, 0.58);
-  --bg-sidebar: rgba(16, 18, 26, 0.65);
-  --bg-hover: rgba(255, 255, 255, 0.06);
-  --bg-active: rgba(255, 255, 255, 0.10);
-  --bg-inset: rgba(20, 22, 32, 0.55);
+  --bg-primary: rgba(255, 255, 255, 0.72);
+  --bg-secondary: rgba(245, 245, 247, 0.65);
+  --bg-sidebar: rgba(240, 240, 242, 0.70);
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.07);
+  --bg-inset: rgba(230, 230, 235, 0.60);
 
-  --text-primary: #e2e6ed;
-  --text-secondary: #8b95a5;
-  --text-tertiary: #5a6374;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #aeaeb2;
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
 
-  --accent-color: #6ba0f7;
-  --accent-light: rgba(107, 160, 247, 0.16);
-  --accent-hover: #8cb8ff;
+  --accent-color: #007aff;
+  --accent-light: rgba(0, 122, 255, 0.08);
+  --accent-hover: #0066d6;
 
-  --success-color: #4ade80;
-  --warning-color: #fbbf24;
-  --danger-color: #f87171;
-  --online-color: #4ade80;
+  --success-color: #34c759;
+  --warning-color: #ff9500;
+  --danger-color: #ff3b30;
+  --online-color: #34c759;
 
-  --primary-gradient-from: #6ba0f7;
-  --primary-gradient-to: #a78bfa;
+  --primary-gradient-from: #007aff;
+  --primary-gradient-to: #5856d6;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.14);
 
   /* Glass-specific tokens */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.10);
-  --glass-blur: 20px;
-  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%);
-  --glass-refraction: linear-gradient(160deg, rgba(130, 180, 255, 0.06) 0%, rgba(180, 130, 255, 0.04) 40%, transparent 70%);
+  --glass-bg: rgba(255, 255, 255, 0.60);
+  --glass-border: rgba(255, 255, 255, 0.80);
+  --glass-blur: 24px;
+  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  --glass-refraction: linear-gradient(160deg, rgba(200, 220, 255, 0.15) 0%, rgba(220, 200, 255, 0.10) 40%, transparent 70%);
 
   --window-close-hover: #e81123;
   --window-close-hover-text: #ffffff;
