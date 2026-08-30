@@ -1,42 +1,47 @@
 <template>
   <div class="account-wrap">
     <!-- 未登录 -->
-    <div v-if="!connection.isConnected" class="account-card">
-      <div class="brand">
-        <div class="brand-logo">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+    <div v-if="!connection.isConnected" class="login-panel">
+      <div class="login-header">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
           </svg>
         </div>
-        <h1 class="brand-name">Happy Friday</h1>
-        <p class="brand-sub">登录以同步你的笔记与对话</p>
+        <h1 class="app-title">Happy Friday</h1>
       </div>
 
-      <div class="field">
-        <label>服务器地址</label>
-        <input
-          v-model="serverUrlInput"
-          placeholder="http://127.0.0.1:17918"
-          @keyup.enter="doLogin"
-        />
-      </div>
-      <p class="hint">本机模式填 127.0.0.1:17918；多机共享请填「中央机」的 IP 地址。</p>
+      <div class="form-area">
+        <div class="input-group">
+          <label>服务器地址</label>
+          <input
+            v-model="serverUrlInput"
+            placeholder="http://127.0.0.1:17918"
+            @keyup.enter="doLogin"
+          />
+          <span class="field-hint">本机填 127.0.0.1:17918，多机共享填中央机 IP</span>
+        </div>
 
-      <div class="field">
-        <label>用户名</label>
-        <input v-model="username" placeholder="admin" @keyup.enter="doLogin" />
-      </div>
-      <div class="field">
-        <label>密码</label>
-        <input v-model="password" type="password" placeholder="密码" @keyup.enter="doLogin" />
+        <div class="input-group">
+          <label>账号</label>
+          <input v-model="username" placeholder="请输入用户名" @keyup.enter="doLogin" />
+        </div>
+        <div class="input-group">
+          <label>密码</label>
+          <input v-model="password" type="password" placeholder="请输入密码" @keyup.enter="doLogin" />
+        </div>
+
+        <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+
+        <button class="login-btn" :disabled="busy" @click="doLogin">
+          {{ busy ? '登录中...' : '登 录' }}
+        </button>
       </div>
 
-      <div v-if="errorMsg" class="error">{{ errorMsg }}</div>
-
-      <button class="btn-primary" :disabled="busy" @click="doLogin">
-        {{ busy ? '登录中…' : '登 录' }}
-      </button>
+      <div class="login-footer">
+        <span class="footer-text">Happy Friday v{{ appVersion }}</span>
+      </div>
     </div>
 
     <!-- 已登录 -->
@@ -78,7 +83,7 @@
           </div>
           <div v-if="pwdMsg" class="error">{{ pwdMsg }}</div>
           <button class="btn-primary sm" :disabled="busy" @click="doChangePwd">
-            {{ busy ? '提交中…' : '修改密码' }}
+            {{ busy ? '提交中...' : '修改密码' }}
           </button>
         </div>
       </div>
@@ -106,7 +111,7 @@
           </div>
           <div v-if="userMsg" class="error">{{ userMsg }}</div>
           <button class="btn-primary sm" :disabled="busy" @click="doRegister">
-            {{ busy ? '创建中…' : '创建账号' }}
+            {{ busy ? '创建中...' : '创建账号' }}
           </button>
         </div>
       </div>
@@ -119,6 +124,7 @@ import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useConnectionStore } from '../../store/modules/connection'
 import { electronService } from '@/services/electron'
+import packageJson from '../../../package.json'
 
 const connection = useConnectionStore()
 const { serverUrl } = storeToRefs(connection)
@@ -128,6 +134,7 @@ const username = ref('')
 const password = ref('')
 const busy = ref(false)
 const errorMsg = ref('')
+const appVersion = packageJson.version
 
 const oldPwd = ref('')
 const newPwd = ref('')
@@ -146,7 +153,6 @@ const initial = computed(() => (connection.user?.username || '?').charAt(0).toUp
 const roleText = computed(() => (connection.user?.role === 'admin' ? '管理员' : '员工'))
 const isAdmin = computed(() => connection.user?.role === 'admin')
 
-// 令牌失效（服务端返回 401/未授权）：清空会话并提示重新登录
 function handleAuthError(res) {
   const msg = (res && res.error) || ''
   if ((res && !res.success) && msg.includes('未授权')) {
@@ -250,68 +256,292 @@ async function doRegister() {
 </script>
 
 <style scoped>
+/* ===== 全局容器 ===== */
 .account-wrap {
   min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
+/* ===== 登录面板 ===== */
+.login-panel {
+  width: 380px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.login-header {
+  padding: 48px 0 24px;
+  text-align: center;
+  background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+}
+
+.logo-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.form-area {
+  padding: 32px 36px 28px;
+}
+
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.input-group input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.input-group input::placeholder {
+  color: #bbb;
+}
+
+.input-group input:focus {
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.15);
+}
+
+.field-hint {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.error-msg {
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  background: #fef0f0;
+  border: 1px solid #fde2e2;
+  border-radius: 4px;
+  color: #f56c6c;
+  font-size: 13px;
+  text-align: center;
+}
+
+.login-btn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 4px;
+  background: #4a90d9;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  letter-spacing: 4px;
+}
+
+.login-btn:hover {
+  background: #357abd;
+}
+
+.login-btn:active {
+  background: #2d6aa0;
+}
+
+.login-btn:disabled {
+  background: #a0cfff;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  padding: 16px 0;
+  text-align: center;
+  border-top: 1px solid #f0f0f0;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: #c0c4cc;
+}
+
+/* ===== 已登录样式（保留原样） ===== */
 .account-card {
-  width: 360px;
+  width: 420px;
   max-width: 100%;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 28px 26px;
   box-shadow: var(--shadow-md);
 }
 
-/* ===== 品牌区 ===== */
-.brand {
-  text-align: center;
-  margin-bottom: 22px;
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 18px;
 }
-.brand-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover, var(--accent-color)));
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
-  box-shadow: var(--shadow-sm);
-}
-.brand-name {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0;
-}
-.brand-sub {
-  font-size: 13px;
-  color: var(--text-tertiary);
-  margin: 6px 0 0;
+  flex-shrink: 0;
 }
 
-/* ===== 字段 ===== */
+.profile-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background-color: var(--accent-light);
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.conn-line {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--text-tertiary);
+}
+
+.dot.central {
+  background-color: var(--online-color);
+}
+
+.btn-ghost {
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.btn-ghost:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.section {
+  margin-top: 20px;
+}
+
+.section-title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.section-title:hover {
+  color: var(--accent-color);
+}
+
+.chev {
+  color: var(--text-tertiary);
+  transition: transform 0.18s ease;
+}
+
+.chev.open {
+  transform: rotate(180deg);
+}
+
+.section-body {
+  margin-top: 8px;
+}
+
 .field {
   margin-bottom: 14px;
 }
+
 .field label {
   display: block;
   font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
+
 .field input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 6px;
   background-color: var(--bg-inset);
   color: var(--text-primary);
   font-size: 14px;
@@ -319,16 +549,10 @@ async function doRegister() {
   transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
+
 .field input:focus {
   border-color: var(--accent-color);
   box-shadow: 0 0 0 3px var(--accent-light);
-}
-
-.hint {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin: -6px 0 16px;
-  line-height: 1.5;
 }
 
 .error {
@@ -345,145 +569,39 @@ async function doRegister() {
   text-align: center;
 }
 
-/* ===== 按钮 ===== */
 .btn-primary {
   width: 100%;
   padding: 11px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background-color: var(--accent-color);
   color: #fff;
   font-size: 15px;
   font-weight: 500;
-  letter-spacing: 2px;
   cursor: pointer;
   transition: filter 0.15s, opacity 0.15s;
 }
+
 .btn-primary:hover {
   filter: brightness(1.05);
 }
+
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
 .btn-primary.sm {
   width: auto;
   padding: 8px 18px;
   font-size: 14px;
-  letter-spacing: 0;
-}
-
-/* ===== 已登录：资料头 ===== */
-.profile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 18px;
-}
-.avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background-color: var(--accent-color);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.profile-meta {
-  flex: 1;
-  min-width: 0;
-}
-.profile-name {
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.role-badge {
-  font-size: 11px;
-  padding: 1px 7px;
-  border-radius: 6px;
-  background-color: var(--accent-light);
-  color: var(--accent-color);
-  font-weight: 500;
-}
-.conn-line {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin-top: 5px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--text-tertiary);
-}
-.dot.central {
-  background-color: var(--online-color);
-}
-
-.btn-ghost {
-  padding: 6px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background-color 0.12s, color 0.12s;
-}
-.btn-ghost:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-/* ===== 分区 ===== */
-.section {
-  margin-top: 20px;
-}
-.section-title {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  padding: 8px 0;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: color 0.12s;
-}
-.section-title:hover {
-  color: var(--accent-color);
-}
-.chev {
-  color: var(--text-tertiary);
-  transition: transform 0.18s ease;
-}
-.chev.open {
-  transform: rotate(180deg);
-}
-.section-body {
-  margin-top: 8px;
 }
 
 .radio-row {
   display: flex;
   gap: 18px;
 }
+
 .radio {
   font-size: 13px;
   display: inline-flex;
@@ -492,6 +610,7 @@ async function doRegister() {
   color: var(--text-secondary);
   cursor: pointer;
 }
+
 .radio input {
   accent-color: var(--accent-color);
 }
