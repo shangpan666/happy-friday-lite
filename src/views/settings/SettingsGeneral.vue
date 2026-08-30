@@ -981,6 +981,18 @@ watch(() => settings.fontSize, (val) => {
   } catch (_e) {}
 }, { immediate: true });
 
+// 消息提醒开关持久化
+watch(() => settings.messageNotify, (val) => {
+  try {
+    electronService.invoke('get-config').then(config => {
+      if (config) {
+        config.messageNotify = val;
+        electronService.invoke('save-config', config);
+      }
+    });
+  } catch (_e) {}
+});
+
 const enabledModuleCount = computed(() => Object.values(appStore.sidebarModules).filter(Boolean).length);
 const sidebarModuleCount = sidebarModuleConfig.length;
 
@@ -1997,6 +2009,7 @@ onMounted(() => {
   electronService.invoke('get-config').then((config) => {
     if (config) {
       runtimeLogsEnabled.value = config.runtimeLogsEnabled !== false;
+      settings.messageNotify = config.messageNotify === true;
       appStore.setSidebarModules(config.sidebarModules);
       // 回填已保存的 QQ 机器人配置
       const qb = (config.bridge && config.bridge.qqbot) || {};
