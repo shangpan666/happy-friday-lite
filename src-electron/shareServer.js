@@ -948,7 +948,7 @@ async function handleRequest(req, res) {
       }
       const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Happy Friday - 扫码登录</title>
+<title>Phronesis - 扫码登录</title>
 <style>body{font-family:-apple-system,sans-serif;text-align:center;padding:60px 20px;margin:0;background:#f5f5f5}
 .box{background:#fff;border-radius:12px;padding:32px;max-width:360px;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,.08)}
 .spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#1976d2;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}

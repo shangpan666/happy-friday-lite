@@ -1,6 +1,6 @@
-# Happy Friday 安卓端（企业内网版）
+# Phronesis 安卓端（企业内网版）
 
-安卓 App，连接电脑端的 **Happy Friday Lite** 服务（`shareServer`，默认端口 `17918`），
+安卓 App，连接电脑端的 **Phronesis Lite** 服务（`shareServer`，默认端口 `17918`），
 通过**账号令牌**登录，按账号读取电脑端的笔记与全部对话。同一账号即可在手机上看到电脑端数据。
 
 > 技术栈：Flutter（Dart）。对应电脑端改动：`src-electron/db.js`、`src-electron/shareServer.js`。
@@ -9,7 +9,7 @@
 
 ## 一、电脑端需要做什么（一次）
 
-1. 启动 Happy Friday Lite（桌面端）。分享服务会自动在 `0.0.0.0:17918` 启动。
+1. 启动 Phronesis Lite（桌面端）。分享服务会自动在 `0.0.0.0:17918` 启动。
 2. 首次启动会**自动创建主账号**：
    - 默认账号：`admin` / 密码：`change-me-now`
    - 可通过环境变量覆盖（正式部署务必修改）：

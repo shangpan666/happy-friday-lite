@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: ListView(
             children: [
               const Text(
-                '请输入电脑端（Happy Friday Lite）在内网的服务地址与账号。\n同一账号即可读取电脑端的笔记与全部对话。',
+                '请输入电脑端（Phronesis Lite）在内网的服务地址与账号。\n同一账号即可读取电脑端的笔记与全部对话。',
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 16),

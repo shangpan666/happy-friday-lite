@@ -9,7 +9,7 @@
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
           </svg>
         </div>
-        <h1 class="app-title">Happy Friday</h1>
+        <h1 class="app-title">Phronesis</h1>
       </div>
 
       <div class="form-area">
@@ -40,7 +40,7 @@
       </div>
 
       <div class="login-footer">
-        <span class="footer-text">Happy Friday v{{ appVersion }}</span>
+        <span class="footer-text">Phronesis v{{ appVersion }}</span>
       </div>
     </div>
 

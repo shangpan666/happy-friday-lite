@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo ============================================
-echo  Happy Friday Lite - build release package
+echo  Phronesis Lite - build release package
 echo ============================================
 echo.
 

@@ -98,7 +98,7 @@ class _NotesScreenState extends State<NotesScreen> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Happy Friday 安卓端'),
+        title: const Text('Phronesis 安卓端'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [Tab(text: '笔记'), Tab(text: '对话')],

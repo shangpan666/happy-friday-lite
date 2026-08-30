@@ -1,4 +1,4 @@
-# Happy Friday Lite
+# Phronesis Lite
 
 [English](README.md)
 

@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo ============================================
-echo  Happy Friday Lite - install and dev launcher
+echo  Phronesis Lite - install and dev launcher
 echo ============================================
 echo.
 
