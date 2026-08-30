@@ -623,25 +623,51 @@
       <div class="settings-group">
         <div class="group-title" style="display: flex; align-items: center; gap: 8px;">
           远程开机（Wake-on-LAN）
-          <button class="text-btn" style="font-size: 12px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary);" @click="showWolGuide = true">使用说明书</button>
+          <span class="wol-guide-tag" @click="showWolGuide = true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            使用说明
+          </span>
         </div>
         <div class="group-content">
           <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 12px;">
             添加局域网内需要远程开机的电脑，手机端也可管理同一列表。
           </p>
-          <div v-for="(pc, idx) in wolComputers" :key="pc.id || idx" class="setting-item" style="align-items: flex-start;">
-            <div style="flex: 1;">
-              <div style="font-weight: 500;">{{ pc.name }}</div>
-              <div style="font-size: 12px; color: var(--text-secondary);">MAC: {{ pc.mac }} 广播: {{ pc.broadcast }}</div>
+
+          <!-- 已添加的电脑列表 -->
+          <div v-for="(pc, idx) in wolComputers" :key="pc.id || idx" class="wol-pc-card">
+            <div class="wol-pc-info">
+              <div class="wol-pc-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              </div>
+              <div>
+                <div class="wol-pc-name">{{ pc.name }}</div>
+                <div class="wol-pc-mac">{{ pc.mac }}</div>
+              </div>
             </div>
-            <button class="text-btn" style="color: var(--success-color);" @click="wolSend(pc)">开机</button>
-            <button class="text-btn" style="color: var(--danger-color);" @click="wolRemove(idx)">删除</button>
+            <div class="wol-pc-actions">
+              <button class="wol-btn wol-btn-wake" @click="wolSend(pc)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                开机
+              </button>
+              <button class="wol-btn wol-btn-delete" @click="wolRemove(idx)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
           </div>
-          <div class="setting-item" style="flex-wrap: wrap; gap: 8px;">
-            <input v-model="wolNew.name" placeholder="电脑名称" style="flex: 1; min-width: 100px;" class="text-input" />
-            <input v-model="wolNew.mac" placeholder="AA:BB:CC:DD:EE:FF" style="flex: 1; min-width: 160px;" class="text-input" />
-            <input v-model="wolNew.broadcast" placeholder="广播地址（可选，默认 255.255.255.255）" style="flex: 1; min-width: 180px;" class="text-input" />
-            <button class="primary-btn" @click="wolAdd">添加</button>
+
+          <div v-if="wolComputers.length === 0" class="wol-empty">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="color: var(--text-tertiary);"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <p>暂无设备，点击下方添加</p>
+          </div>
+
+          <!-- 添加新设备 -->
+          <div class="wol-add-form">
+            <input v-model="wolNew.name" placeholder="电脑名称" class="text-input wol-input-name" />
+            <input v-model="wolNew.mac" placeholder="AA:BB:CC:DD:EE:FF" class="text-input wol-input-mac" />
+            <button class="wol-btn wol-btn-add" @click="wolAdd">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              添加
+            </button>
           </div>
         </div>
       </div>
@@ -2639,6 +2665,157 @@ const stopQQ = async () => {
   font-weight: 500;
   font-family: inherit;
   transition: all 0.2s;
+}
+
+/* ===== WoL Styles ===== */
+.wol-guide-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.wol-guide-tag:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.wol-pc-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: box-shadow 0.15s;
+}
+
+.wol-pc-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.wol-pc-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.wol-pc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.wol-pc-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.wol-pc-mac {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+.wol-pc-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.wol-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.wol-btn-wake {
+  padding: 6px 14px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+.wol-btn-wake:hover {
+  background: rgba(34, 197, 94, 0.22);
+}
+
+.wol-btn-delete {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-tertiary);
+}
+
+.wol-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.wol-empty {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.wol-empty p {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin: 8px 0 0;
+}
+
+.wol-add-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.wol-input-name {
+  flex: 0 0 120px;
+}
+
+.wol-input-mac {
+  flex: 1;
+}
+
+.wol-btn-add {
+  padding: 7px 16px;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  flex-shrink: 0;
+}
+
+.wol-btn-add:hover {
+  opacity: 0.85;
 }
 
 .danger-btn:hover {
