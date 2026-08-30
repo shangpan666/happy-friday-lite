@@ -7,6 +7,7 @@ import 'session_detail_screen.dart';
 import 'login_screen.dart';
 import 'create_account_screen.dart';
 import 'kb_screen.dart';
+import 'settings_screen.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -103,6 +104,13 @@ class _NotesScreenState extends State<NotesScreen> with SingleTickerProviderStat
           tabs: const [Tab(text: '笔记'), Tab(text: '对话')],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            tooltip: '设置',
+          ),
           IconButton(
             icon: const Icon(Icons.library_books),
             onPressed: () => Navigator.of(context).push(

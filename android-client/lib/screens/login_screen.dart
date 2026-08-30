@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/api_client.dart';
 import '../services/secure_storage.dart';
 import 'notes_screen.dart';
+import 'scan_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -109,6 +110,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Text('登录'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _loading
+                    ? null
+                    : () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ScanLoginScreen()),
+                        ),
+                icon: const Icon(Icons.qr_code_scanner, size: 20),
+                label: const Text('扫码登录'),
               ),
             ],
           ),
