@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_zxing/flutter_zxing.dart';
 import '../services/api_client.dart';
 import '../services/secure_storage.dart';
 import 'notes_screen.dart';
@@ -13,28 +13,14 @@ class ScanLoginScreen extends StatefulWidget {
 }
 
 class _ScanLoginScreenState extends State<ScanLoginScreen> {
-  MobileScannerController? _controller;
   bool _handling = false;
   String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = MobileScannerController();
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) async {
+  void _onScan(Code result) async {
     if (_handling) return;
-    final barcode = capture.barcodes.firstOrNull;
-    if (barcode == null || barcode.rawValue == null) return;
+    if (!result.isValid || result.text == null) return;
 
-    final raw = barcode.rawValue!;
+    final raw = result.text!;
     Map<String, dynamic> data;
     try {
       data = jsonDecode(raw) as Map<String, dynamic>;
@@ -53,7 +39,6 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
       return;
     }
 
-    await _controller?.stop();
     setState(() {
       _handling = true;
       _error = null;
@@ -80,14 +65,12 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
         _error = '登录失败：${e.message}';
         _handling = false;
       });
-      await _controller?.start();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = '网络错误：$e';
         _handling = false;
       });
-      await _controller?.start();
     }
   }
 
@@ -98,9 +81,10 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(
-            controller: _controller!,
-            onDetect: _onDetect,
+          ReaderWidget(
+            onScan: _onScan,
+            scanLineColor: Colors.white70,
+            torchlightEnable: true,
           ),
           // Top hint
           Positioned(
@@ -122,46 +106,52 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
             ),
           ),
           // Bottom status
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _handling
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(20),
+          if (_handling)
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Text('正在登录...', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                    )
-                  : _error != null
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade900,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(_error!, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                        )
-                      : null,
+                      SizedBox(width: 10),
+                      Text('正在登录...', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+          if (_error != null && !_handling)
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade900,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(_error!, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                ),
+              ),
+            ),
         ],
       ),
     );
