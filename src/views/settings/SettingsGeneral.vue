@@ -651,10 +651,12 @@
             手机端点击「扫码登录」后扫描下方二维码，即可自动登录。
           </p>
           <div v-if="qrLoginData" style="text-align: center; padding: 16px;">
-            <div ref="qrCanvasRef" style="display: inline-block;"></div>
+            <canvas ref="qrCanvasRef" width="200" height="200" style="border-radius: 8px;"></canvas>
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
-              服务器: {{ qrLoginData.server }}
+              服务器: {{ qrLoginData.server }}<br>
+              二维码 60 秒后过期，请刷新
             </div>
+            <button class="text-btn" style="margin-top: 8px;" @click="generateQrLogin">刷新二维码</button>
           </div>
           <div v-else style="text-align: center; padding: 16px;">
             <button class="primary-btn" @click="generateQrLogin">生成登录二维码</button>
@@ -2018,29 +2020,56 @@ const qrCanvasRef = ref(null);
 
 async function generateQrLogin() {
   const data = await electronService.invoke('mobile-get-qr-login-data');
-  if (!data) return;
+  if (!data || !data.qrToken) {
+    alert('生成二维码失败，请先登录或检查服务状态');
+    return;
+  }
   qrLoginData.value = data;
-  // 等 DOM 更新后用 Canvas 画二维码
   await new Promise(r => setTimeout(r, 50));
   if (qrCanvasRef.value) {
     drawQrOnCanvas(qrCanvasRef.value, JSON.stringify({
       server: data.server,
-      user: data.accounts?.[0]?.username || '',
-      pass: ''
+      qrToken: data.qrToken
     }));
   }
 }
 
-// 简易 QR 码 Canvas 绘制（使用 qrcode 库或内置实现）
-// 这里用 data URL 方式：生成一个 img 显示
-function drawQrOnCanvas(el, text) {
-  // 用 SVG 绘制一个简化的二维码占位，真实场景用 qrcode 库
-  // 暂时直接显示文本信息，用户可以扫码工具扫描
-  el.innerHTML = '';
-  const pre = document.createElement('pre');
-  pre.style.cssText = 'background: #f5f5f5; padding: 16px; border-radius: 8px; font-size: 11px; max-width: 300px; word-break: break-all; user-select: all;';
-  pre.textContent = text;
-  el.appendChild(pre);
+async function loadQrCodeLib() {
+  try {
+    const mod = await import('qrcode');
+    return mod.default || mod;
+  } catch (_e) {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+      script.onload = () => resolve(window.QRCode);
+      script.onerror = () => resolve(null);
+      document.head.appendChild(script);
+    });
+  }
+}
+
+function drawQrOnCanvas(canvasEl, text) {
+  loadQrCodeLib().then((QRCode) => {
+    if (QRCode && canvasEl) {
+      QRCode.toCanvas(canvasEl, text, {
+        width: 200,
+        margin: 1,
+        color: { dark: '#000000', light: '#ffffff' }
+      }).catch((e) => {
+        console.error('QR generation failed:', e);
+        const ctx = canvasEl.getContext('2d');
+        ctx.fillStyle = '#f5f5f5';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = '#333';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('请复制以下内容到手机', 100, 90);
+        ctx.font = '9px monospace';
+        ctx.fillText(text.substring(0, 30) + '...', 100, 110);
+      });
+    }
+  });
 }
 
 onMounted(() => {

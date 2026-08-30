@@ -31,11 +31,10 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
     }
 
     final server = data['server']?.toString();
-    final user = data['user']?.toString();
-    final pass = data['pass']?.toString();
-    if (server == null || user == null || pass == null) {
+    final qrToken = data['qrToken']?.toString();
+    if (server == null || qrToken == null) {
       if (!mounted) return;
-      setState(() => _error = '二维码缺少 server/user/pass 字段');
+      setState(() => _error = '二维码缺少 server 或 qrToken 字段');
       return;
     }
 
@@ -46,13 +45,13 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
 
     try {
       final base = ApiClient.normalizeUrl(server);
-      final result = await ApiClient.login(base, user, pass);
+      final loginResult = await ApiClient.qrLogin(base, qrToken);
       await SecureStorage.saveSession(
         serverUrl: base,
-        token: result['token'],
-        username: result['username'] ?? user,
-        deviceId: result['deviceId'],
-        role: result['role'],
+        token: loginResult['token'],
+        username: loginResult['username'] ?? '',
+        deviceId: loginResult['deviceId'],
+        role: loginResult['role'],
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -86,7 +85,6 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
             scanLineColor: Colors.white70,
             torchlightEnable: true,
           ),
-          // Top hint
           Positioned(
             top: 40,
             left: 0,
@@ -105,7 +103,6 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
               ),
             ),
           ),
-          // Bottom status
           if (_handling)
             Positioned(
               bottom: 60,

@@ -254,5 +254,18 @@
   "toolNodejsDesc": "JavaScript runtime built on Chrome's V8 engine, for server-side development",
   "toolGitBash": "Git Bash",
   "toolGitBashDesc": "Provides Git and Bash Shell Unix-like command line environment on Windows",
-  "toolStatus": "Status"
+  "toolStatus": "Status",
+  "wol": "Remote Wake-on-LAN",
+  "wolHint": "Add LAN computers to wake remotely. Mobile manages the same list.",
+  "wolName": "Computer Name",
+  "wolMac": "MAC Address",
+  "wolBroadcast": "Broadcast Address",
+  "wolAdd": "Add",
+  "wolSend": "Wake",
+  "wolDelete": "Delete",
+  "wolSent": "Wake packet sent to \"{name}\"",
+  "wolSendFailed": "Send failed",
+  "mobileQrLogin": "Mobile QR Login",
+  "mobileQrLoginHint": "Scan the QR code below from your phone to log in automatically.",
+  "mobileQrGenerate": "Generate Login QR Code"
 }

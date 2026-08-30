@@ -2,6 +2,7 @@ import http from 'http'
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import { fileURLToPath } from 'url'
 import * as db from './db.js'
 import {
@@ -383,6 +384,23 @@ function readPostBody(req) {
     })
     req.on('error', reject)
   })
+}
+
+// 手机扫码登录：临时 QR Token 存储（60秒过期）
+const qrTokens = new Map() // token -> { accountId, expiresAt }
+
+function generateQrToken(accountId) {
+  const token = crypto.randomBytes(24).toString('hex')
+  qrTokens.set(token, { accountId, expiresAt: Date.now() + 60000 })
+  return token
+}
+
+function verifyQrToken(token) {
+  const entry = qrTokens.get(token)
+  if (!entry) return null
+  qrTokens.delete(token) // 一次性使用
+  if (Date.now() > entry.expiresAt) return null
+  return db.getAccountById ? db.getAccountById(entry.accountId) : null
 }
 
 // 从 Authorization 头解析已登录账号（Bearer Token）
@@ -873,6 +891,33 @@ function handleRequest(req, res) {
     // 登录：签发 Bearer Token，返回设备绑定信息
     if (url.pathname === '/api/auth/login' && req.method === 'POST') {
       serveLoginApi(req, res)
+      return
+    }
+    // 手机扫码登录：PC端生成临时QR token（需要已登录的管理员token）
+    if (url.pathname === '/api/auth/qr-generate' && req.method === 'POST') {
+      const account = getAccountFromRequest(req)
+      if (!account) { sendJson(res, 401, { success: false, error: '未授权' }); return }
+      const qrToken = generateQrToken(account.id)
+      sendJson(res, 200, { success: true, qrToken, expiresIn: 60 })
+      return
+    }
+    // 手机扫码登录：手机端用QR token换取session token
+    if (url.pathname === '/api/auth/qr-verify' && req.method === 'POST') {
+      let body
+      try { body = await readPostBody(req) } catch (_) { sendJson(res, 400, { success: false, error: '请求体格式错误' }); return }
+      const qrToken = (body.qrToken || '').toString().trim()
+      if (!qrToken) { sendJson(res, 400, { success: false, error: 'qrToken 不能为空' }); return }
+      const account = verifyQrToken(qrToken)
+      if (!account) { sendJson(res, 401, { success: false, error: '二维码已过期或无效' }); return }
+      const sessionToken = issueToken(account)
+      sendJson(res, 200, {
+        success: true,
+        token: sessionToken,
+        username: account.username,
+        role: account.role,
+        deviceId: account.device_id,
+        deviceName: os.hostname()
+      })
       return
     }
     // 注册员工账号（仅管理员）

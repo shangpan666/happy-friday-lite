@@ -47,6 +47,20 @@ class ApiClient {
     throw ApiException(body['error']?.toString() ?? '登录失败');
   }
 
+  static Future<Map<String, dynamic>> qrLogin(String serverUrl, String qrToken) async {
+    final base = normalizeUrl(serverUrl);
+    final resp = await http.post(
+      Uri.parse('$base/api/auth/qr-verify'),
+      headers: {'Content-Type': 'application/json; charset=utf-8'},
+      body: jsonEncode({'qrToken': qrToken}),
+    );
+    final body = _decode(resp);
+    if (resp.statusCode == 200 && body['success'] == true) {
+      return body;
+    }
+    throw ApiException(body['error']?.toString() ?? '扫码登录失败');
+  }
+
   static Map<String, dynamic> _decode(http.Response resp) {
     try {
       return jsonDecode(utf8.decode(resp.bodyBytes));

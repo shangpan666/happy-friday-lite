@@ -1935,12 +1935,25 @@ export function registerCommands(mainWindow) {
   })
 
   // ========== 手机扫码登录：生成二维码数据 ==========
-  ipcMain.handle('mobile-get-qr-login-data', () => {
+  ipcMain.handle('mobile-get-qr-login-data', async () => {
     const ip = getLocalIp()
     const port = getServerPort() || 17918
-    return {
-      server: `http://${ip}:${port}`,
-      accounts: db.getAccounts ? db.getAccounts() : []
+    const server = `http://${ip}:${port}`
+    // 用当前登录账号的token生成临时QR token
+    const accounts = db.getAccounts ? db.getAccounts() : []
+    const currentAccountId = db.getCurrentAccountId ? db.getCurrentAccountId() : null
+    const account = accounts.find(a => a.id === currentAccountId) || accounts[0]
+    if (!account) return { server, qrToken: null }
+    // 调用HTTP接口生成QR token（走share server内部逻辑）
+    try {
+      const resp = await fetch(`${server}/api/auth/qr-generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${account.token || ''}` }
+      })
+      const data = await resp.json()
+      return { server, qrToken: data.qrToken || null, expiresIn: data.expiresIn || 60 }
+    } catch (_) {
+      return { server, qrToken: null }
     }
   })
 
