@@ -83,3 +83,46 @@
   --window-close-hover: #e81123;
   --window-close-hover-text: #ffffff;
 }
+
+/* ===== Glassmorphism Theme ===== */
+[data-theme='glass'] {
+  --bg-primary: rgba(18, 20, 28, 0.72);
+  --bg-secondary: rgba(22, 25, 35, 0.58);
+  --bg-sidebar: rgba(16, 18, 26, 0.65);
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-active: rgba(255, 255, 255, 0.10);
+  --bg-inset: rgba(20, 22, 32, 0.55);
+
+  --text-primary: #e2e6ed;
+  --text-secondary: #8b95a5;
+  --text-tertiary: #5a6374;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  --accent-color: #6ba0f7;
+  --accent-light: rgba(107, 160, 247, 0.16);
+  --accent-hover: #8cb8ff;
+
+  --success-color: #4ade80;
+  --warning-color: #fbbf24;
+  --danger-color: #f87171;
+  --online-color: #4ade80;
+
+  --primary-gradient-from: #6ba0f7;
+  --primary-gradient-to: #a78bfa;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
+
+  /* Glass-specific tokens */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-blur: 20px;
+  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+  --glass-refraction: linear-gradient(160deg, rgba(130, 180, 255, 0.06) 0%, rgba(180, 130, 255, 0.04) 40%, transparent 70%);
+
+  --window-close-hover: #e81123;
+  --window-close-hover-text: #ffffff;
+}

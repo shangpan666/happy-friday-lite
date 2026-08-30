@@ -76,3 +76,121 @@ button:focus {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
+
+/* ===== Glassmorphism Theme Effects ===== */
+[data-theme='glass'] body {
+  background: linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #0f172a 100%);
+  background-attachment: fixed;
+}
+
+[data-theme='glass'] .settings-group,
+[data-theme='glass'] .group-content,
+[data-theme='glass'] .wol-pc-card,
+[data-theme='glass'] .wol-add-form {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+[data-theme='glass'] .group-content {
+  background: rgba(255,255,255,0.03) !important;
+}
+
+[data-theme='glass'] .setting-item {
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+
+[data-theme='glass'] .setting-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+[data-theme='glass'] .text-input,
+[data-theme='glass'] input[type="text"],
+[data-theme='glass'] input[type="password"],
+[data-theme='glass'] textarea {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.10);
+  color: var(--text-primary);
+}
+
+[data-theme='glass'] .text-input:focus,
+[data-theme='glass'] input[type="text"]:focus,
+[data-theme='glass'] input[type="password"]:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(107, 160, 247, 0.15);
+  background: rgba(255,255,255,0.06) !important;
+}
+
+[data-theme='glass'] .primary-btn {
+  background: linear-gradient(135deg, var(--primary-gradient-from), var(--primary-gradient-to)) !important;
+  box-shadow: 0 2px 10px rgba(107, 160, 247, 0.25);
+}
+
+[data-theme='glass'] .text-btn:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+[data-theme='glass'] .theme-select-trigger,
+[data-theme='glass'] .theme-dropdown-menu {
+  background: rgba(30, 33, 44, 0.85) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-color: rgba(255,255,255,0.10);
+}
+
+[data-theme='glass'] .theme-dropdown-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+[data-theme='glass'] .theme-dropdown-item.active {
+  background: rgba(107, 160, 247, 0.12);
+}
+
+[data-theme='glass'] .wol-btn-wake {
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+[data-theme='glass'] .wol-btn-add {
+  background: linear-gradient(135deg, var(--primary-gradient-from), var(--primary-gradient-to)) !important;
+  box-shadow: 0 2px 8px rgba(107, 160, 247, 0.2);
+}
+
+[data-theme='glass'] .wol-guide-tag {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme='glass'] .wol-empty svg {
+  opacity: 0.4;
+}
+
+/* Glass sidebar */
+[data-theme='glass'] .sidebar,
+[data-theme='glass'] nav,
+[data-theme='glass'] aside {
+  background: var(--bg-sidebar) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--glass-border);
+}
+
+/* Glass panels / modals */
+[data-theme='glass'] .info-modal-container,
+[data-theme='glass'] .panel-card,
+[data-theme='glass'] .appdlg-card {
+  background: rgba(22, 25, 35, 0.88) !important;
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+[data-theme='glass'] .info-modal-overlay,
+[data-theme='glass'] .appdlg-overlay {
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

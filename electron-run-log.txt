@@ -1,10 +1,10 @@
-[周日 2026/08/30 18:38:05.87] run-desktop.cmd started 
-[周日 2026/08/30 18:38:05.88] cwd: D:\ai agent\Ai agent\happy-friday-lite 
+[周日 2026/08/30 19:25:36.69] run-desktop.cmd started 
+[周日 2026/08/30 19:25:36.69] cwd: D:\ai agent\Ai agent\happy-friday-lite 
 D:\node.exe
 v24.19.0
 D:\npm
 D:\npm.cmd
-[周日 2026/08/30 18:38:06.70] Launching Electron desktop app... 
+[周日 2026/08/30 19:25:37.23] Launching Electron desktop app... 
 npm warn Unknown project config "electron_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 npm warn Unknown project config "electron_builder_binaries_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 
@@ -13,7 +13,7 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 
 [fix-dsh-directory-picker-electron] Electron worker launch is patched
 [0] 
-[0]   [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m3874[22m[2m[0m ms[22m
+[0]   [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m1689[22m[2m[0m ms[22m
 [0] 
 [0]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
 [0] [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
@@ -81,37 +81,14 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 [1] [Main] ✅ RAG module initialized
 [1] [Agent][BridgeHTTP] Bridge 未启用（config.bridge.enabled=false 且未设置 FRIDAY_BRIDGE=1）
 [1] [ShareServer] ✅ Share server running on http://0.0.0.0:17918
-[1] [Agent][IPC] ====== agent-invoke 开始: requestId=req_1788086885703_uuk2vv ======
-[1] [Agent][IPC] model=minimax/minimax-m2.7:free, enableThinking=false, sessionId=(new), folderPath=(none)
-[1] [Agent][IPC] 创建新会话: 1ab3cf5b-2196-489b-89a1-ee05c9ce41c0
-[1] [Agent][Memory] 创建会话: id=5936ee65-4139-4fe5-8c4f-f429cb8a57a5, title=你好
-[1] [Agent][Core] ====== 开始创建 DeepAgent ======
-[1] [Agent][Skills] 内置技能已是最新，跳过同步
-[1] [Agent][Model] 创建模型: provider=openrouter, model=minimax/minimax-m2.7:free, baseURL=https://openrouter.ai/api/v1, thinking=false
-[1] [Agent][Core] 模型创建完成: minimax/minimax-m2.7:free
-[1] [Agent][Backend] 后端装配完成: rootDir=D:\ai agent\Ai agent\happy-friday-lite\app-data\knowledge\agent, routes=[]（全部走 FilesystemBackend）
-[1] [Agent][Core] 后端装配完成: rootDir=D:\ai agent\Ai agent\happy-friday-lite\app-data\knowledge\agent
-[1] [Agent][Tool] 构建 LangChain 工具集: 共 44 个工具
-[1] [Agent][Core] 工具集构建完成: 44 内置 + 0 MCP = 44 个工具
-[1] [Agent][Tool] 构建 interruptOn 配置: 16 个工具需审批
-[1] [Agent][Core] interruptOn 配置: create_note, update_note, create_event, update_event, delete_event, create_automation_task, update_automation_task, delete_automation_task, write_agent_file, python_repl, pip_install, requests_post, requests_put, requests_patch, requests_delete, markitdown_convert
-[1] [Agent][Skills] 内置技能已是最新，跳过同步
-[1] [Agent][Core] SKILL 加载完成: 9 个技能
-[1] [Agent][Subagents] 已装配 1 个子 Agent: researcher
-[1] [Agent][Core] 已创建共享 MemorySaver (checkpointer)
-[1] [Agent][Backend] 已创建共享 InMemoryStore
-[1] [Agent][Core] ====== DeepAgent 创建完成 ======
-[1] [Agent][IPC] Agent 创建完成, rootDir=D:\ai agent\Ai agent\happy-friday-lite\app-data\knowledge\agent
-[1] [Agent][IPC] HITL 循环第 1 轮: 流式执行 Agent
-[1] [Agent][IPC] 调用 streamEvents, version=v2, thread_id=1ab3cf5b-2196-489b-89a1-ee05c9ce41c0
-[1] [Agent][IPC] stream 已创建，开始迭代事件
-[1] [Agent][IPC] 收到第一个事件: on_chain_start
-[1] [Agent][IPC] 流迭代结束，共收到 37 个事件, contentLen=48
-[1] [Agent][IPC] Agent 执行完成，共 1 轮
-[1] [Agent][IPC] ====== agent-invoke 完成: requestId=req_1788086885703_uuk2vv ======
 [1] [FileWatcher] 已停止 knowledge 目录监听
 [1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
 [1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
 [1] wait-on http://localhost:5173 && electron . exited with code 0
-[0] ^C
-[0] vite exited with code 3221225786
+[0] [2m19:30:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/assets/styles/main.css[22m
+[0] [2m19:31:48[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/assets/styles/main.css[22m
+[0] [2m19:31:56[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/views/settings/SettingsGeneral.vue[22m
+[0] [2m19:32:07[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/views/settings/SettingsGeneral.vue[22m
+[0] [2m19:32:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/views/settings/SettingsGeneral.vue[22m
+[0] [2m19:32:19[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/i18n/locales/zh-CN/settings.json[22m
+[0] [2m19:32:28[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/i18n/locales/en-US/settings.json[22m
