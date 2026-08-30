@@ -19,8 +19,6 @@ const applyThemeToDOM = (theme) => {
     const root = document.documentElement
     if (theme === 'dark') {
       root.setAttribute('data-theme', 'dark')
-    } else if (theme === 'glass') {
-      root.setAttribute('data-theme', 'glass')
     } else {
       root.removeAttribute('data-theme')
     }
@@ -47,7 +45,7 @@ const saveToStorage = (mode) => {
 const loadFromStorage = () => {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY)
-    if (stored && ['light', 'dark', 'system', 'glass'].includes(stored)) {
+    if (stored && ['light', 'dark', 'system'].includes(stored)) {
       return stored
     }
   } catch (error) {

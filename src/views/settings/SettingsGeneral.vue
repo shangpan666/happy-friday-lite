@@ -932,7 +932,6 @@ let unsubQrPush = null;
 const themeOptions = computed(() => [
   { value: 'light', label: t('settings.themeLight') },
   { value: 'dark', label: t('settings.themeDark') },
-  { value: 'glass', label: t('settings.themeGlass') },
   { value: 'system', label: t('settings.themeSystem') }
 ]);
 
