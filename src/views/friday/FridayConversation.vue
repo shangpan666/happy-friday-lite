@@ -31,7 +31,9 @@
           <!-- Agent 模式：带时间线段的消息 → 交错渲染文本与工具调用 -->
           <div v-else-if="msg.segments && msg.segments.length > 0" class="agent-response-block">
             <div class="agent-response-header">
-              <div class="avatar ai-avatar"><span class="avatar-icon">✦</span></div>
+              <div class="avatar ai-avatar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"></path><path d="M16 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18v4"></path><path d="M8 22h8"></path></svg>
+              </div>
               <span class="ai-name">周五</span>
             </div>
             <div class="agent-timeline">
@@ -102,12 +104,14 @@
         <template v-if="currentMode === 'agent' && (isStreaming || agentSegments.length > 0)">
           <div class="agent-response-block">
             <div class="agent-response-header">
-              <div class="avatar ai-avatar"><span class="avatar-icon">✦</span></div>
+              <div class="avatar ai-avatar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"></path><path d="M16 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18v4"></path><path d="M8 22h8"></path></svg>
+              </div>
               <span class="ai-name">周五</span>
             </div>
             <!-- 执行进度：当前步骤与活动 -->
-            <div v-if="isStreaming" class="agent-progress">
-              <span class="agent-progress-dot"></span>
+            <div v-if="isStreaming || agentSegments.length > 0" class="agent-progress">
+              <span class="agent-progress-dot" :class="{ 'is-done': !isStreaming }"></span>
               <span class="agent-progress-step">步骤 {{ agentStepCount }}</span>
               <span class="agent-progress-sep"></span>
               <span class="agent-progress-action">{{ currentActionLabel }}</span>
@@ -1833,12 +1837,13 @@ async function handleRejectTool(decision) {
 
 .agent-response-header .ai-avatar {
   background: var(--online-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.agent-response-header .avatar-icon {
-  font-size: 12px;
+.agent-response-header .ai-avatar svg {
   color: #ffffff;
-  font-weight: 700;
 }
 
 .agent-response-header .ai-name {
@@ -2215,6 +2220,11 @@ async function handleRejectTool(decision) {
   background: var(--accent-color);
   animation: progress-pulse 1.2s ease-in-out infinite;
   flex-shrink: 0;
+}
+
+.agent-progress-dot.is-done {
+  animation: none;
+  opacity: 0.5;
 }
 
 @keyframes progress-pulse {
