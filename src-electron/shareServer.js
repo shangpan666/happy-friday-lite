@@ -784,7 +784,7 @@ async function serveMobileKbFileApi(req, res, account) {
 }
 
 // 手机端路由（已通过令牌鉴权，account 为当前登录账号）
-function routeMobileApi(req, res, url, account) {
+async function routeMobileApi(req, res, url, account) {
   // ===== 写操作：笔记/会话（按账号隔离）=====
   if (url.pathname === '/api/mobile/notes' && req.method === 'POST') {
     serveMobileCreateNoteApi(req, res, account)
