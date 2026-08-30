@@ -47,6 +47,11 @@ jobs:
           sed -i "s#ext.kotlin_version = '[^']*'#ext.kotlin_version = '1.9.24'#" android/settings.gradle android/build.gradle android/app/build.gradle 2>/dev/null || true
           grep -rn "kotlin" android/settings.gradle android/build.gradle || true
 
+      # mobile_scanner 使用 bundled MLKit（不需要 Google Play Services），确保 gradle.properties 包含该配置
+      - name: Configure mobile_scanner
+        run: |
+          echo 'dev.steenbakker.mobile_scanner.useUnbundled=false' >> android/gradle.properties
+
       # 关闭 R8 收缩并挂上 keep 规则，避免 io.flutter.embedding.android.FlutterApplication
       # 被误删导致启动 ClassNotFoundException 闪退（release 构建默认会跑 R8 混淆）
       - name: Disable R8 minify

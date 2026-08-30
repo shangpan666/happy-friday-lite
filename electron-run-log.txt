@@ -1,10 +1,10 @@
-[周日 2026/08/30  9:48:31.12] run-desktop.cmd started 
-[周日 2026/08/30  9:48:31.13] cwd: D:\ai agent\Ai agent\happy-friday-lite 
+[周日 2026/08/30 15:20:33.28] run-desktop.cmd started 
+[周日 2026/08/30 15:20:33.29] cwd: D:\ai agent\Ai agent\happy-friday-lite 
 D:\node.exe
 v24.19.0
 D:\npm
 D:\npm.cmd
-[周日 2026/08/30  9:48:31.65] Launching Electron desktop app... 
+[周日 2026/08/30 15:20:35.11] Launching Electron desktop app... 
 npm warn Unknown project config "electron_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 npm warn Unknown project config "electron_builder_binaries_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 
@@ -13,7 +13,7 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 
 [fix-dsh-directory-picker-electron] Electron worker launch is patched
 [0] 
-[0]   [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m1704[22m[2m[0m ms[22m
+[0]   [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m6648[22m[2m[0m ms[22m
 [0] 
 [0]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
 [0] [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
@@ -85,4 +85,5 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 [1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
 [1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
 [1] wait-on http://localhost:5173 && electron . exited with code 0
+[0] ^C
 [0] vite exited with code 3221225786

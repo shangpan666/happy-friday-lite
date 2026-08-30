@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/api_client.dart';
 import '../services/secure_storage.dart';
 import 'notes_screen.dart';
@@ -13,23 +13,34 @@ class ScanLoginScreen extends StatefulWidget {
 }
 
 class _ScanLoginScreenState extends State<ScanLoginScreen> {
-  final _manualCtrl = TextEditingController();
+  MobileScannerController? _controller;
   bool _handling = false;
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _controller = MobileScannerController();
+  }
+
+  @override
   void dispose() {
-    _manualCtrl.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
-  Future<void> _loginWithJson(String raw) async {
+  void _onDetect(BarcodeCapture capture) async {
+    if (_handling) return;
+    final barcode = capture.barcodes.firstOrNull;
+    if (barcode == null || barcode.rawValue == null) return;
+
+    final raw = barcode.rawValue!;
     Map<String, dynamic> data;
     try {
       data = jsonDecode(raw) as Map<String, dynamic>;
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = '格式无效，需要 JSON');
+      setState(() => _error = '二维码格式无效，需要 JSON');
       return;
     }
 
@@ -38,10 +49,11 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
     final pass = data['pass']?.toString();
     if (server == null || user == null || pass == null) {
       if (!mounted) return;
-      setState(() => _error = 'JSON 缺少 server/user/pass 字段');
+      setState(() => _error = '二维码缺少 server/user/pass 字段');
       return;
     }
 
+    await _controller?.stop();
     setState(() {
       _handling = true;
       _error = null;
@@ -68,12 +80,14 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
         _error = '登录失败：${e.message}';
         _handling = false;
       });
+      await _controller?.start();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = '网络错误：$e';
         _handling = false;
       });
+      await _controller?.start();
     }
   }
 
@@ -81,45 +95,74 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('扫码登录')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Icon(Icons.qr_code_scanner, size: 80, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              '请将电脑端显示的二维码内容粘贴到下方',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _manualCtrl,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: '粘贴 JSON 内容\n{"server":"http://...","user":"xxx","pass":"xxx"}',
-                border: OutlineInputBorder(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          MobileScanner(
+            controller: _controller!,
+            onDetect: _onDetect,
+          ),
+          // Top hint
+          Positioned(
+            top: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  '将电脑端二维码放入框内',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(_error!, style: const TextStyle(color: Colors.red)),
-              ),
-            ElevatedButton(
-              onPressed: _handling ? null : () => _loginWithJson(_manualCtrl.text.trim()),
+          ),
+          // Bottom status
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: Center(
               child: _handling
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('正在登录...', style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
                     )
-                  : const Text('登录'),
+                  : _error != null
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade900,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(_error!, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                        )
+                      : null,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
