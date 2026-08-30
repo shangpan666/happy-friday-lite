@@ -1,4 +1,6 @@
 import { ref, reactive, computed, nextTick } from 'vue';
+import { useConnectionStore } from '@/store/modules/connection';
+import { electronService } from '@/services/electron';
 import { coverOptions, DEFAULT_CATEGORIES } from '../constants';
 
 // Agent 智能体目录下需要隐藏的系统目录（SKILL 由后端维护不在侧边栏展示，仅显示 SANDBOX 及用户创建的目录）
@@ -6,6 +8,11 @@ const AGENT_HIDDEN_DIRS = ['memories', 'large_tool_results', 'SKILL'];
 
 export function useKnowledgeBase(fileSystem, sidebar) {
   const api = window.electronAPI;
+  const connection = useConnectionStore();
+  // 管理员（中央机所有者）使用本地知识库、可新建/重命名/删除；
+  // 仅非管理员（子账号/员工机）连接中央机时知识库只读共享
+  const isRemote = computed(() => connection.isConnected && connection.user?.role !== 'admin');
+
   const selectedKB = ref('');
   const currentTitle = ref('知识库');
   const categories = reactive(JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)));
@@ -24,6 +31,30 @@ export function useKnowledgeBase(fileSystem, sidebar) {
 
   // 从磁盘目录扫描知识库列表
   async function loadCategoriesFromDisk() {
+    // 连接中央机：知识库走服务端只读接口（相对路径），不创建本地目录
+    if (isRemote.value) {
+      try {
+        const d = await electronService.invoke('kb-remote-tree');
+        const cats = (d && d.categories) || [];
+        categories.length = 0;
+        for (const c of cats) {
+          categories.push({
+            id: c.id,
+            name: c.name,
+            expanded: true,
+            items: (c.items || []).map((i) => ({ id: i.id, name: i.name, coverIndex: null }))
+          });
+        }
+        const firstCat = cats[0];
+        const firstItem = firstCat && firstCat.items && firstCat.items[0];
+        if (firstItem) {
+          await selectKnowledgeBase(firstItem.id, firstItem.name, firstCat.id);
+        }
+      } catch (e) {
+        console.error('Failed to load remote knowledge tree:', e);
+      }
+      return;
+    }
     if (!api || !fileSystem.dataDir.value) return;
     const baseDir = fileSystem.dataDir.value + '/knowledge';
     for (const category of categories) {
@@ -91,6 +122,7 @@ export function useKnowledgeBase(fileSystem, sidebar) {
   }
 
   function addKnowledgeBase(categoryId) {
+    if (isRemote.value) return;
     const category = categories.find(c => c.id === categoryId);
     if (category) {
       currentCategoryId.value = categoryId;
@@ -115,6 +147,7 @@ export function useKnowledgeBase(fileSystem, sidebar) {
   }
 
   async function confirmCreateKB() {
+    if (isRemote.value) return;
     if (!newKB.name.trim()) return;
 
     const category = categories.find(c => c.id === currentCategoryId.value);
@@ -202,6 +235,7 @@ export function useKnowledgeBase(fileSystem, sidebar) {
   }
 
   async function deleteKnowledgeBase(contextMenu) {
+    if (isRemote.value) return;
     if (!contextMenu.item) return;
     // 受保护的默认知识库（如沙盒区）不可删除
     if (contextMenu.item.protected) return;

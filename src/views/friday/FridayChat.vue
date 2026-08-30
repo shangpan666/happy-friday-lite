@@ -58,6 +58,7 @@
             :placeholder="t('friday.placeholder')"
             rows="1"
             @input="autoResize"
+            @keydown.enter.exact.prevent="handleSend"
             ref="textareaRef"
           ></textarea>
 
@@ -452,15 +453,37 @@ const dropdownRefs = {
   link: { show: showLinkDropdown, style: linkDropdownStyle }
 };
 
+// 当前激活的下拉菜单（用于窗口缩放时重新定位）
+const activeDropdownName = ref(null);
+const activeDropdownBtn = ref(null);
+
 // 通用下拉切换：再次点击已打开的下拉可关闭，否则打开目标并关闭其余
 const toggleDropdown = (name, event) => {
   const target = dropdownRefs[name];
   if (!target) return;
   const wasOpen = target.show.value;
   Object.values(dropdownRefs).forEach(ref => { ref.show.value = false; });
+  activeDropdownName.value = null;
+  activeDropdownBtn.value = null;
   if (wasOpen) return;
   const rect = event.currentTarget.getBoundingClientRect();
   target.show.value = true;
+  activeDropdownName.value = name;
+  activeDropdownBtn.value = event.currentTarget;
+  target.style.value = {
+    position: 'fixed',
+    top: rect.bottom + 8 + 'px',
+    left: rect.left + 'px',
+    zIndex: '9999'
+  };
+};
+
+// 窗口缩放时重新定位下拉菜单
+const repositionDropdown = () => {
+  if (!activeDropdownName.value || !activeDropdownBtn.value) return;
+  const target = dropdownRefs[activeDropdownName.value];
+  if (!target || !target.show.value) return;
+  const rect = activeDropdownBtn.value.getBoundingClientRect();
   target.style.value = {
     position: 'fixed',
     top: rect.bottom + 8 + 'px',
@@ -770,12 +793,14 @@ const buildAttachmentData = (text, noteAttachments, kbFileAttachments) => {
 
 onMounted(() => {
   document.addEventListener('scroll', handleDocumentScroll, true);
+  window.addEventListener('resize', repositionDropdown);
   // loadCustomModels() 由 onActivated 统一触发（keep-alive 首次挂载时 onActivated 也会执行）
   loadKbListFromDisk();
 });
 
 onUnmounted(() => {
   document.removeEventListener('scroll', handleDocumentScroll, true);
+  window.removeEventListener('resize', repositionDropdown);
 });
 
 onDeactivated(() => {
@@ -1182,8 +1207,8 @@ const handleFeatureClick = (id) => {
 }
 
 .dropdown-item.active {
-  background: #ecfdf5;
-  color: #059669;
+  background: var(--accent-light);
+  color: var(--accent-color);
   font-weight: 600;
 }
 
@@ -1640,7 +1665,7 @@ const handleFeatureClick = (id) => {
 }
 
 .model-item.active {
-  background: #ecfdf5;
+  background: var(--accent-light);
 }
 
 .model-icon {
@@ -1675,14 +1700,14 @@ const handleFeatureClick = (id) => {
 }
 
 .model-item.active .model-name {
-  color: #059669;
+  color: var(--accent-color);
 }
 
 .model-badge {
   font-size: 11px;
   font-weight: 600;
   color: var(--success-color);
-  background: #d1fae5;
+  background: var(--accent-light);
   padding: 2px 8px;
   border-radius: 6px;
 }

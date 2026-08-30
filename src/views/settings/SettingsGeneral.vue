@@ -203,6 +203,102 @@
         </div>
       </div>
 
+      <!-- 系统级工具 -->
+      <div class="settings-group">
+        <div class="group-title">{{ t('settings.systemTools') }}</div>
+        <div class="group-hint">{{ t('settings.systemToolsHint') }}</div>
+        <div class="group-content">
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">WSL</span>
+              <span class="item-hint">Windows Subsystem for Linux</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="systemTools.wsl" @change="saveSystemTools" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">wmic</span>
+              <span class="item-hint">Windows Management Instrumentation Command</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="systemTools.wmic" @change="saveSystemTools" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">sc</span>
+              <span class="item-hint">Service Controller（服务管理）</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="systemTools.sc" @change="saveSystemTools" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">reg</span>
+              <span class="item-hint">Registry Editor（注册表操作）</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="systemTools.reg" @change="saveSystemTools" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">schtasks</span>
+              <span class="item-hint">Task Scheduler（计划任务）</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="systemTools.schtasks" @change="saveSystemTools" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 内置运行时 -->
+      <div class="settings-group">
+        <div class="group-title">{{ t('settings.builtinRuntime') }}</div>
+        <div class="group-hint">{{ t('settings.builtinRuntimeHint') }}</div>
+        <div class="group-content">
+          <div class="setting-item runtime-header">
+            <span class="item-label runtime-col-tool">{{ t('settings.toolPython') }}</span>
+            <span class="item-label runtime-col-desc">{{ t('settings.toolPythonDesc') }}</span>
+            <div class="runtime-col-status">
+              <label class="toggle-switch">
+                <input type="checkbox" v-model="builtinRuntime.python" @change="saveBuiltinRuntime" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item runtime-header">
+            <span class="item-label runtime-col-tool">{{ t('settings.toolNodejs') }}</span>
+            <span class="item-label runtime-col-desc">{{ t('settings.toolNodejsDesc') }}</span>
+            <div class="runtime-col-status">
+              <label class="toggle-switch">
+                <input type="checkbox" v-model="builtinRuntime.nodejs" @change="saveBuiltinRuntime" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item runtime-header">
+            <span class="item-label runtime-col-tool">{{ t('settings.toolGitBash') }}</span>
+            <span class="item-label runtime-col-desc">{{ t('settings.toolGitBashDesc') }}</span>
+            <div class="runtime-col-status">
+              <label class="toggle-switch">
+                <input type="checkbox" v-model="builtinRuntime.gitBash" @change="saveBuiltinRuntime" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 数据备份 -->
       <div class="settings-group">
         <div class="group-title">{{ t('settings.backup') }}</div>
@@ -488,6 +584,20 @@
             </div>
             <div class="item-action-row">
               <input class="text-input" v-model="qqbotGateway" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="item-label-group">
+              <span class="item-label">配置操作</span>
+              <span class="item-hint">保存凭据可快速连接；删除将清除本地令牌</span>
+            </div>
+            <div class="item-action-row">
+              <button class="primary-btn" :disabled="directBusy" @click="saveQQBotConfig">
+                保存
+              </button>
+              <button class="ghost-btn danger-btn" :disabled="directBusy" @click="deleteQQBotConfig">
+                删除
+              </button>
             </div>
           </div>
           <div class="setting-item">
@@ -816,6 +926,64 @@ const resetPetAvatar = () => {
   savePetConfig();
 };
 
+// ========== 系统级工具 ==========
+const systemTools = reactive({
+  wsl: false,
+  wmic: false,
+  sc: false,
+  reg: false,
+  schtasks: false
+});
+
+const loadSystemTools = async () => {
+  try {
+    const config = await electronService.invoke('get-config');
+    const tools = config?.systemTools || {};
+    systemTools.wsl = tools.wsl === true;
+    systemTools.wmic = tools.wmic === true;
+    systemTools.sc = tools.sc === true;
+    systemTools.reg = tools.reg === true;
+    systemTools.schtasks = tools.schtasks === true;
+  } catch (_e) {}
+};
+
+const saveSystemTools = async () => {
+  try {
+    const config = await electronService.invoke('get-config');
+    config.systemTools = { ...systemTools };
+    await electronService.invoke('save-config', config);
+  } catch (e) {
+    console.error('Failed to save system tools config:', e);
+  }
+};
+
+// ========== 内置运行时 ==========
+const builtinRuntime = reactive({
+  python: true,
+  nodejs: true,
+  gitBash: true
+});
+
+const loadBuiltinRuntime = async () => {
+  try {
+    const config = await electronService.invoke('get-config');
+    const runtime = config?.builtinRuntime || {};
+    builtinRuntime.python = runtime.python !== false;
+    builtinRuntime.nodejs = runtime.nodejs !== false;
+    builtinRuntime.gitBash = runtime.gitBash !== false;
+  } catch (_e) {}
+};
+
+const saveBuiltinRuntime = async () => {
+  try {
+    const config = await electronService.invoke('get-config');
+    config.builtinRuntime = { ...builtinRuntime };
+    await electronService.invoke('save-config', config);
+  } catch (e) {
+    console.error('Failed to save builtin runtime config:', e);
+  }
+};
+
 // ========== 通用提示弹窗（替代原生 alert/confirm） ==========
 const dialog = reactive({
   visible: false,
@@ -929,6 +1097,49 @@ const stopQQBot = async () => {
     else await notifyError(t('settings.directStopFailed') + ': ' + (res?.error || ''));
   } catch (e) {
     await notifyError(t('settings.directStopFailed') + ': ' + e);
+  } finally {
+    directBusy.value = false;
+  }
+};
+const saveQQBotConfig = async () => {
+  if (directBusy.value) return;
+  directBusy.value = true;
+  try {
+    const res = await electronService.invoke('bridge-qqbot-save', {
+      appid: qqbotAppid.value,
+      secret: qqbotSecret.value,
+      token: qqbotToken.value,
+      apiBase: qqbotApiBase.value,
+      gatewayUrl: qqbotGateway.value,
+      sandbox: true
+    });
+    if (res?.success) await notifySuccess('QQ 机器人配置已保存');
+    else await notifyError('保存失败: ' + (res?.error || ''));
+  } catch (e) {
+    await notifyError('保存失败: ' + e);
+  } finally {
+    directBusy.value = false;
+  }
+};
+const deleteQQBotConfig = async () => {
+  if (directBusy.value) return;
+  if (!confirm('确定删除 QQ 机器人配置并清除本地令牌？')) return;
+  directBusy.value = true;
+  try {
+    const res = await electronService.invoke('bridge-qqbot-delete');
+    if (res?.success) {
+      qqbotAppid.value = '';
+      qqbotSecret.value = '';
+      qqbotToken.value = '';
+      qqbotGateway.value = '';
+      qqbotApiBase.value = 'https://api.bot.qq.com';
+      qqbotOn.value = false;
+      await notifySuccess('QQ 机器人配置已删除');
+    } else {
+      await notifyError('删除失败: ' + (res?.error || ''));
+    }
+  } catch (e) {
+    await notifyError('删除失败: ' + e);
   } finally {
     directBusy.value = false;
   }
@@ -1660,12 +1871,21 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeydown);
   initTheme();
   loadPetSettings();
+  loadSystemTools();
+  loadBuiltinRuntime();
   settings.displayMode = currentMode.value;
   currentLanguage.value = appStore.language || 'zh-CN';
   electronService.invoke('get-config').then((config) => {
     if (config) {
       runtimeLogsEnabled.value = config.runtimeLogsEnabled !== false;
       appStore.setSidebarModules(config.sidebarModules);
+      // 回填已保存的 QQ 机器人配置
+      const qb = (config.bridge && config.bridge.qqbot) || {};
+      if (qb.appid) qqbotAppid.value = qb.appid;
+      if (qb.secret) qqbotSecret.value = qb.secret;
+      if (qb.token) qqbotToken.value = qb.token;
+      if (qb.apiBase) qqbotApiBase.value = qb.apiBase;
+      if (qb.gatewayUrl) qqbotGateway.value = qb.gatewayUrl;
     }
   });
   loadBackupConfig();
@@ -1946,6 +2166,14 @@ const stopQQ = async () => {
   border-radius: 10px;
 }
 
+.group-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
 .setting-item {
   display: flex;
   align-items: center;
@@ -1963,6 +2191,28 @@ const stopQQ = async () => {
   cursor: pointer;
 }
 
+.setting-item.runtime-header {
+  justify-content: flex-start;
+}
+
+.runtime-col-tool {
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.runtime-col-desc {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-left: 16px;
+}
+
+.runtime-col-status {
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
 .item-label {
   font-size: 14px;
   color: var(--text-primary);
@@ -1974,6 +2224,13 @@ const stopQQ = async () => {
   flex-direction: column;
   gap: 3px;
   margin-right: 16px;
+}
+
+.item-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .item-hint {
@@ -2247,6 +2504,61 @@ const stopQQ = async () => {
 .primary-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.danger-btn {
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.danger-btn:hover {
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.danger-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.ghost-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.ghost-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost-btn.danger-btn {
+  color: var(--danger-color);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.ghost-btn.danger-btn:hover {
+  background-color: rgba(239, 68, 68, 0.08);
 }
 
 /* RAG 索引统计 - 紧凑内联 */

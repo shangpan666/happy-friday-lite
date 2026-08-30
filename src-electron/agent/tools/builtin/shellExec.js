@@ -5,7 +5,7 @@
  *
  * 受限 shell 执行：
  *   - 白名单：ls/cat/pwd/echo/grep/find/wc/head/tail 等只读命令（无需审批）
- *   - 黑名单：rm -rf /、mkfs、dd if=、shutdown 等（直接拒绝）
+ *   - 黑名单：rm -rf /、mkfs、dd if=、shutdown 等（需用户审批，不自动拒绝）
  *   - 不在白名单的命令（含 rm/rmdir/mv/cp/重定向等）触发用户审批
  *
  * 审批机制：因 interruptOn 为静态配置无法按命令动态判断，
@@ -25,23 +25,42 @@ import { z } from 'zod'
 import { registerTool } from '../registry.js'
 import { waitForApproval } from '../../humanInTheLoop.js'
 
+// 系统级工具命令 → 配置字段映射
+const SYSTEM_TOOL_MAP = {
+  wsl: 'wsl',
+  wmic: 'wmic',
+  sc: 'sc',
+  reg: 'reg',
+  schtasks: 'schtasks'
+}
+
+// 内置运行时命令 → 配置字段映射
+const RUNTIME_CMD_MAP = {
+  python: 'python',
+  python3: 'python',
+  node: 'nodejs',
+  npm: 'nodejs',
+  npx: 'nodejs',
+  bash: 'gitBash'
+}
+
 // 只读命令白名单（无需审批）
 const READONLY_WHITELIST = new Set([
   'ls', 'cat', 'pwd', 'echo', 'grep', 'find', 'wc', 'head', 'tail',
   'tree', 'stat', 'file', 'which', 'env', 'date', 'whoami', 'uname'
 ])
 
-// 危险命令黑名单（直接拒绝）
+// 危险命令黑名单（需用户审批，不自动拒绝）
 const DANGEROUS_PATTERNS = [
-  /rm\s+-rf\s+\/($|\s)/,    // rm -rf /
-  /mkfs/,                     // mkfs
-  /dd\s+if=/,                 // dd if=
-  /shutdown/,                 // shutdown
-  /reboot/,                   // reboot
-  /halt/,                     // halt
-  /:\(\)\s*\{\s*:\|:&\s*\};/, // fork bomb
-  />\s*\/dev\/sd[a-z]/,       // 写入磁盘设备
-  /mv\s+\S+\s+\/\s*$/         // mv 任意文件到根目录
+  { pattern: /rm\s+-rf\s+\/($|\s)/, desc: '递归强制删除根目录' },
+  { pattern: /mkfs/, desc: '格式化磁盘' },
+  { pattern: /dd\s+if=/, desc: '磁盘底层写入' },
+  { pattern: /shutdown/, desc: '关机命令' },
+  { pattern: /reboot/, desc: '重启命令' },
+  { pattern: /halt/, desc: '停机命令' },
+  { pattern: /:\(\)\s*\{\s*:\|:&\s*\};/, desc: 'fork bomb 炸弹' },
+  { pattern: />\s*\/dev\/sd[a-z]/, desc: '写入磁盘设备' },
+  { pattern: /mv\s+\S+\s+\/\s*$/, desc: '移动文件到根目录' }
 ]
 
 const schema = z.object({
@@ -58,10 +77,10 @@ const schema = z.object({
  * @returns {{ safe: boolean, needApproval: boolean, reason?: string }}
  */
 function analyzeCommand(command) {
-  // 检查危险命令黑名单
-  for (const pattern of DANGEROUS_PATTERNS) {
+  // 检查危险命令黑名单（需审批，不自动拒绝）
+  for (const { pattern, desc } of DANGEROUS_PATTERNS) {
     if (pattern.test(command)) {
-      return { safe: false, needApproval: false, reason: '命令匹配危险模式，已拒绝' }
+      return { safe: true, needApproval: true, reason: `危险操作：${desc}` }
     }
   }
 
@@ -79,23 +98,58 @@ function analyzeCommand(command) {
   return { safe: true, needApproval: true, reason: '非白名单命令，需用户审批' }
 }
 
+/**
+ * 检查命令是否被配置开关禁用
+ * @param {string} command
+ * @returns {{ blocked: boolean, reason?: string }}
+ */
+async function checkToolAccess(command) {
+  const { loadConfig } = await import('../../config.js')
+  const config = loadConfig()
+  const systemTools = config?.systemTools || {}
+  const builtinRuntime = config?.builtinRuntime || {}
+
+  const trimmed = command.trim()
+  const firstToken = trimmed.split(/\s+/)[0]
+  const baseCmd = path.basename(firstToken).toLowerCase()
+
+  // 检查系统级工具
+  for (const [toolCmd, configKey] of Object.entries(SYSTEM_TOOL_MAP)) {
+    if (baseCmd === toolCmd && systemTools[configKey] === false) {
+      return { blocked: true, reason: `系统级工具「${toolCmd}」已在设置中禁用` }
+    }
+  }
+
+  // 检查内置运行时
+  for (const [toolCmd, configKey] of Object.entries(RUNTIME_CMD_MAP)) {
+    if (baseCmd === toolCmd && builtinRuntime[configKey] === false) {
+      return { blocked: true, reason: `内置运行时「${toolCmd}」已在设置中禁用` }
+    }
+  }
+
+  return { blocked: false }
+}
+
 async function handler(args, ctx) {
   const { command, timeoutMs = 30000 } = args
   ctx.logger.info(`[execute_command] cmd="${command}"`)
 
-  // 分析命令安全性
-  const analysis = analyzeCommand(command)
-  if (!analysis.safe) {
-    ctx.logger.warn(`[execute_command] 拒绝执行: ${analysis.reason}`)
-    return `命令被拒绝: ${analysis.reason}`
+  // 检查工具是否被配置禁用
+  const accessCheck = await checkToolAccess(command)
+  if (accessCheck.blocked) {
+    ctx.logger.warn(`[execute_command] 工具被禁用: ${accessCheck.reason}`)
+    return accessCheck.reason
   }
 
-  // 非白名单命令（如 rm/mv/cp/重定向等）：在 handler 内部触发审批流程
+  // 分析命令安全性
+  const analysis = analyzeCommand(command)
+
+  // 非白名单命令（含危险命令）：在 handler 内部触发审批流程
   // 复用 HITL 的 waitForApproval 机制，推送 agent-tool-approval 事件到前端
   // MCP 模式（ctx.autoApprove=true）下无前端审批通道，跳过审批直接执行，
   // 与本地 MCP server（如 Claude Desktop）执行 shell 的惯例一致。
   if (analysis.needApproval && !ctx.autoApprove && !ctx.unattended) {
-    ctx.logger.info(`[execute_command] 非白名单命令，请求用户审批: ${command}`)
+    ctx.logger.info(`[execute_command] 需要用户审批: ${analysis.reason}`)
     const approvalToolCallId = `execute_command_approval_${Date.now()}`
     ctx.emit('agent-tool-approval', {
       requestId: ctx.requestId,
@@ -164,7 +218,7 @@ registerTool({
   description:
     '在 Agent 沙盒区内执行 shell 命令。' +
     '只读命令（ls/cat/grep 等）可直接执行；' +
-    '其他命令需用户审批。危险命令（rm -rf /、mkfs 等）会被拒绝。' +
+    '其他命令（含危险命令）需用户审批后才执行。' +
     '工作目录锁定为 Agent 沙盒区。',
   schema,
   handler,

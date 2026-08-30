@@ -15,6 +15,7 @@ import { startAutomationScheduler, stopAutomationScheduler } from './src-electro
 import { stopHarnessSidecar } from './src-electron/harness/index.js'
 import { initPet } from './src-electron/pet.js'
 import { registerMobileSyncHandlers, stopMobileSync } from './src-electron/mobileSync.js'
+import { setExternalNotifyWindow } from './src-electron/externalNotify.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -130,6 +131,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: saved?.width ?? 1200,
     height: saved?.height ?? 800,
+    height: saved?.height ?? 800,
     ...(saved && saved.x !== undefined ? { x: saved.x, y: saved.y } : {}),
     minWidth: 800,
     minHeight: 600,
@@ -156,6 +158,9 @@ function createWindow() {
   mainWindow.on('close', () => {
     saveWindowBounds()
   })
+
+  // 让外部入口（手机 / QQ 机器人等）能把对话事件通知到桌面渲染进程
+  setExternalNotifyWindow(mainWindow)
 
   Menu.setApplicationMenu(null)
 

@@ -60,6 +60,23 @@
             <Smartphone :size="16" :stroke-width="1.7" />
           </button>
 
+          <button
+            class="quick-search-btn"
+            title="快速搜索 (Ctrl+Space)"
+            @click="$emit('openQuickSearch')"
+          >
+            <Search :size="16" :stroke-width="1.7" />
+          </button>
+
+          <router-link
+            to="/account"
+            class="settings-btn"
+            active-class="active"
+            title="账号"
+          >
+            <User :size="16" :stroke-width="1.7" />
+          </router-link>
+
           <router-link
             v-if="isModuleVisible(bottomItemByKey('settings'))"
             to="/settings"
@@ -79,11 +96,12 @@
 </template>
 
 <script setup>
+defineEmits(['openQuickSearch']);
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore, useTabStore } from '@/store';
 import { useI18n } from 'vue-i18n';
-import { Plus, PanelLeftClose, Smartphone } from 'lucide-vue-next';
+import { Plus, PanelLeftClose, Smartphone, Search, User } from 'lucide-vue-next';
 import {
   sidebarMenuConfig,
   sidebarBottomMenuConfig,
@@ -381,6 +399,26 @@ onUnmounted(() => {
 }
 
 .mobile-connect-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--accent-color);
+}
+
+.quick-search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.quick-search-btn:hover {
   background-color: var(--bg-hover);
   color: var(--accent-color);
 }

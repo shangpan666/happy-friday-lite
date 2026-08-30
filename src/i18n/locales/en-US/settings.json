@@ -243,5 +243,16 @@
   "qqbotGateway": "WebSocket gateway URL (optional)",
   "qqbotGatewayHint": "Leave empty to auto-fetch from /gateway/bot; only set when using a proxy or self-hosted relay",
   "qqbotStatus": "Connection status",
-  "qqbotConnected": "QQ official bot connected"
+  "qqbotConnected": "QQ official bot connected",
+  "systemTools": "System Tools",
+  "systemToolsHint": "System tools like WSL, wmic, sc, reg, schtasks can bypass sandbox restrictions — enable with caution",
+  "builtinRuntime": "Built-in Runtime",
+  "builtinRuntimeHint": "Allow using bundled Node.js, Python and Git Bash tools",
+  "toolPython": "Python",
+  "toolPythonDesc": "General-purpose programming language for scripting, automation and data processing",
+  "toolNodejs": "Node.js",
+  "toolNodejsDesc": "JavaScript runtime built on Chrome's V8 engine, for server-side development",
+  "toolGitBash": "Git Bash",
+  "toolGitBashDesc": "Provides Git and Bash Shell Unix-like command line environment on Windows",
+  "toolStatus": "Status"
 }

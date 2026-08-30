@@ -6,6 +6,7 @@ import TurndownService from 'turndown'
 import { CancellationTokens } from './cancellation.js'
 import { loadConfig, saveConfig, getDataDir } from './config.js'
 import * as db from './db.js'
+import * as centralDb from './centralDb.js'
 import { streamChat, streamChatWithRagAgent, generateTitle, streamNoteAI, fimCompletion } from './llm.js'
 import { exportHtmlToPdf, exportMarkdown } from './pdf.js'
 import { runPython, runPythonStreaming, checkPython, getPythonPath } from './python.js'
@@ -376,6 +377,56 @@ export function registerCommands(mainWindow) {
     }
   })
 
+  // 仅保存 QQ 机器人配置（不启动），便于快速切换 / 留档
+  ipcMain.handle('bridge-qqbot-save', async (_event, cfg) => {
+    try {
+      const config = loadConfig()
+      config.bridge = config.bridge || {}
+      config.bridge.qqbot = {
+        appid: String(cfg?.appid || ''),
+        secret: String(cfg?.secret || ''),
+        token: String(cfg?.token || ''),
+        apiBase: String(cfg?.apiBase || 'https://api.bot.qq.com'),
+        gatewayUrl: String(cfg?.gatewayUrl || ''),
+        sandbox: cfg?.sandbox !== false
+      }
+      saveConfig(config)
+      mainWindow?.webContents?.send(CONFIG_CHANGED, config)
+      return { success: true }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
+  // 删除（清除）QQ 机器人本地配置与令牌，避免凭据留存
+  ipcMain.handle('bridge-qqbot-delete', async () => {
+    try {
+      // 若正在运行先停止
+      try {
+        const { stopQQBot } = await import('./bridge/clients/qqbot.js')
+        await stopQQBot()
+      } catch (_e) { /* 忽略停止失败 */ }
+      const config = loadConfig()
+      config.bridge = config.bridge || {}
+      config.bridge.qqbot = {
+        appid: '',
+        secret: '',
+        token: '',
+        apiBase: 'https://api.bot.qq.com',
+        gatewayUrl: '',
+        sandbox: true
+      }
+      saveConfig(config)
+      const { restartBridge } = await import('./bridge/index.js')
+      await restartBridge()
+      mainWindow?.webContents?.send(CONFIG_CHANGED, config)
+      const { getBridgeStatus } = await import('./bridge/index.js')
+      return { success: true, status: getBridgeStatus() }
+    } catch (e) {
+      return { success: false, error: e?.message || String(e) }
+    }
+  })
+
   ipcMain.handle('get-platform', () => {
     return process.platform
   })
@@ -430,7 +481,7 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('get_sessions', () => {
-    return db.getSessions()
+    return centralDb.getSessions()
   })
 
   ipcMain.handle('get_sessions_with_stats', (_event, args) => {
@@ -438,15 +489,15 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('get_session', (_event, args) => {
-    return db.getSession(args.sessionId)
+    return centralDb.getSession(args.sessionId)
   })
 
   ipcMain.handle('create_session', (_event, args) => {
-    return db.createSession(args?.title)
+    return centralDb.createSession(args?.title)
   })
 
   ipcMain.handle('update_session_title', (_event, args) => {
-    const result = db.updateSessionTitle(args.sessionId, args.title)
+    const result = centralDb.updateSessionTitle(args.sessionId, args.title)
     mainWindow.webContents.send(SESSION_TITLE_UPDATED, {
       sessionId: args.sessionId,
       title: args.title
@@ -455,7 +506,7 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('delete_session', (_event, args) => {
-    const result = db.deleteSession(args.sessionId)
+    const result = centralDb.deleteSession(args.sessionId)
     if (result.automationRunsDeleted > 0) {
       mainWindow.webContents.send('automation-updated')
     }
@@ -463,7 +514,7 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('get_session_messages', (_event, args) => {
-    return db.getMessages(args.sessionId)
+    return centralDb.getMessages(args.sessionId)
   })
 
   // 生成内网分享链接：返回只读对话查看页面的 URL
@@ -485,12 +536,20 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('save_message', (_event, args) => {
-    return db.saveMessage(args.sessionId, args.role, args.content)
+    return centralDb.saveMessage(args.sessionId, args.role, args.content)
   })
 
   ipcMain.handle('rollback_session', (_event, args) => {
-    db.rollbackSession(args.sessionId, args.messageId)
+    centralDb.rollbackSession(args.sessionId, args.messageId)
     return true
+  })
+
+  // 渲染层据此把笔记/会话读写转发到中央机（多机共享）
+  ipcMain.handle('set_connection', (_event, args) => {
+    const { serverUrl, token } = args || {}
+    if (serverUrl && token) centralDb.setConnection(serverUrl, token)
+    else centralDb.clearConnection()
+    return { success: true, central: centralDb.isCentral() }
   })
 
   ipcMain.handle('chat_with_memory', async (_event, args) => {
@@ -505,20 +564,20 @@ export function registerCommands(mainWindow) {
 
     try {
       if (!currentSessionId) {
-        const session = db.createSession(message.slice(0, 20) || '新对话')
+        const session = await centralDb.createSession(message.slice(0, 20) || '新对话')
         currentSessionId = session.id
         isNewSession = true
       } else {
-        const existing = db.getSession(currentSessionId)
+        const existing = await centralDb.getSession(currentSessionId)
         if (!existing) {
           throw new Error('Session not found')
         }
       }
 
       // 保存用户消息到数据库（简洁引用格式）
-      const userMsg = db.saveMessage(currentSessionId, 'user', message)
+      const userMsg = await centralDb.saveMessage(currentSessionId, 'user', message)
       userMessageId = userMsg.id
-      db.updateSessionTimestamp(currentSessionId)
+      await centralDb.updateSessionTimestamp(currentSessionId)
 
       if (isNewSession) {
         const modelClone = { ...effectiveModel }
@@ -527,7 +586,7 @@ export function registerCommands(mainWindow) {
         setImmediate(async () => {
           try {
             const title = await generateTitle(modelClone, userMsgClone)
-            db.updateSessionTitle(sessionIdClone, title)
+            await centralDb.updateSessionTitle(sessionIdClone, title)
             mainWindow.webContents.send(SESSION_TITLE_UPDATED, {
               sessionId: sessionIdClone,
               title
@@ -537,7 +596,7 @@ export function registerCommands(mainWindow) {
         })
       }
 
-      const dbMessages = db.getMessages(currentSessionId)
+      const dbMessages = await centralDb.getMessages(currentSessionId)
       let historyMessages = dbMessages.map(m => ({
         role: m.role,
         content: m.content
@@ -584,8 +643,8 @@ export function registerCommands(mainWindow) {
 
       cancelTokens.remove(requestId)
 
-      const assistantMsg = db.saveMessage(currentSessionId, 'assistant', fullContent)
-      db.updateSessionTimestamp(currentSessionId)
+      const assistantMsg = await centralDb.saveMessage(currentSessionId, 'assistant', fullContent)
+      await centralDb.updateSessionTimestamp(currentSessionId)
 
       mainWindow.webContents.send(CHAT_DONE, {
         requestId,
@@ -601,8 +660,8 @@ export function registerCommands(mainWindow) {
       // 将异常也作为助手消息保存，历史记录再次打开时不会出现用户消息后空白。
       if (currentSessionId && userMessageId) {
         const errorContent = `请求失败：${e?.message || String(e)}`
-        db.saveMessage(currentSessionId, 'assistant', errorContent, { error: true })
-        db.updateSessionTimestamp(currentSessionId)
+        await centralDb.saveMessage(currentSessionId, 'assistant', errorContent, { error: true })
+        await centralDb.updateSessionTimestamp(currentSessionId)
       }
       // 任何阶段出错都通知前端，避免前端一直处于 streaming 状态
       mainWindow.webContents.send(CHAT_ERROR, {
@@ -685,42 +744,42 @@ export function registerCommands(mainWindow) {
   })
 
   ipcMain.handle('get_notes', (_event, args) => {
-    return db.getNotes(args?.knowledgeBaseId, args?.notebookId)
+    return centralDb.getNotes(args?.knowledgeBaseId, args?.notebookId)
   })
 
   ipcMain.handle('get_note', (_event, args) => {
-    return db.getNote(args.noteId)
+    return centralDb.getNote(args.noteId)
   })
 
   ipcMain.handle('create_note', (_event, args) => {
-    return db.createNote(args?.knowledgeBaseId, args?.notebookId, args?.title)
+    return centralDb.createNote(args?.knowledgeBaseId, args?.notebookId, args?.title)
   })
 
   ipcMain.handle('import_note', (_event, args) => {
-    return db.importNote(args?.knowledgeBaseId, args?.notebookId, args?.title, args?.content, args?.contentText)
+    return centralDb.importNote(args?.knowledgeBaseId, args?.notebookId, args?.title, args?.content, args?.contentText)
   })
 
   ipcMain.handle('update_note', (_event, args) => {
-    const oldNote = db.getNote(args.noteId)
-    const updated = db.updateNote(args.noteId, args.title, args.content, args.contentText, args.notebookId)
+    const oldNote = centralDb.getNote(args.noteId)
+    const updated = centralDb.updateNote(args.noteId, args.title, args.content, args.contentText, args.notebookId)
     // 标题变更时同步重命名关联的 .note 文件
-    if (updated && oldNote && oldNote.title !== updated.title) {
+    if (updated && oldNote && !centralDb.isCentral() && oldNote.title !== updated.title) {
       syncNoteRefOnRename(args.noteId, updated.title)
     }
     return updated
   })
 
   ipcMain.handle('delete_note', (_event, args) => {
-    const result = db.softDeleteNote(args.noteId)
-    // 笔记删除时同步删除关联的 .note 文件
-    if (result) {
+    const result = centralDb.softDeleteNote(args.noteId)
+    // 笔记删除时同步删除关联的 .note 文件（仅本地模式）
+    if (result && !centralDb.isCentral()) {
       syncNoteRefOnDelete(args.noteId)
     }
     return result
   })
 
   ipcMain.handle('search_notes', (_event, args) => {
-    return db.searchNotes(args.query)
+    return centralDb.searchNotes(args.query)
   })
 
   ipcMain.handle('get_schedule_events', () => {
@@ -1308,6 +1367,20 @@ export function registerCommands(mainWindow) {
       await shell.openPath(args.filePath)
     }
     return true
+  })
+
+  // 知识库只读共享：已连接中央机时，由渲染端调用，经 centralDb 走服务端只读接口
+  ipcMain.handle('kb-remote-tree', async () => {
+    if (!centralDb.isCentral()) return { categories: [], readOnly: true }
+    return centralDb.getKnowledgeTree()
+  })
+  ipcMain.handle('kb-remote-read-dir', async (_event, args) => {
+    if (!centralDb.isCentral()) return { entries: [] }
+    return centralDb.readKnowledgeDir(args.relPath)
+  })
+  ipcMain.handle('kb-remote-file', async (_event, args) => {
+    if (!centralDb.isCentral()) return { success: false, error: '未连接中央机' }
+    return centralDb.readKnowledgeFile(args.relPath)
   })
 
   // ========== Python 相关命令 ==========

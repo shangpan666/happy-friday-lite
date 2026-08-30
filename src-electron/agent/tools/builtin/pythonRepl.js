@@ -138,6 +138,14 @@ async function handler(args, ctx) {
       `workDir=${workDir || '(无)'}, timeout=${timeoutMs}ms`
   )
 
+  // 检查 Python 运行时是否被禁用
+  const { loadConfig } = await import('../../config.js')
+  const config = loadConfig()
+  if (config?.builtinRuntime?.python === false) {
+    ctx.logger.warn('[python_repl] Python 运行时已在设置中禁用')
+    return 'Python 运行时已在「设置 → 通用 → 内置运行时」中被禁用，无法执行 Python 代码。如需使用，请在设置中开启。'
+  }
+
   const pythonPath = await getPythonPath()
   ctx.logger.info(`[python_repl] pythonPath=${pythonPath}`)
 

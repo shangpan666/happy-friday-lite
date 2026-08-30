@@ -4,6 +4,26 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import * as db from './db.js'
+import {
+  authenticate,
+  issueToken,
+  getAccountByToken,
+  getAccountByUsername,
+  createAccount,
+  bootstrapAuth,
+  getDeviceId,
+  changePassword
+} from './db.js'
+import { loadConfig, getDataDir } from './config.js'
+import { runAgent } from './bridge/agentRunner.js'
+import { notifyExternalSession } from './externalNotify.js'
+import {
+  startHarnessSidecar,
+  stopHarnessSidecar,
+  restartHarnessSidecar,
+  getHarnessPublicStatus,
+  getHarnessPublicStatusWithDiag
+} from './harness/index.js'
 
 // 内网分享服务：在主进程启动一个 HTTP 服务，局域网内可通过浏览器访问
 // 复用前端构建产物（dist/），直接加载已有的对话界面（隐藏输入框）。
@@ -121,16 +141,49 @@ function serveNoteShareApi(res, noteId) {
   }
 }
 
-// 返回所有笔记（手机端导入用）
-function serveMobileNotesApi(res) {
+// ===== 笔记只读共享：管理员笔记对子账号可见但不可改 =====
+function getAdminIds() {
   try {
-    const notes = db.getNotes().map(n => ({
+    const accounts = db.getAccounts() || []
+    return accounts.filter((a) => a.role === 'admin').map((a) => a.id)
+  } catch (_e) {
+    return []
+  }
+}
+
+function computeViewableNotes(account) {
+  if (account.role === 'admin') {
+    return (db.getNotes() || []).map((n) => ({ ...n, readOnly: false }))
+  }
+  const own = db.getNotesForAccount(account.id) || []
+  const adminIds = getAdminIds()
+  const shared = (db.getNotes() || []).filter(
+    (n) => adminIds.includes(n.account_id) && n.account_id !== account.id
+  )
+  return [
+    ...own.map((n) => ({ ...n, readOnly: false })),
+    ...shared.map((n) => ({ ...n, readOnly: true }))
+  ]
+}
+
+function canWriteNote(account, note) {
+  if (!note) return false
+  if (account.role === 'admin') return true
+  return note.account_id === account.id
+}
+
+// 返回当前账号可读的笔记（含只读的管理员共享笔记）
+function serveMobileNotesApi(res, account) {
+  try {
+    const notes = computeViewableNotes(account).map(n => ({
       id: n.id,
       title: n.title || '无标题笔记',
       content: n.content || '',
       contentText: (n.contentText || '').substring(0, 5000),
       createdAt: n.createdAt,
-      updatedAt: n.updatedAt
+      updatedAt: n.updatedAt,
+      account_id: n.account_id,
+      readOnly: !!n.readOnly
     }))
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
     res.end(JSON.stringify({ success: true, notes }))
@@ -140,10 +193,10 @@ function serveMobileNotesApi(res) {
   }
 }
 
-// 返回所有会话（手机端导入用）
-function serveMobileSessionsApi(res) {
+// 返回当前账号的所有会话（按账号隔离）
+function serveMobileSessionsApi(res, account) {
   try {
-    const sessions = db.getSessions().map(s => ({
+    const sessions = db.getSessionsForAccount(account.id).map(s => ({
       id: s.id,
       title: s.title || '未命名对话',
       preview: s.preview || '',
@@ -157,34 +210,656 @@ function serveMobileSessionsApi(res) {
   }
 }
 
-// 搜索笔记
-function serveMobileSearchNotesApi(res, query) {
+// 返回单个会话详情（含消息列表，校验归属）
+function serveMobileSessionDetailApi(res, sessionId, account) {
   try {
-    const notes = db.searchNotes(query)
-    const lite = notes.map(n => ({
-      id: n.id,
-      title: n.title || '无标题笔记',
-      contentText: (n.contentText || '').substring(0, 200),
-      createdAt: n.createdAt,
-      updatedAt: n.updatedAt
-    }))
+    const session = db.getSessionForAccount(sessionId, account.id)
+    if (!session) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: false, error: 'Session not found' }))
+      return
+    }
+    const messages = db.getMessages(sessionId)
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
-    res.end(JSON.stringify({ success: true, notes: lite }))
+    res.end(JSON.stringify({ success: true, session, messages }))
   } catch (e) {
     res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
     res.end(JSON.stringify({ success: false, error: 'Internal error' }))
   }
 }
 
-function handleRequest(req, res) {
+// 返回单个笔记详情（校验读权限；管理员笔记对子账号只读）
+function serveMobileNoteDetailApi(res, noteId, account) {
   try {
-    // 仅允许 GET 请求
-    if (req.method !== 'GET') {
-      res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' })
-      res.end('Method Not Allowed')
+    const note = db.getNote(noteId)
+    if (!note) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: false, error: 'Note not found' }))
+      return
+    }
+    const viewable =
+      account.role === 'admin' ||
+      note.account_id === account.id ||
+      getAdminIds().includes(note.account_id)
+    if (!viewable) {
+      res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: false, error: '无权限查看该笔记' }))
+      return
+    }
+    const out = { ...note, readOnly: !canWriteNote(account, note) }
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, note: out }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
+// DeepSeek Harness 相关 API
+function serveHarnessStatusApi(res) {
+  try {
+    const status = getHarnessPublicStatusWithDiag()
+    // 如果 harness 正在运行，提供代理 URL 供手机端访问
+    if (status.status === 'ready' && status.url) {
+      status.proxyUrl = `/api/mobile/harness/proxy`
+    }
+    console.log('[ShareServer] Harness status:', JSON.stringify(status))
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, status }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
+async function serveHarnessStartApi(res) {
+  try {
+    console.log('[ShareServer] POST /api/mobile/harness/start called')
+    console.log('[ShareServer] startHarnessSidecar type:', typeof startHarnessSidecar)
+    const promise = startHarnessSidecar()
+    console.log('[ShareServer] startHarnessSidecar returned, type:', typeof promise)
+    promise.catch(e => {
+      console.error('[ShareServer] Harness start background error:', e?.message || e)
+    })
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const status = getHarnessPublicStatusWithDiag()
+    if (status.status === 'ready' && status.url) {
+      status.proxyUrl = `/api/mobile/harness/proxy`
+    }
+    console.log('[ShareServer] Harness status after start call:', JSON.stringify({ status: status.status, error: status.error, recentOutput: (status.recentOutput || []).slice(-3) }))
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, status }))
+  } catch (e) {
+    console.error('[ShareServer] Harness start API error:', e)
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: e?.message || 'Failed to start harness' }))
+  }
+}
+
+async function serveHarnessRestartApi(res) {
+  try {
+    const status = await restartHarnessSidecar()
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, status }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: e?.message || 'Failed to restart harness' }))
+  }
+}
+
+// 代理 Harness Web UI 请求（手机端无法直接访问 127.0.0.1）
+function proxyHarnessRequest(req, res) {
+  const status = getHarnessPublicStatus()
+  if (!status.url) {
+    res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Harness not running' }))
+    return
+  }
+  const targetUrl = new URL(req.url, `http://${req.headers.host}`)
+  const harnessPath = targetUrl.pathname.replace('/api/mobile/harness/proxy', '') || '/'
+  const harnessSearch = targetUrl.search || ''
+  const fullUrl = `${status.url}${harnessPath}${harnessSearch}`
+
+  const proxyReq = http.request(fullUrl, {
+    method: req.method,
+    headers: { ...req.headers, host: `${status.url.replace('http://', '')}` }
+  }, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers)
+    proxyRes.pipe(res)
+  })
+  proxyReq.on('error', (e) => {
+    console.error('[ShareServer] Harness proxy error:', e.message)
+    if (!res.headersSent) {
+      res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: false, error: 'Proxy error: ' + e.message }))
+    }
+  })
+  req.pipe(proxyReq)
+}
+
+// 搜索笔记（按账号隔离）
+function serveMobileSearchNotesApi(res, query, account) {
+  try {
+    const q = (query || '').toString().trim()
+    if (!q) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: true, notes: [] }))
+      return
+    }
+    const lower = q.toLowerCase()
+    const notes = computeViewableNotes(account)
+      .filter(n =>
+        (n.title || '').toLowerCase().includes(lower) ||
+        (n.contentText || '').toLowerCase().includes(lower)
+      )
+      .map(n => ({
+        id: n.id,
+        title: n.title || '无标题笔记',
+        contentText: (n.contentText || '').substring(0, 200),
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+        account_id: n.account_id,
+        readOnly: !!n.readOnly
+      }))
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, notes }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
+// 读取 POST 请求体
+function readPostBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = ''
+    req.on('data', (c) => (data += c))
+    req.on('end', () => {
+      try {
+        resolve(data ? JSON.parse(data) : {})
+      } catch (e) {
+        reject(new Error('Invalid JSON body'))
+      }
+    })
+    req.on('error', reject)
+  })
+}
+
+// 从 Authorization 头解析已登录账号（Bearer Token）
+function getAccountFromRequest(req) {
+  const auth = req.headers['authorization'] || ''
+  const m = auth.match(/^Bearer\s+(.+)$/i)
+  if (!m) return null
+  return getAccountByToken(m[1].trim())
+}
+
+function sendJson(res, code, obj) {
+  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' })
+  res.end(JSON.stringify(obj))
+}
+
+// 账号登录：校验用户名密码，签发 Bearer Token（设备绑定信息一并返回）
+async function serveLoginApi(req, res) {
+  let body
+  try {
+    body = await readPostBody(req)
+  } catch (_e) {
+    sendJson(res, 400, { success: false, error: '请求体格式错误' })
+    return
+  }
+  const username = (body.username || '').toString().trim()
+  const password = (body.password || '').toString()
+  if (!username || !password) {
+    sendJson(res, 400, { success: false, error: '用户名和密码不能为空' })
+    return
+  }
+  const account = authenticate(username, password)
+  if (!account) {
+    sendJson(res, 401, { success: false, error: '用户名或密码错误' })
+    return
+  }
+  const token = issueToken(account)
+  sendJson(res, 200, {
+    success: true,
+    token,
+    username: account.username,
+    role: account.role,
+    deviceId: account.device_id,
+    deviceName: os.hostname()
+  })
+}
+
+// 账号注册（仅管理员可用）：创建员工账号，绑定到同一台 PC 设备
+async function serveRegisterApi(req, res, adminAccount) {
+  let body
+  try {
+    body = await readPostBody(req)
+  } catch (_e) {
+    sendJson(res, 400, { success: false, error: '请求体格式错误' })
+    return
+  }
+  const username = (body.username || '').toString().trim()
+  const password = (body.password || '').toString()
+  if (!username || !password) {
+    sendJson(res, 400, { success: false, error: '用户名和密码不能为空' })
+    return
+  }
+  if (password.length < 8) {
+    sendJson(res, 400, { success: false, error: '密码长度至少 8 位' })
+    return
+  }
+  if (getAccountByUsername(username)) {
+    sendJson(res, 409, { success: false, error: '账号已存在' })
+    return
+  }
+  const role = body.role === 'admin' ? 'admin' : 'user'
+  createAccount(username, password, { role, deviceId: adminAccount.device_id })
+  sendJson(res, 200, { success: true })
+}
+
+// 修改密码：验证原密码后更新当前登录账号的密码
+async function serveChangePasswordApi(req, res, account) {
+  let body
+  try {
+    body = await readPostBody(req)
+  } catch (_e) {
+    sendJson(res, 400, { success: false, error: '请求体格式错误' })
+    return
+  }
+  const oldPassword = (body.oldPassword || '').toString()
+  const newPassword = (body.newPassword || '').toString()
+  if (!oldPassword || !newPassword) {
+    sendJson(res, 400, { success: false, error: '请输入原密码和新密码' })
+    return
+  }
+  if (newPassword.length < 8) {
+    sendJson(res, 400, { success: false, error: '新密码长度至少 8 位' })
+    return
+  }
+  if (!authenticate(account.username, oldPassword)) {
+    sendJson(res, 401, { success: false, error: '原密码错误' })
+    return
+  }
+  try {
+    changePassword(account.id, newPassword)
+    sendJson(res, 200, { success: true })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '修改失败：' + (e?.message || e) })
+  }
+}
+
+// 返回桌面端可用模型列表（供手机端自动获取，从而能发起对话）
+function serveMobileModelsApi(res) {
+  try {
+    const config = loadConfig()
+    const models = Array.isArray(config.customModels) ? config.customModels : []
+    const list = models.map((m) => ({
+      id: m.id,
+      modelName: m.modelName || m.id,
+      name: m.name || m.modelName || m.id,
+      baseUrl: m.baseUrl || ''
+    }))
+    const selected = config.selectedModelId || (list[0] && list[0].id) || null
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({
+      success: true,
+      models: list,
+      selectedModelId: selected,
+      hasModel: list.length > 0
+    }))
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Internal error' }))
+  }
+}
+
+// 手机端发起对话：把消息交给桌面端 Friday 智能体，并持久化到桌面会话
+async function serveMobileChatApi(req, res, account) {
+  let body
+  try {
+    body = await readPostBody(req)
+  } catch (_e) {
+    res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: 'Invalid request body' }))
+    return
+  }
+
+    const message = (body.message || '').toString().trim()
+    if (!message) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: false, error: '消息内容不能为空' }))
       return
     }
 
+    try {
+      // 复用或创建桌面端会话（手机端对话归属到当前登录账号，便于在桌面继续）
+      let sessionId = body.sessionId
+      let session = sessionId ? db.getSessionForAccount(sessionId, account.id) : null
+      if (!session) {
+        session = db.createSession('手机对话', 'chat', account.id)
+        sessionId = session.id
+      }
+
+    // 持久化用户消息
+    db.saveMessage(sessionId, 'user', message)
+
+    // 构造完整历史（来自桌面端数据库，保证上下文连续）
+    const history = db.getMessages(sessionId).map((m) => ({
+      role: m.role,
+      content: m.content
+    }))
+
+    // 调用 Friday 智能体（使用桌面端已配置的模型）
+    const { content, reasoning } = await runAgent({
+      messages: history,
+      model: body.model || undefined,
+      unattended: true
+    })
+
+    if (!content) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+      res.end(JSON.stringify({ success: false, error: '模型未返回内容，请检查桌面端模型配置', sessionId }))
+      return
+    }
+
+    // 持久化助手回复
+    db.saveMessage(sessionId, 'assistant', content)
+    db.updateSessionTitle(sessionId, message.slice(0, 30))
+
+    // 通知桌面渲染进程：该会话已被外部（手机）更新
+    notifyExternalSession(sessionId, 'mobile')
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: true, sessionId, content, reasoning: reasoning || '' }))
+  } catch (e) {
+    console.error('[ShareServer] mobile chat error:', e)
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify({ success: false, error: e?.message || '对话失败', sessionId: body.sessionId || null }))
+  }
+}
+
+// ===== 笔记/会话写操作（按账号隔离，供桌面端/手机端连中央机时使用）=====
+async function serveMobileCreateNoteApi(req, res, account) {
+  let body
+  try { body = await readPostBody(req) } catch (_e) { sendJson(res, 400, { success: false, error: '请求体格式错误' }); return }
+  const title = ((body.title || '').toString().trim()) || '新建笔记'
+  const content = (body.content || '').toString()
+  const contentText = (body.contentText || '').toString()
+  try {
+    db.setCurrentAccountId(account.id)
+    const note = db.createNote(null, null, title)
+    db.updateNote(note.id, title, content, contentText, null)
+    sendJson(res, 200, { success: true, note: db.getNoteForAccount(note.id, account.id) })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '创建笔记失败：' + (e?.message || e) })
+  }
+}
+
+async function serveMobileUpdateNoteApi(req, res, account, noteId) {
+  const note = db.getNote(noteId)
+  if (!note) {
+    sendJson(res, 404, { success: false, error: '笔记不存在' })
+    return
+  }
+  if (!canWriteNote(account, note)) {
+    sendJson(res, 403, { success: false, error: '无权限修改该笔记（只读共享）' })
+    return
+  }
+  let body
+  try { body = await readPostBody(req) } catch (_e) { sendJson(res, 400, { success: false, error: '请求体格式错误' }); return }
+  const title = (body.title || '').toString()
+  const content = (body.content || '').toString()
+  const contentText = (body.contentText || '').toString()
+  try {
+    const updated = db.updateNote(noteId, title, content, contentText, null)
+    sendJson(res, 200, { success: true, note: { ...(updated || note), readOnly: false } })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '更新笔记失败：' + (e?.message || e) })
+  }
+}
+
+async function serveMobileDeleteNoteApi(req, res, account, noteId) {
+  const note = db.getNote(noteId)
+  if (!note) {
+    sendJson(res, 404, { success: false, error: '笔记不存在' })
+    return
+  }
+  if (!canWriteNote(account, note)) {
+    sendJson(res, 403, { success: false, error: '无权限删除该笔记（只读共享）' })
+    return
+  }
+  try {
+    db.softDeleteNote(noteId)
+    sendJson(res, 200, { success: true })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '删除笔记失败：' + (e?.message || e) })
+  }
+}
+
+async function serveMobileCreateSessionApi(req, res, account) {
+  let body = {}
+  try { body = await readPostBody(req) } catch (_e) {}
+  const title = ((body.title || '').toString().trim()) || '新对话'
+  try {
+    db.setCurrentAccountId(account.id)
+    const session = db.createSession(title, 'chat', account.id)
+    sendJson(res, 200, { success: true, session })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '创建会话失败：' + (e?.message || e) })
+  }
+}
+
+async function serveMobileUpdateSessionApi(req, res, account, sessionId) {
+  if (!db.getSessionForAccount(sessionId, account.id)) {
+    sendJson(res, 404, { success: false, error: '会话不存在' })
+    return
+  }
+  let body
+  try { body = await readPostBody(req) } catch (_e) { sendJson(res, 400, { success: false, error: '请求体格式错误' }); return }
+  const title = (body.title || '').toString()
+  if (!title) { sendJson(res, 400, { success: false, error: '标题不能为空' }); return }
+  try {
+    db.updateSessionTitle(sessionId, title)
+    sendJson(res, 200, { success: true, session: db.getSessionForAccount(sessionId, account.id) })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '更新会话失败：' + (e?.message || e) })
+  }
+}
+
+async function serveMobileDeleteSessionApi(req, res, account, sessionId) {
+  if (!db.getSessionForAccount(sessionId, account.id)) {
+    sendJson(res, 404, { success: false, error: '会话不存在' })
+    return
+  }
+  try {
+    db.deleteSession(sessionId)
+    sendJson(res, 200, { success: true })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: '删除会话失败：' + (e?.message || e) })
+  }
+}
+
+// ===== 知识库（只读共享：子账号可浏览目录树、查看文件内容，无写接口）=====
+function resolveKbPath(relPath) {
+  const root = path.join(getDataDir(), 'knowledge')
+  if (!relPath) return root
+  const abs = path.resolve(root, relPath)
+  const rel = path.relative(root, abs)
+  if (rel.startsWith('..') || path.isAbsolute(rel)) return null
+  return abs
+}
+
+function serveMobileKbTreeApi(res, account) {
+  const root = path.join(getDataDir(), 'knowledge')
+  const categories = []
+  try {
+    if (!fs.existsSync(root)) {
+      sendJson(res, 200, { success: true, categories: [], readOnly: account.role !== 'admin' })
+      return
+    }
+    const catEntries = fs
+      .readdirSync(root, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+    for (const cat of catEntries) {
+      const catDir = path.join(root, cat.name)
+      const items = fs
+        .readdirSync(catDir, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+        .map((kb) => ({ id: `kb-${cat.name}-${kb.name}`, name: kb.name }))
+      categories.push({ id: cat.name, name: cat.name, items })
+    }
+    sendJson(res, 200, { success: true, categories, readOnly: account.role !== 'admin' })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: e.message })
+  }
+}
+
+async function serveMobileKbReadDirApi(req, res, account) {
+  const url = new URL(req.url, 'http://localhost')
+  const rel = url.searchParams.get('p') || ''
+  const abs = resolveKbPath(rel)
+  if (!abs || !fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) {
+    sendJson(res, 200, { success: true, entries: [], readOnly: account.role !== 'admin' })
+    return
+  }
+  try {
+    const root = path.join(getDataDir(), 'knowledge')
+    const entries = fs
+      .readdirSync(abs, { withFileTypes: true })
+      .filter((e) => !e.name.startsWith('.'))
+      .map((e) => {
+        const full = path.join(abs, e.name)
+        const stat = fs.statSync(full)
+        return {
+          name: e.name,
+          path: path.relative(root, full),
+          isDirectory: e.isDirectory(),
+          size: stat.size,
+          modifiedTime: stat.mtime.toISOString()
+        }
+      })
+      .sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1
+        if (!a.isDirectory && b.isDirectory) return 1
+        return a.name.localeCompare(b.name, 'zh-CN')
+      })
+    sendJson(res, 200, { success: true, entries, readOnly: account.role !== 'admin' })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: e.message })
+  }
+}
+
+async function serveMobileKbFileApi(req, res, account) {
+  const url = new URL(req.url, 'http://localhost')
+  const rel = url.searchParams.get('p') || ''
+  const abs = resolveKbPath(rel)
+  if (!abs || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) {
+    sendJson(res, 404, { success: false, error: '文件不存在' })
+    return
+  }
+  try {
+    const content = fs.readFileSync(abs, 'utf-8')
+    sendJson(res, 200, { success: true, content, readOnly: account.role !== 'admin' })
+  } catch (e) {
+    sendJson(res, 500, { success: false, error: e.message })
+  }
+}
+
+// 手机端路由（已通过令牌鉴权，account 为当前登录账号）
+function routeMobileApi(req, res, url, account) {
+  // ===== 写操作：笔记/会话（按账号隔离）=====
+  if (url.pathname === '/api/mobile/notes' && req.method === 'POST') {
+    serveMobileCreateNoteApi(req, res, account)
+    return
+  }
+  const noteWrite = url.pathname.match(/^\/api\/mobile\/note\/(.+)$/)
+  if (noteWrite) {
+    const id = decodeURIComponent(noteWrite[1])
+    if (req.method === 'PUT') { serveMobileUpdateNoteApi(req, res, account, id); return }
+    if (req.method === 'DELETE') { serveMobileDeleteNoteApi(req, res, account, id); return }
+  }
+  if (url.pathname === '/api/mobile/sessions' && req.method === 'POST') {
+    serveMobileCreateSessionApi(req, res, account)
+    return
+  }
+  const sessionWrite = url.pathname.match(/^\/api\/mobile\/session\/(.+)$/)
+  if (sessionWrite) {
+    const id = decodeURIComponent(sessionWrite[1])
+    if (req.method === 'PUT') { serveMobileUpdateSessionApi(req, res, account, id); return }
+    if (req.method === 'DELETE') { serveMobileDeleteSessionApi(req, res, account, id); return }
+  }
+
+  // DeepSeek Harness 状态（GET）
+  if (url.pathname === '/api/mobile/harness/status' && req.method === 'GET') {
+    serveHarnessStatusApi(res)
+    return
+  }
+  // DeepSeek Harness 启动（POST）
+  if (url.pathname === '/api/mobile/harness/start' && req.method === 'POST') {
+    serveHarnessStartApi(res)
+    return
+  }
+  // DeepSeek Harness 重启（POST）
+  if (url.pathname === '/api/mobile/harness/restart' && req.method === 'POST') {
+    serveHarnessRestartApi(res)
+    return
+  }
+  // DeepSeek Harness 代理（所有方法）
+  if (url.pathname.startsWith('/api/mobile/harness/proxy')) {
+    proxyHarnessRequest(req, res)
+    return
+  }
+  // 模型列表（GET）
+  if (url.pathname === '/api/mobile/models' && req.method === 'GET') {
+    serveMobileModelsApi(res)
+    return
+  }
+  // 发起对话（POST）
+  if (url.pathname === '/api/mobile/chat' && req.method === 'POST') {
+    serveMobileChatApi(req, res, account)
+    return
+  }
+  if (url.pathname === '/api/mobile/sessions') {
+    serveMobileSessionsApi(res, account)
+    return
+  }
+  if (url.pathname === '/api/mobile/notes') {
+    serveMobileNotesApi(res, account)
+    return
+  }
+  // 知识库（只读）：目录树 / 列目录 / 读文件
+  if (url.pathname === '/api/mobile/kb/tree' && req.method === 'GET') {
+    serveMobileKbTreeApi(res, account)
+    return
+  }
+  if (url.pathname === '/api/mobile/kb/read-dir' && req.method === 'GET') {
+    serveMobileKbReadDirApi(req, res, account)
+    return
+  }
+  if (url.pathname === '/api/mobile/kb/file' && req.method === 'GET') {
+    serveMobileKbFileApi(req, res, account)
+    return
+  }
+  const mobileNoteSearch = url.pathname.match(/^\/api\/mobile\/notes\/search$/)
+  if (mobileNoteSearch) {
+    serveMobileSearchNotesApi(res, url.searchParams.get('q') || '', account)
+    return
+  }
+  const mobileSessionMatch = url.pathname.match(/^\/api\/mobile\/session\/(.+)$/)
+  if (mobileSessionMatch) {
+    serveMobileSessionDetailApi(res, decodeURIComponent(mobileSessionMatch[1]), account)
+    return
+  }
+  const mobileNoteMatch = url.pathname.match(/^\/api\/mobile\/note\/(.+)$/)
+  if (mobileNoteMatch) {
+    serveMobileNoteDetailApi(res, decodeURIComponent(mobileNoteMatch[1]), account)
+    return
+  }
+  sendJson(res, 404, { success: false, error: 'Not Found' })
+}
+
+function handleRequest(req, res) {
+  try {
     const url = new URL(req.url, `http://${req.headers.host}`)
 
     // 健康检查
@@ -194,28 +869,58 @@ function handleRequest(req, res) {
       return
     }
 
-    // ===== 手机端 API =====
-    if (url.pathname === '/api/mobile/sessions') {
-      serveMobileSessionsApi(res)
+    // ===== 账号体系（公开接口）=====
+    // 登录：签发 Bearer Token，返回设备绑定信息
+    if (url.pathname === '/api/auth/login' && req.method === 'POST') {
+      serveLoginApi(req, res)
       return
     }
-    if (url.pathname === '/api/mobile/notes') {
-      serveMobileNotesApi(res)
+    // 注册员工账号（仅管理员）
+    if (url.pathname === '/api/auth/register' && req.method === 'POST') {
+      const admin = getAccountFromRequest(req)
+      if (!admin || admin.role !== 'admin') {
+        sendJson(res, 401, { success: false, error: '未授权：需要管理员令牌' })
+        return
+      }
+      serveRegisterApi(req, res, admin)
       return
     }
-    const mobileNoteSearch = url.pathname.match(/^\/api\/mobile\/notes\/search$/)
-    if (mobileNoteSearch) {
-      serveMobileSearchNotesApi(res, url.searchParams.get('q') || '')
+    // 当前登录账号信息
+    if (url.pathname === '/api/auth/me' && req.method === 'GET') {
+      const account = getAccountFromRequest(req)
+      if (!account) {
+        sendJson(res, 401, { success: false, error: '未授权' })
+        return
+      }
+      sendJson(res, 200, {
+        success: true,
+        username: account.username,
+        role: account.role,
+        deviceId: account.device_id,
+        deviceName: os.hostname()
+      })
       return
     }
-    const mobileSessionMatch = url.pathname.match(/^\/api\/mobile\/session\/(.+)$/)
-    if (mobileSessionMatch) {
-      serveMobileSessionDetailApi(res, decodeURIComponent(mobileSessionMatch[1]))
+
+    // 修改密码（需登录令牌）
+    if (url.pathname === '/api/auth/change-password' && req.method === 'POST') {
+      const account = getAccountFromRequest(req)
+      if (!account) {
+        sendJson(res, 401, { success: false, error: '未授权' })
+        return
+      }
+      serveChangePasswordApi(req, res, account)
       return
     }
-    const mobileNoteMatch = url.pathname.match(/^\/api\/mobile\/note\/(.+)$/)
-    if (mobileNoteMatch) {
-      serveMobileNoteDetailApi(res, decodeURIComponent(mobileNoteMatch[1]))
+
+    // ===== 手机端 API（全部需要登录令牌）=====
+    if (url.pathname.startsWith('/api/mobile/')) {
+      const account = getAccountFromRequest(req)
+      if (!account) {
+        sendJson(res, 401, { success: false, error: '未授权：请先登录' })
+        return
+      }
+      routeMobileApi(req, res, url, account)
       return
     }
 
@@ -247,6 +952,14 @@ function handleRequest(req, res) {
 // 启动分享服务：优先使用固定端口，被占用时回退到随机端口
 export async function startShareServer() {
   if (server) return serverPort
+
+  // 初始化企业版账号体系（主账号引导 + 设备绑定 + 既有数据归属）
+  try {
+    const primary = bootstrapAuth(process.env)
+    console.log(`[ShareServer] ✅ 账号体系已初始化，主账号: ${primary.username}（设备 ${primary.device_id}）`)
+  } catch (e) {
+    console.error('[ShareServer] 账号体系初始化失败:', e)
+  }
 
   return new Promise((resolve) => {
     const tryListen = (port) => {

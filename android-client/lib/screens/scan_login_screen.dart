@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import '../services/api_client.dart';
 import '../services/secure_storage.dart';
 import 'notes_screen.dart';
@@ -13,18 +13,10 @@ class ScanLoginScreen extends StatefulWidget {
 }
 
 class _ScanLoginScreenState extends State<ScanLoginScreen> {
-  MobileScannerController? _controller;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? _controller;
   bool _handling = false;
   String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
-      facing: CameraFacing.back,
-    );
-  }
 
   @override
   void dispose() {
@@ -32,63 +24,67 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
     super.dispose();
   }
 
-  Future<void> _onDetect(BarcodeCapture capture) async {
-    if (_handling) return;
-    final barcode = capture.barcodes.firstOrNull;
-    if (barcode == null || barcode.rawValue == null) return;
+  void _onQRViewCreated(QRViewController controller) {
+    _controller = controller;
+    controller.scannedDataStream.listen((scanData) async {
+      if (_handling || scanData.code == null) return;
+      final raw = scanData.code!;
 
-    final raw = barcode.rawValue!;
-    Map<String, dynamic> data;
-    try {
-      data = jsonDecode(raw) as Map<String, dynamic>;
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _error = '二维码格式无效');
-      return;
-    }
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(raw) as Map<String, dynamic>;
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _error = '二维码格式无效');
+        return;
+      }
 
-    final server = data['server']?.toString();
-    final user = data['user']?.toString();
-    final pass = data['pass']?.toString();
-    if (server == null || user == null || pass == null) {
-      if (!mounted) return;
-      setState(() => _error = '二维码缺少登录信息');
-      return;
-    }
+      final server = data['server']?.toString();
+      final user = data['user']?.toString();
+      final pass = data['pass']?.toString();
+      if (server == null || user == null || pass == null) {
+        if (!mounted) return;
+        setState(() => _error = '二维码缺少登录信息');
+        return;
+      }
 
-    setState(() {
-      _handling = true;
-      _error = null;
+      await _controller?.pauseCamera();
+      setState(() {
+        _handling = true;
+        _error = null;
+      });
+
+      try {
+        final base = ApiClient.normalizeUrl(server);
+        final result = await ApiClient.login(base, user, pass);
+        await SecureStorage.saveSession(
+          serverUrl: base,
+          token: result['token'],
+          username: result['username'] ?? user,
+          deviceId: result['deviceId'],
+          role: result['role'],
+        );
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const NotesScreen()),
+          (_) => false,
+        );
+      } on ApiException catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _error = '登录失败：${e.message}';
+          _handling = false;
+        });
+        await _controller?.resumeCamera();
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _error = '网络错误：$e';
+          _handling = false;
+        });
+        await _controller?.resumeCamera();
+      }
     });
-
-    try {
-      final base = ApiClient.normalizeUrl(server);
-      final result = await ApiClient.login(base, user, pass);
-      await SecureStorage.saveSession(
-        serverUrl: base,
-        token: result['token'],
-        username: result['username'] ?? user,
-        deviceId: result['deviceId'],
-        role: result['role'],
-      );
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const NotesScreen()),
-        (_) => false,
-      );
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = '登录失败：${e.message}';
-        _handling = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = '网络错误：$e';
-        _handling = false;
-      });
-    }
   }
 
   @override
@@ -98,19 +94,15 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(
-            controller: _controller!,
-            onDetect: _onDetect,
-          ),
-          // Center scan window overlay
-          Center(
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white70, width: 2),
-                borderRadius: BorderRadius.circular(12),
-              ),
+          QRView(
+            key: qrKey,
+            onQRViewCreated: _onQRViewCreated,
+            overlay: QrScannerOverlayShape(
+              borderColor: Colors.white70,
+              borderRadius: 12,
+              borderLength: 30,
+              borderWidth: 2,
+              cutOutSize: 250,
             ),
           ),
           // Top hint

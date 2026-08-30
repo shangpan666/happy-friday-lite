@@ -14,10 +14,14 @@
       </div>
 
       <div class="header-right">
-        <span v-if="!isShareMode" class="save-status" :class="{ saved: isSaved }">
+        <span v-if="!isShareMode && !readOnly" class="save-status" :class="{ saved: isSaved }">
           <svg v-if="isSaved" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>
           {{ isSaved ? t('note.saved') : t('note.unsaved') }}
+        </span>
+        <span v-if="readOnly" class="readonly-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          只读
         </span>
         <button v-if="!isShareMode" class="header-btn" :title="t('note.export')" @click="handleExport">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -40,6 +44,10 @@
           </div>
         </div>
       </Teleport>
+    </div>
+
+    <div v-if="readOnly" class="readonly-banner">
+      该笔记来自管理员共享，仅可查看，不可修改或删除。
     </div>
 
     <div class="note-edit-body">
@@ -85,6 +93,8 @@ const noteId = computed(() => route.params.id);
 // 分享模式：通过分享链接在浏览器中打开（只读查看），复用笔记界面
 const isShareMode = computed(() => route.meta?.share === true || !isElectronEnvironment());
 const isDark = computed(() => appStore.theme === 'dark');
+// 只读笔记（来自管理员共享，子账号不可修改）
+const readOnly = computed(() => !!noteStore.currentNote?.readOnly);
 const noteTitle = ref('');
 const noteContent = ref('');
 const isSaved = ref(true);
@@ -95,6 +105,7 @@ const moreMenuVisible = ref(false);
 const moreMenuStyle = reactive({ left: '0px', top: '0px' });
 
 const onEditorChange = (content) => {
+  if (readOnly.value) return;
   noteContent.value = content;
   const plainText = extractPlainText(content);
   const normalizedText = plainText.replace(/\s+/g, ' ').trim();
@@ -156,6 +167,7 @@ const handleCopyContent = () => {
 
 const handleDelete = async () => {
   moreMenuVisible.value = false;
+  if (readOnly.value) return;
   const id = noteId.value;
   if (id) {
     await noteStore.deleteNote(id);
@@ -295,6 +307,34 @@ onDeactivated(() => {
 
 .save-status.saved {
   color: #22c55e;
+}
+
+.readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #f59e0b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(245, 158, 11, 0.12);
+  user-select: none;
+}
+
+.readonly-banner {
+  margin: 12px 16px 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #b45309;
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+}
+
+[data-theme='dark'] .readonly-banner {
+  color: #fbbf24;
+  background-color: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
 }
 
 .note-edit-body {

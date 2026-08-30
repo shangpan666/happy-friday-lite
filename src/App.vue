@@ -4,7 +4,7 @@
     <PetWidget />
   </div>
   <div v-else class="app-shell" :class="{ 'is-share-view': isShareView, 'is-mobile-view': isMobileView }">
-    <Sidebar v-if="!isShareView && !isMobileView" />
+    <Sidebar v-if="!isShareView && !isMobileView" @openQuickSearch="showQuickSearch = true" />
     <div class="workspace">
       <TabBar v-if="!isShareView && !isMobileView" />
       <main class="workspace-content">
@@ -16,6 +16,7 @@
         <DeepSeekHarness v-if="hasVisitedHarness" v-show="isHarnessRoute" />
       </main>
     </div>
+    <QuickSearchPanel v-model:visible="showQuickSearch" />
   </div>
 </template>
 
@@ -24,8 +25,10 @@ import Sidebar from '@/components/layout/Sidebar.vue';
 import TabBar from '@/components/layout/TabBar.vue';
 import DeepSeekHarness from '@/views/harness/DeepSeekHarness.vue';
 import PetWidget from '@/views/pet/PetWidget.vue';
+import QuickSearchPanel from '@/components/layout/QuickSearchPanel.vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useAppStore, useTabStore } from '@/store';
+import { useConnectionStore } from '@/store/modules/connection';
 import { electronService } from '@/services/electron';
 import { setI18nLanguage } from '@/i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -34,9 +37,12 @@ import { useTheme } from '@/utils/theme';
 
 const appStore = useAppStore();
 const tabStore = useTabStore();
+const connectionStore = useConnectionStore();
 const route = useRoute();
 const router = useRouter();
 const { currentMode, initTheme, setTheme: applyThemeFromConfig } = useTheme();
+
+const showQuickSearch = ref(false);
 
 // 分享视图：隐藏侧边栏/标签栏，全屏展示对话界面
 const isShareView = computed(() => route.meta?.share === true || !isElectronEnvironment());
@@ -110,6 +116,22 @@ watch(
 
 onMounted(async () => {
   initTheme();
+
+  // 若已保存中央机连接，启动时恢复主进程的笔记/会话转发
+  connectionStore.publish();
+
+  // 校验已保存会话是否仍然有效（令牌可能已失效/数据库已重建），失效则自动登出
+  if (connectionStore.isConnected) {
+    try {
+      const me = await connectionStore.fetchMe();
+      if (!me || !me.success) {
+        const msg = (me && me.error) || '';
+        if (msg.includes('未授权')) connectionStore.logout();
+      }
+    } catch (_e) {
+      // 网络未就绪时忽略，账号页可手动重登
+    }
+  }
 
   if (isElectronEnvironment()) {
     try {

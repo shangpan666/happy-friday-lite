@@ -22,6 +22,7 @@ const HARNESS_PROVIDER = 'phronesis'
 const HARNESS_CREDENTIAL = 'PHRONESIS_HARNESS_API_KEY'
 const MCP_SERVER_NAME = 'phronesis'
 const START_TIMEOUT_MS = 180_000
+const BOOT_TIMEOUT_MS = 60_000 // bootHarness 全局超时 60 秒
 
 let mainWindow = null
 let sidecar = null
@@ -43,7 +44,14 @@ function publicStatus() {
   return { ...state }
 }
 
+function publicStatusWithDiag() {
+  return { ...state, recentOutput: recentOutput.slice(-20), startupDiagnostic }
+}
+
+export { publicStatus as getHarnessPublicStatus, publicStatusWithDiag as getHarnessPublicStatusWithDiag }
+
 function updateState(patch) {
+  console.log('[Harness] updateState:', JSON.stringify(patch))
   state = { ...state, ...patch }
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('harness-status-changed', publicStatus())
@@ -355,12 +363,15 @@ function captureOutput(stream) {
 
 async function bootHarness() {
   const expectedGeneration = ++generation
+  console.log('[Harness] bootHarness called, generation:', expectedGeneration)
   updateState({ status: 'starting', error: null, url: null, port: null, model: null, toolCount: 0 })
 
   let model
   try {
     model = selectedModel()
+    console.log('[Harness] Model selected:', model.modelName)
   } catch (error) {
+    console.error('[Harness] Model selection failed:', error.message)
     updateState({ status: 'config-required', model: null, error: error.message })
     return publicStatus()
   }
@@ -369,22 +380,28 @@ async function bootHarness() {
   let launchedChild = null
   let profilesRoot = null
   try {
+    console.log('[Harness] Acquiring MCP server...')
     const mcp = await acquireLocalMcpServer(HARNESS_CONSUMER)
     acquiredMcp = true
     const mcpStatus = getLocalMcpStatus()
+    console.log('[Harness] MCP status:', JSON.stringify(mcpStatus))
     if (!mcp.success || !mcpStatus.url) throw new Error('Phronesis MCP server failed to start')
     if (expectedGeneration !== generation) throw new Error('Harness startup was superseded')
 
+    console.log('[Harness] Syncing configuration...')
     const { paths, toolCount } = syncConfiguration(model, mcpStatus.url)
     profilesRoot = path.join(paths.home, 'profiles')
     clearStaleAppImageModuleLinks(paths)
     const port = await findOpenPort()
     if (expectedGeneration !== generation) throw new Error('Harness startup was superseded')
     const url = `http://127.0.0.1:${port}`
+    console.log('[Harness] Resolving CLI...')
     const cli = resolveHarnessCli()
+    console.log('[Harness] CLI resolved:', cli)
     recentOutput = []
     startupDiagnostic = null
 
+    console.log('[Harness] Spawning sidecar on port', port)
     const child = spawn(
       process.execPath,
       ['--expose-internals', cli, 'web', '--patch', paths.patch, '--host', '127.0.0.1', '--port', String(port)],
@@ -472,9 +489,36 @@ async function bootHarness() {
 }
 
 export function startHarnessSidecar() {
-  if (sidecar && state.status === 'ready') return Promise.resolve(publicStatus())
-  if (startPromise) return startPromise
-  startPromise = bootHarness().finally(() => {
+  console.log('[Harness] startHarnessSidecar called, sidecar:', !!sidecar, 'status:', state.status, 'startPromise:', !!startPromise)
+  if (sidecar && state.status === 'ready') {
+    console.log('[Harness] Already running and ready, returning current status')
+    return Promise.resolve(publicStatus())
+  }
+  if (startPromise) {
+    console.log('[Harness] Start already in progress, returning existing promise')
+    return startPromise
+  }
+  console.log('[Harness] Starting new bootHarness()')
+
+  // 包装 bootHarness，添加全局超时
+  const bootPromise = bootHarness()
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`Harness boot timed out after ${BOOT_TIMEOUT_MS / 1000}s`)), BOOT_TIMEOUT_MS)
+  })
+
+  startPromise = Promise.race([bootPromise, timeoutPromise]).catch(err => {
+    console.error('[Harness] bootHarness failed/timed out:', err.message)
+    updateState({
+      status: 'error',
+      url: null,
+      port: null,
+      model: null,
+      toolCount: 0,
+      error: err.message
+    })
+    return publicStatus()
+  }).finally(() => {
+    console.log('[Harness] bootHarness() finished, clearing startPromise')
     startPromise = null
   })
   return startPromise

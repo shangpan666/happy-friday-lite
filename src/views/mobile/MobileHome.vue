@@ -79,6 +79,14 @@
             </svg>
             <span>语音</span>
           </button>
+          <button class="quick-btn" @click="openHarness">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+            <span>Harness</span>
+          </button>
           <button class="quick-btn" @click="currentView = 'settings'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"></circle>
@@ -95,7 +103,7 @@
         </div>
         <div class="session-list" v-if="sessions.length > 0">
           <div
-            v-for="session in sessions.slice(0, 5)"
+            v-for="session in sessions.slice(0, 3)"
             :key="session.id"
             class="session-item"
             @click="openSession(session.id)"
@@ -181,7 +189,8 @@
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
-          <h2 class="chat-title">{{ currentSession?.title || '对话' }}</h2>
+           <h2 class="chat-title">{{ currentSession?.title || '对话' }}</h2>
+           <span class="chat-model-badge" v-if="currentModelName">{{ formatModelName(currentModelName) }}</span>
           <button class="icon-btn" @click="shareSession">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="18" cy="5" r="3"></circle>
@@ -192,36 +201,59 @@
             </svg>
           </button>
         </div>
-        <div class="messages-container" ref="messagesContainer">
-          <div v-if="loadingMessages" class="loading-indicator">
-            <div class="spinner"></div>
-          </div>
-          <div v-else class="messages-list">
-            <div
-              v-for="(msg, idx) in messages"
-              :key="idx"
-              class="message"
-              :class="msg.role"
-            >
-              <div class="message-avatar">
-                <template v-if="msg.role === 'user'">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                </template>
-                <template v-else>
-                  <span class="ai-avatar">P</span>
-                </template>
-              </div>
-              <div class="message-content">
-                <div class="message-text" v-html="renderMarkdown(msg.content)"></div>
-                <div class="message-time">{{ formatTime(msg.createdAt) }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+         <div class="messages-container" ref="messagesContainer">
+           <div v-if="loadingMessages" class="loading-indicator">
+             <div class="spinner"></div>
+           </div>
+           <div v-else class="messages-list">
+             <div
+               v-for="(msg, idx) in messages"
+               :key="idx"
+               class="message"
+               :class="msg.role"
+             >
+               <div class="message-avatar">
+                 <template v-if="msg.role === 'user'">
+                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                     <circle cx="12" cy="7" r="4"></circle>
+                   </svg>
+                 </template>
+                 <template v-else>
+                   <span class="ai-avatar">P</span>
+                 </template>
+               </div>
+               <div class="message-content">
+                 <div class="message-text" v-html="renderMarkdown(msg.content)"></div>
+                 <div class="message-time">{{ formatTime(msg.createdAt) }}</div>
+               </div>
+             </div>
+             <div v-if="sending" class="message assistant">
+               <div class="message-avatar"><span class="ai-avatar">P</span></div>
+               <div class="message-content">
+                 <div class="typing-indicator"><span></span><span></span><span></span></div>
+               </div>
+             </div>
+           </div>
+         </div>
+         <div class="chat-input-bar">
+           <textarea
+             v-model="inputText"
+             class="chat-input"
+             :placeholder="inputPlaceholder"
+             rows="1"
+             @input="autoGrowInput"
+             @keydown.enter.exact.prevent="sendMessage"
+             ref="chatInput"
+           ></textarea>
+           <button class="send-btn" @click="sendMessage" :disabled="sending || !inputText.trim()">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <line x1="22" y1="2" x2="11" y2="13"></line>
+               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+             </svg>
+           </button>
+         </div>
+       </div>
 
       <!-- 笔记列表 -->
       <div v-if="currentView === 'notes'" class="view-container">
@@ -280,6 +312,79 @@
         <div class="note-detail-content" v-if="currentNote" v-html="renderMarkdown(currentNote.content || currentNote.contentText || '')"></div>
       </div>
 
+      <!-- DeepSeek Harness 视图 -->
+      <div v-if="currentView === 'harness'" class="view-container harness-view">
+        <div class="view-header">
+          <button class="back-btn" @click="currentView = 'home'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <h2>DeepSeek Harness</h2>
+          <button class="icon-btn" @click="refreshHarnessStatus" :disabled="harnessLoading">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="harness-content">
+          <!-- 加载状态 -->
+          <div v-if="harnessLoading" class="harness-state">
+            <div class="spinner"></div>
+            <p>正在连接 Harness...</p>
+          </div>
+          
+          <!-- 就绪状态 - 显示 iframe 通过代理 -->
+          <iframe
+            v-else-if="harnessStatus.status === 'ready' && harnessStatus.proxyUrl"
+            :src="harnessStatus.proxyUrl"
+            class="harness-frame"
+            allow="clipboard-read; clipboard-write"
+          ></iframe>
+          
+          <!-- 启动中状态 -->
+          <div v-else-if="harnessStatus.status === 'starting' || harnessStatus.status === 'idle'" class="harness-state">
+            <div class="spinner"></div>
+            <p>正在启动 Harness...</p>
+            <p v-if="harnessStatus.recentOutput && harnessStatus.recentOutput.length" class="harness-log">
+              {{ harnessStatus.recentOutput.slice(-3).join('\n') }}
+            </p>
+            <button class="action-btn" @click="startHarness" :disabled="harnessLoading">
+              重试启动
+            </button>
+          </div>
+          
+          <!-- 需要配置 -->
+          <div v-else-if="harnessStatus.status === 'config-required'" class="harness-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <h3>需要配置模型</h3>
+            <p>请先在桌面端设置中配置 DeepSeek 模型</p>
+            <button class="action-btn" @click="currentView = 'settings'">
+              前往设置
+            </button>
+          </div>
+          
+          <!-- 错误状态 -->
+          <div v-else class="harness-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h3>启动失败</h3>
+            <p class="error-text">{{ harnessStatus.error || '未知错误' }}</p>
+            <button class="action-btn" @click="restartHarness">
+              重新启动
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- 设置页 -->
       <div v-if="currentView === 'settings'" class="view-container">
         <div class="view-header">
@@ -306,6 +411,10 @@
             <div class="setting-item">
               <span>电脑端地址</span>
               <span class="setting-value">{{ baseUrl }}</span>
+            </div>
+            <div class="setting-item">
+              <span>当前模型</span>
+              <span class="setting-value">{{ currentModelName || '未配置' }}</span>
             </div>
             <div class="setting-item" @click="refreshData">
               <span>刷新数据</span>
@@ -422,12 +531,37 @@ export default {
       toast: null,
       baseUrl: '',
       recognition: null,
+      models: [],
+      selectedModelId: null,
+      currentModelName: '',
+      inputText: '',
+      sending: false,
+      mobileSessionId: localStorage.getItem('mobile-session-id') || '',
+      harnessStatus: {
+        status: 'idle',
+        url: null,
+        port: null,
+        model: null,
+        toolCount: 0,
+        error: null
+      },
+      harnessLoading: false,
+      harnessPollingTimer: null,
+    }
+  },
+  computed: {
+    inputPlaceholder() {
+      return '欢迎使用 Phronesis'
     }
   },
   async mounted() {
     this.detectBaseUrl()
+    await this.fetchModels()
     await this.loadData()
     this.initSpeechRecognition()
+  },
+  beforeUnmount() {
+    this.stopHarnessPolling()
   },
   watch: {
     isDark(val) {
@@ -435,9 +569,117 @@ export default {
     }
   },
   methods: {
+    formatModelName(name) {
+      if (!name) return ''
+      const parts = name.split('/')
+      return parts.length > 1 ? parts[1] : name
+    },
     detectBaseUrl() {
       const loc = window.location
       this.baseUrl = `${loc.protocol}//${loc.host}`
+    },
+    openHarness() {
+      this.currentView = 'harness'
+      this.fetchHarnessStatus().then(() => {
+        // 如果状态是启动中，开始轮询
+        if (this.harnessStatus.status === 'starting' || this.harnessStatus.status === 'idle') {
+          this.startHarnessPolling()
+        }
+      })
+    },
+    async fetchHarnessStatus() {
+      this.harnessLoading = true
+      try {
+        const res = await fetch(`${this.baseUrl}/api/mobile/harness/status`)
+        const data = await res.json()
+        if (data.success) {
+          this.harnessStatus = data.status
+        }
+      } catch (e) {
+        console.error('Failed to fetch harness status:', e)
+        this.harnessStatus.status = 'error'
+        this.harnessStatus.error = e.message || '无法连接 Harness'
+      } finally {
+        this.harnessLoading = false
+      }
+    },
+    async refreshHarnessStatus() {
+      await this.fetchHarnessStatus()
+    },
+    async startHarness() {
+      this.harnessLoading = true
+      this.harnessStatus.status = 'starting'
+      try {
+        const res = await fetch(`${this.baseUrl}/api/mobile/harness/start`, { method: 'POST' })
+        const data = await res.json()
+        if (data.success) {
+          this.harnessStatus = data.status
+          // 如果仍在启动中，开始轮询状态
+          if (this.harnessStatus.status === 'starting' || this.harnessStatus.status === 'idle') {
+            this.startHarnessPolling()
+          }
+        } else {
+          this.harnessStatus.status = 'error'
+          this.harnessStatus.error = data.error
+        }
+      } catch (e) {
+        console.error('Failed to start harness:', e)
+        this.harnessStatus.status = 'error'
+        this.harnessStatus.error = e.message || '启动 Harness 失败'
+      } finally {
+        this.harnessLoading = false
+      }
+    },
+    async restartHarness() {
+      this.harnessLoading = true
+      this.harnessStatus.status = 'starting'
+      try {
+        const res = await fetch(`${this.baseUrl}/api/mobile/harness/restart`, { method: 'POST' })
+        const data = await res.json()
+        if (data.success) {
+          this.harnessStatus = data.status
+          // 如果仍在启动中，开始轮询状态
+          if (this.harnessStatus.status === 'starting' || this.harnessStatus.status === 'idle') {
+            this.startHarnessPolling()
+          }
+        } else {
+          this.harnessStatus.status = 'error'
+          this.harnessStatus.error = data.error
+        }
+      } catch (e) {
+        console.error('Failed to restart harness:', e)
+        this.harnessStatus.status = 'error'
+        this.harnessStatus.error = e.message || '重启 Harness 失败'
+      } finally {
+        this.harnessLoading = false
+      }
+    },
+    startHarnessPolling() {
+      // 清除之前的轮询
+      if (this.harnessPollingTimer) {
+        clearInterval(this.harnessPollingTimer)
+      }
+      this.harnessPollingTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`${this.baseUrl}/api/mobile/harness/status`)
+          const data = await res.json()
+          if (data.success) {
+            this.harnessStatus = data.status
+            // 如果状态不再是启动中，停止轮询
+            if (this.harnessStatus.status !== 'starting' && this.harnessStatus.status !== 'idle') {
+              this.stopHarnessPolling()
+            }
+          }
+        } catch (e) {
+          console.error('Failed to poll harness status:', e)
+        }
+      }, 2000) // 每2秒轮询一次
+    },
+    stopHarnessPolling() {
+      if (this.harnessPollingTimer) {
+        clearInterval(this.harnessPollingTimer)
+        this.harnessPollingTimer = null
+      }
     },
     async loadData() {
       try {
@@ -457,13 +699,19 @@ export default {
     async openSession(sessionId) {
       this.previousView = this.currentView
       this.currentView = 'chat'
+      this.mobileSessionId = sessionId
+      localStorage.setItem('mobile-session-id', sessionId)
       this.loadingMessages = true
       try {
         const res = await fetch(`${this.baseUrl}/api/mobile/session/${encodeURIComponent(sessionId)}`)
         const data = await res.json()
         if (data.success) {
           this.currentSession = data.session
-          this.messages = data.messages || []
+          this.messages = (data.messages || []).map((m) => ({
+            role: m.role,
+            content: m.content,
+            createdAt: m.createdAt
+          }))
           this.$nextTick(() => this.scrollToBottom())
         }
       } catch (e) {
@@ -487,19 +735,93 @@ export default {
         this.showToast('加载笔记失败', 'error')
       }
     },
+    // 拉取桌面端模型列表（自动获取，从而能发起对话）
+    async fetchModels() {
+      try {
+        const res = await fetch(`${this.baseUrl}/api/mobile/models`)
+        const data = await res.json()
+        if (data.success && data.models && data.models.length) {
+          this.models = data.models
+          this.selectedModelId = data.selectedModelId || data.models[0].id
+          const sel = data.models.find((m) => m.id === this.selectedModelId) || data.models[0]
+          this.currentModelName = sel.modelName || sel.name || ''
+        }
+      } catch (e) {
+        console.error('Failed to load models:', e)
+      }
+    },
+    // 开始新对话：生成一个新的手机端会话
     startNewChat() {
-      this.showToast('请在电脑端开始新对话', 'info')
+      this.mobileSessionId = 'm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+      localStorage.setItem('mobile-session-id', this.mobileSessionId)
+      this.currentSession = { title: '手机对话' }
+      this.messages = []
+      this.inputText = ''
+      this.currentView = 'chat'
+      this.$nextTick(() => {
+        this.scrollToBottom()
+        this.$refs.chatInput && this.$refs.chatInput.focus()
+      })
+    },
+    autoGrowInput() {
+      const el = this.$refs.chatInput
+      if (!el) return
+      el.style.height = 'auto'
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+    },
+    async sendMessage() {
+      const text = (this.inputText || '').trim()
+      if (!text || this.sending) return
+      if (!this.mobileSessionId) {
+        this.startNewChat()
+      }
+      // 立即展示用户消息
+      this.messages.push({ role: 'user', content: text, createdAt: new Date().toISOString() })
+      this.inputText = ''
+      this.autoGrowInput()
+      this.sending = true
+      this.$nextTick(() => this.scrollToBottom())
+      try {
+        const res = await fetch(`${this.baseUrl}/api/mobile/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: this.mobileSessionId,
+            message: text,
+            model: this.selectedModelId || undefined
+          })
+        })
+        const data = await res.json()
+        if (data.success) {
+          if (data.sessionId) {
+            this.mobileSessionId = data.sessionId
+            localStorage.setItem('mobile-session-id', data.sessionId)
+          }
+          this.messages.push({ role: 'assistant', content: data.content, createdAt: new Date().toISOString() })
+        } else {
+          this.showToast(data.error || '对话失败', 'error')
+        }
+      } catch (e) {
+        console.error('Chat failed:', e)
+        this.showToast('网络错误，发送失败', 'error')
+      } finally {
+        this.sending = false
+        this.$nextTick(() => this.scrollToBottom())
+      }
     },
     shareSession() {
-      if (this.currentSession) {
-        const url = `${this.baseUrl}/#/share/${this.currentSession.id}`
+      const id = (this.currentSession && this.currentSession.id) || this.mobileSessionId
+      if (id) {
+        const url = `${this.baseUrl}/#/share/${encodeURIComponent(id)}`
         this.copyToClipboard(url)
         this.showToast('分享链接已复制', 'success')
+      } else {
+        this.showToast('暂无可分享的对话', 'info')
       }
     },
     shareNote() {
-      if (this.currentNote) {
-        const url = `${this.baseUrl}/#/share/note/${this.currentNote.id}`
+      if (this.currentNote && this.currentNote.id) {
+        const url = `${this.baseUrl}/#/share/note/${encodeURIComponent(this.currentNote.id)}`
         this.copyToClipboard(url)
         this.showToast('分享链接已复制', 'success')
       }
@@ -628,49 +950,6 @@ export default {
 </script>
 
 <style scoped>
-/* ===== CSS Variables ===== */
-.mobile-app {
-  --bg: #f7f8fa;
-  --bg-card: #ffffff;
-  --bg-input: #f0f1f3;
-  --text: #1a1a1a;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --primary: #4f6ef7;
-  --primary-light: #eef1fe;
-  --primary-dark: #3b5de7;
-  --user-bubble: #4f6ef7;
-  --user-text: #ffffff;
-  --ai-bubble: #ffffff;
-  --ai-text: #1a1a1a;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --nav-height: 60px;
-  --status-height: 52px;
-}
-
-.mobile-app.dark {
-  --bg: #0f0f0f;
-  --bg-card: #1a1a1a;
-  --bg-input: #262626;
-  --text: #e5e5e5;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  --border: #333333;
-  --primary: #6b8aff;
-  --primary-light: #1a2340;
-  --primary-dark: #8da4ff;
-  --user-bubble: #6b8aff;
-  --user-text: #ffffff;
-  --ai-bubble: #1a1a1a;
-  --ai-text: #e5e5e5;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
-}
-
 /* ===== Reset & Base ===== */
 * {
   margin: 0;
@@ -681,21 +960,35 @@ export default {
 
 .mobile-app {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--bg-secondary, #f6f7f9);
+  color: var(--text-primary, #1f2328);
   height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  --nav-height: 60px;
+  --status-height: 52px;
+}
+
+.mobile-app.dark {
+  --bg-secondary: #141518;
+  --bg-primary: #1c1d21;
+  --bg-inset: #26282e;
+  --text-primary: #d6dae0;
+  --text-secondary: #8b949e;
+  --text-tertiary: #59636e;
+  --border-color: #2c2f35;
+  --accent-color: #5c8ceb;
+  --accent-light: rgba(92, 140, 235, 0.14);
 }
 
 /* ===== Status Bar ===== */
 .status-bar {
   height: var(--status-height);
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e3e6ea);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -711,34 +1004,40 @@ export default {
 }
 
 .app-logo {
-  width: 28px;
-  height: 28px;
-  background: var(--primary);
-  color: white;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.mobile-app.dark .app-logo {
+  background: #d6dae0;
+  color: #1c1d21;
 }
 
 .app-name {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
+  color: var(--text-primary, #1f2328);
 }
 
 .status-right {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #59636e);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -748,32 +1047,33 @@ export default {
 }
 
 .icon-btn:active {
-  background: var(--bg-input);
+  background: var(--bg-hover, rgba(31, 35, 40, 0.055));
 }
 
 /* ===== Search Bar ===== */
 .search-bar {
   padding: 8px 16px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e3e6ea);
   flex-shrink: 0;
+  position: relative;
 }
 
 .search-input {
   width: 100%;
-  height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 0 40px 0 16px;
-  font-size: 14px;
-  background: var(--bg-input);
-  color: var(--text);
+  height: 36px;
+  border: 1px solid var(--border-color, #e3e6ea);
+  border-radius: 8px;
+  padding: 0 36px 0 12px;
+  font-size: 13px;
+  background: var(--bg-secondary, #f6f7f9);
+  color: var(--text-primary, #1f2328);
   outline: none;
   transition: border-color 0.2s;
 }
 
 .search-input:focus {
-  border-color: var(--primary);
+  border-color: var(--accent-color, #3574f0);
 }
 
 .search-clear {
@@ -781,21 +1081,17 @@ export default {
   right: 28px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border: none;
-  background: var(--text-muted);
+  background: var(--text-tertiary, #8b949e);
   color: white;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.search-bar {
-  position: relative;
 }
 
 /* ===== Main Content ===== */
@@ -813,26 +1109,27 @@ export default {
 
 /* ===== Greeting ===== */
 .greeting-section {
-  padding: 24px 20px 16px;
+  padding: 28px 20px 14px;
 }
 
 .greeting {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2328);
 }
 
 .greeting-sub {
-  color: var(--text-secondary);
+  color: var(--text-secondary, #59636e);
   margin-top: 4px;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 /* ===== Quick Actions ===== */
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 8px 20px 20px;
+  gap: 10px;
+  padding: 10px 20px 20px;
 }
 
 .quick-btn {
@@ -840,26 +1137,27 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 14px 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
+  padding: 14px 6px;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, #e3e6ea);
+  border-radius: 10px;
+  color: var(--text-primary, #1f2328);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
-  box-shadow: var(--shadow);
 }
 
 .quick-btn:active {
-  transform: scale(0.95);
-  background: var(--primary-light);
-  border-color: var(--primary);
-  color: var(--primary);
+  transform: scale(0.96);
+  background: var(--bg-secondary, #f6f7f9);
 }
 
 .quick-btn svg {
-  color: var(--primary);
+  color: var(--text-secondary, #59636e);
+}
+
+.quick-btn:active svg {
+  color: var(--accent-color, #3574f0);
 }
 
 /* ===== Section Header ===== */
@@ -871,15 +1169,16 @@ export default {
 }
 
 .section-header h2 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text-primary, #1f2328);
 }
 
 .see-all {
   border: none;
   background: transparent;
-  color: var(--primary);
-  font-size: 13px;
+  color: var(--accent-color, #3574f0);
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -897,24 +1196,24 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: var(--bg-card);
-  border-radius: var(--radius);
+  background: var(--bg-primary, #ffffff);
+  border-radius: 10px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: background 0.15s;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .session-item:active {
-  background: var(--primary-light);
+  background: var(--bg-secondary, #f6f7f9);
 }
 
 .session-icon {
-  width: 36px;
-  height: 36px;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-secondary, #f6f7f9);
+  color: var(--text-secondary, #59636e);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -927,16 +1226,17 @@ export default {
 }
 
 .session-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-primary, #1f2328);
 }
 
 .session-time {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 11px;
+  color: var(--text-tertiary, #8b949e);
   margin-top: 2px;
 }
 
@@ -954,33 +1254,28 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: var(--bg-card);
-  border-radius: var(--radius);
+  background: var(--bg-primary, #ffffff);
+  border-radius: 10px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: background 0.15s;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .note-item:active {
-  background: var(--primary-light);
+  background: var(--bg-secondary, #f6f7f9);
 }
 
 .note-icon {
-  width: 36px;
-  height: 36px;
-  background: #fef3c7;
-  color: #d97706;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-secondary, #f6f7f9);
+  color: var(--text-secondary, #59636e);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.dark .note-icon {
-  background: #422006;
-  color: #fbbf24;
 }
 
 .note-info {
@@ -989,16 +1284,17 @@ export default {
 }
 
 .note-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-primary, #1f2328);
 }
 
 .note-time {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 11px;
+  color: var(--text-tertiary, #8b949e);
   margin-top: 2px;
 }
 
@@ -1006,27 +1302,33 @@ export default {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: var(--text-muted);
+  color: var(--text-tertiary, #8b949e);
 }
 
 .empty-state p {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  font-size: 14px;
 }
 
 .primary-btn {
-  padding: 10px 24px;
-  background: var(--primary);
-  color: white;
+  padding: 9px 20px;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
   border: none;
-  border-radius: 20px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: opacity 0.15s;
+}
+
+.mobile-app.dark .primary-btn {
+  background: #d6dae0;
+  color: #1c1d21;
 }
 
 .primary-btn:active {
-  background: var(--primary-dark);
+  opacity: 0.85;
 }
 
 /* ===== View Header ===== */
@@ -1034,25 +1336,26 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  background: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e3e6ea);
   position: sticky;
   top: 0;
   z-index: 5;
 }
 
 .view-header h2 {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
+  color: var(--text-primary, #1f2328);
 }
 
 .back-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: none;
   background: transparent;
-  color: var(--text);
+  color: var(--text-primary, #1f2328);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -1061,7 +1364,7 @@ export default {
 }
 
 .back-btn:active {
-  background: var(--bg-input);
+  background: var(--bg-hover, rgba(31, 35, 40, 0.055));
 }
 
 /* ===== Chat View ===== */
@@ -1076,27 +1379,29 @@ export default {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e3e6ea);
   flex-shrink: 0;
 }
 
 .chat-title {
   flex: 1;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 8px;
+  color: var(--text-primary, #1f2328);
 }
 
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 14px;
   -webkit-overflow-scrolling: touch;
+  background: var(--bg-secondary, #f6f7f9);
 }
 
 .loading-indicator {
@@ -1106,10 +1411,10 @@ export default {
 }
 
 .spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--border);
-  border-top-color: var(--primary);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color, #e3e6ea);
+  border-top-color: var(--text-secondary, #59636e);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -1121,18 +1426,18 @@ export default {
 .messages-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .message {
   display: flex;
-  gap: 10px;
-  max-width: 88%;
+  gap: 8px;
+  max-width: 85%;
   animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -1142,41 +1447,54 @@ export default {
 }
 
 .message-avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: var(--bg-input);
-  color: var(--text-secondary);
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-secondary, #59636e);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .message.user .message-avatar {
-  background: var(--primary);
-  color: white;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
+  border: none;
+}
+
+.mobile-app.dark .message.user .message-avatar {
+  background: #d6dae0;
+  color: #1c1d21;
 }
 
 .ai-avatar {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--primary);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-secondary, #59636e);
 }
 
 .message-content {
-  background: var(--ai-bubble);
+  background: var(--bg-primary, #ffffff);
   padding: 10px 14px;
-  border-radius: 16px;
+  border-radius: 14px;
   border-top-left-radius: 4px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .message.user .message-content {
-  background: var(--user-bubble);
-  color: var(--user-text);
-  border-top-left-radius: 16px;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
+  border-color: transparent;
+  border-top-left-radius: 14px;
   border-top-right-radius: 4px;
+}
+
+.mobile-app.dark .message.user .message-content {
+  background: #d6dae0;
+  color: #1c1d21;
 }
 
 .message-text {
@@ -1186,47 +1504,164 @@ export default {
 }
 
 .message-text :deep(pre) {
-  background: var(--bg-input);
+  background: var(--bg-secondary, #f6f7f9);
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow-x: auto;
-  margin: 8px 0;
-  font-size: 13px;
+  margin: 6px 0;
+  font-size: 12px;
+  border: 1px solid var(--border-color, #e3e6ea);
+}
+
+.mobile-app.dark .message-text :deep(pre) {
+  background: #26282e;
+  border-color: #2c2f35;
 }
 
 .message-text :deep(code) {
   font-family: 'SF Mono', Menlo, Monaco, monospace;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .message-text :deep(p) {
-  margin: 4px 0;
+  margin: 3px 0;
 }
 
 .message-time {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-tertiary, #8b949e);
+  margin-top: 3px;
 }
 
 .message.user .message-time {
-  color: rgba(255,255,255,0.6);
+  color: var(--text-tertiary, #8b949e);
+}
+
+.mobile-app.dark .message.user .message-time {
+  color: #59636e;
+}
+
+/* ===== Chat Input Bar ===== */
+.chat-input-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
+  background: var(--bg-primary, #ffffff);
+  border-top: 1px solid var(--border-color, #e3e6ea);
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex: 1;
+  max-height: 100px;
+  min-height: 38px;
+  border: 1px solid var(--border-color, #e3e6ea);
+  border-radius: 18px;
+  padding: 9px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  background: var(--bg-secondary, #f6f7f9);
+  color: var(--text-primary, #1f2328);
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.chat-input:focus {
+  border-color: var(--accent-color, #3574f0);
+}
+
+.send-btn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.mobile-app.dark .send-btn {
+  background: #d6dae0;
+  color: #1c1d21;
+}
+
+.send-btn:active {
+  transform: scale(0.92);
+}
+
+.send-btn:disabled {
+  background: var(--text-tertiary, #8b949e);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-model-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text-secondary, #59636e);
+  background: var(--bg-secondary, #f6f7f9);
+  padding: 3px 7px;
+  border-radius: 6px;
+  max-width: 35vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid var(--border-color, #e3e6ea);
+}
+
+/* ===== Typing Indicator ===== */
+.typing-indicator {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 2px;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background: var(--text-tertiary, #8b949e);
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
 }
 
 /* ===== Note Detail ===== */
 .note-detail-content {
-  padding: 20px;
-  font-size: 15px;
-  line-height: 1.8;
+  padding: 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-primary, #1f2328);
 }
 
 .note-detail-content :deep(pre) {
-  background: var(--bg-input);
-  padding: 12px 16px;
-  border-radius: 8px;
+  background: var(--bg-secondary, #f6f7f9);
+  padding: 10px 14px;
+  border-radius: 6px;
   overflow-x: auto;
-  margin: 12px 0;
-  font-size: 13px;
+  margin: 10px 0;
+  font-size: 12px;
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .note-detail-content :deep(code) {
@@ -1234,98 +1669,193 @@ export default {
 }
 
 .note-detail-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-primary, #1f2328);
+}
+
+/* ===== Harness ===== */
+.harness-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.harness-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.harness-frame {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+}
+
+.harness-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary, #656d76);
+}
+
+.harness-state svg {
+  margin-bottom: 16px;
+  color: var(--text-tertiary, #8b949e);
+}
+
+.harness-state h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2328);
+}
+
+.harness-state p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.error-text {
+  color: #cf222e;
+  word-break: break-all;
+  font-size: 12px;
+}
+
+.harness-log {
+  font-size: 11px;
+  color: var(--text-tertiary, #8b949e);
+  background: var(--bg-secondary, #f6f8fa);
+  padding: 8px;
+  border-radius: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 12px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #d0d7de);
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #1f2328);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.action-btn:active {
+  background: var(--bg-secondary, #f6f8fa);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color, #d0d7de);
+  border-top-color: var(--text-primary, #1f2328);
+  border-radius: 50%;
+  animation: harness-spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes harness-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ===== Settings ===== */
 .settings-list {
-  padding: 12px 20px;
+  padding: 12px 16px;
 }
 
 .setting-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .setting-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-tertiary, #8b949e);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0 4px 8px;
+  padding: 0 4px 6px;
 }
 
 .setting-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  margin-bottom: 2px;
+  padding: 12px 14px;
+  background: var(--bg-primary, #ffffff);
+  border-radius: 10px;
+  margin-bottom: 1px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: background 0.15s;
-}
-
-.setting-item:first-of-type {
-  border-radius: var(--radius) var(--radius) 2px 2px;
-}
-
-.setting-item:last-of-type {
-  border-radius: 2px 2px var(--radius) var(--radius);
-  margin-bottom: 0;
-}
-
-.setting-item:only-of-type {
-  border-radius: var(--radius);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .setting-item:active {
-  background: var(--primary-light);
+  background: var(--bg-secondary, #f6f7f9);
 }
 
 .setting-value {
-  color: var(--text-muted);
-  font-size: 13px;
-  max-width: 160px;
+  color: var(--text-tertiary, #8b949e);
+  font-size: 12px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .toggle {
-  width: 44px;
-  height: 24px;
-  background: var(--border);
-  border-radius: 12px;
+  width: 40px;
+  height: 22px;
+  background: var(--border-color, #e3e6ea);
+  border-radius: 11px;
   position: relative;
   transition: background 0.2s;
 }
 
 .toggle.active {
-  background: var(--primary);
+  background: var(--accent-color, #3574f0);
 }
 
 .toggle-thumb {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   background: white;
   border-radius: 50%;
   position: absolute;
   top: 2px;
   left: 2px;
   transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
 .toggle.active .toggle-thumb {
-  transform: translateX(20px);
+  transform: translateX(18px);
 }
 
 /* ===== Bottom Nav ===== */
@@ -1335,8 +1865,8 @@ export default {
   left: 0;
   right: 0;
   height: var(--nav-height);
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
+  background: var(--bg-primary, #ffffff);
+  border-top: 1px solid var(--border-color, #e3e6ea);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -1349,36 +1879,41 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-tertiary, #8b949e);
   font-size: 10px;
   cursor: pointer;
   transition: color 0.15s;
-  min-width: 48px;
+  min-width: 44px;
 }
 
 .nav-item.active {
-  color: var(--primary);
+  color: var(--text-primary, #1f2328);
 }
 
 .center-action {
   position: relative;
-  top: -12px;
+  top: -8px;
 }
 
 .center-btn {
-  width: 48px;
-  height: 48px;
-  background: var(--primary);
-  color: white;
+  width: 42px;
+  height: 42px;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(79, 110, 247, 0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   transition: transform 0.15s;
+}
+
+.mobile-app.dark .center-btn {
+  background: #d6dae0;
+  color: #1c1d21;
 }
 
 .center-action:active .center-btn {
@@ -1389,7 +1924,7 @@ export default {
 .voice-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1398,28 +1933,28 @@ export default {
 }
 
 .voice-content {
-  background: var(--bg-card);
-  border-radius: 20px;
-  padding: 32px;
+  background: var(--bg-primary, #ffffff);
+  border-radius: 16px;
+  padding: 28px;
   text-align: center;
-  width: 280px;
+  width: 260px;
   box-shadow: var(--shadow-lg);
 }
 
 .voice-visual {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 16px;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary);
+  color: var(--text-secondary, #59636e);
 }
 
 .voice-ring {
   position: absolute;
-  border: 2px solid var(--primary);
+  border: 1.5px solid var(--text-tertiary, #8b949e);
   border-radius: 50%;
   opacity: 0;
 }
@@ -1437,47 +1972,54 @@ export default {
 }
 
 @keyframes pulse {
-  0% { width: 40px; height: 40px; opacity: 0.6; }
-  100% { width: 100px; height: 100px; opacity: 0; }
+  0% { width: 36px; height: 36px; opacity: 0.5; }
+  100% { width: 90px; height: 90px; opacity: 0; }
 }
 
 .voice-status {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  color: var(--text-primary, #1f2328);
 }
 
 .voice-text {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
-  min-height: 20px;
+  font-size: 13px;
+  color: var(--text-secondary, #59636e);
+  margin-bottom: 14px;
+  min-height: 18px;
 }
 
 .voice-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
 }
 
 .voice-btn {
-  padding: 10px 28px;
+  padding: 9px 24px;
   border: none;
-  border-radius: 20px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .voice-btn.cancel {
-  background: var(--bg-input);
-  color: var(--text-secondary);
+  background: var(--bg-secondary, #f6f7f9);
+  color: var(--text-secondary, #59636e);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .voice-btn.confirm {
-  background: var(--primary);
-  color: white;
+  background: var(--text-primary, #1f2328);
+  color: var(--bg-primary, #ffffff);
+}
+
+.mobile-app.dark .voice-btn.confirm {
+  background: #d6dae0;
+  color: #1c1d21;
 }
 
 .voice-btn:active {
@@ -1487,36 +2029,36 @@ export default {
 /* ===== Toast ===== */
 .toast {
   position: fixed;
-  top: 60px;
+  top: 56px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 500;
   z-index: 300;
   animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .toast.info {
-  background: var(--bg-card);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #1f2328);
+  border: 1px solid var(--border-color, #e3e6ea);
 }
 
 .toast.success {
-  background: #10b981;
+  background: var(--success-color, #1a7f37);
   color: white;
 }
 
 .toast.error {
-  background: #ef4444;
+  background: var(--danger-color, #cf222e);
   color: white;
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
@@ -1530,8 +2072,8 @@ export default {
   .mobile-app {
     max-width: 430px;
     margin: 0 auto;
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
+    border-left: 1px solid var(--border-color, #e3e6ea);
+    border-right: 1px solid var(--border-color, #e3e6ea);
   }
 }
 </style>

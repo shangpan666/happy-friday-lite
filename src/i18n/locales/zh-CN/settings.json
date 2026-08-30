@@ -243,5 +243,16 @@
   "qqbotGateway": "WebSocket 网关地址（可选）",
   "qqbotGatewayHint": "留空则自动从 /gateway/bot 获取；仅当用代理/自建转发时才填",
   "qqbotStatus": "连接状态",
-  "qqbotConnected": "QQ 官方机器人已连接"
+  "qqbotConnected": "QQ 官方机器人已连接",
+  "systemTools": "系统级工具",
+  "systemToolsHint": "WSL、wmic、sc、reg、schtasks 等系统级工具可绕过沙箱限制，请谨慎启用",
+  "builtinRuntime": "内置运行时",
+  "builtinRuntimeHint": "允许使用随包提供的 Node.js、Python 和 Git Bash 工具",
+  "toolPython": "Python",
+  "toolPythonDesc": "通用编程语言，适用于脚本编写、自动化和数据处理",
+  "toolNodejs": "Node.js",
+  "toolNodejsDesc": "基于 Chrome V8 引擎的 JavaScript 运行时，用于服务端开发",
+  "toolGitBash": "Git Bash",
+  "toolGitBashDesc": "在 Windows 上提供 Git 和 Bash Shell 的类 Unix 命令行环境",
+  "toolStatus": "状态"
 }

@@ -1,6 +1,8 @@
 import { ref, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTabStore } from '@/store';
+import { useConnectionStore } from '@/store/modules/connection';
+import { electronService } from '@/services/electron';
 import { isAllowedFile } from '../constants';
 import { getFileType } from '../utils';
 
@@ -12,6 +14,12 @@ export function useFileSystem() {
   const api = window.electronAPI;
   const router = useRouter();
   const tabStore = useTabStore();
+  const connection = useConnectionStore();
+
+  // 管理员（中央机所有者）始终使用本地知识库、拥有完整读写权限；
+  // 仅非管理员（子账号/员工机）连接中央机时走服务端只读接口、禁止写操作
+  const isRemote = computed(() => connection.isConnected && connection.user?.role !== 'admin');
+  const readOnly = computed(() => isRemote.value);
 
   const dataDir = ref('');
   const currentPath = ref('');
@@ -19,6 +27,9 @@ export function useFileSystem() {
   const files = ref([]);
   const navigationHistory = ref([]);
   const historyIndex = ref(-1);
+
+  // 远端只读文件查看（点击文件后在主区展示，不落地本地）
+  const remoteFile = ref(null);
 
   const showNewFolderDialog = ref(false);
   const newFolderName = ref('');
@@ -55,6 +66,26 @@ export function useFileSystem() {
   }
 
   async function readDirectory(dirPath) {
+    // 连接中央机：知识库走服务端只读接口（相对路径）
+    if (isRemote.value) {
+      try {
+        const d = await electronService.invoke('kb-remote-read-dir', { relPath: dirPath });
+        const entries = (d && d.entries) || [];
+        const isAgentDir = typeof dirPath === 'string' && dirPath.startsWith('agent/');
+        const isVisible = (entry) => entry.isDirectory || isAgentDir || isAllowedFile(entry.name);
+        files.value = entries
+          .filter(isVisible)
+          .map((entry) => ({
+            ...entry,
+            type: entry.isDirectory ? 'folder' : getFileType(entry.name)
+          }));
+        files.value.forEach((f) => { if (f.isDirectory) f.count = ''; });
+      } catch (e) {
+        console.error('Failed to read remote directory:', e);
+        files.value = [];
+      }
+      return;
+    }
     if (!api) return;
     try {
       const entries = await api.invoke('kb-read-dir', { dirPath });
@@ -91,7 +122,7 @@ export function useFileSystem() {
     await readDirectory(dirPath);
     // 通知后端动态监听当前目录（Linux 不支持 recursive 监听，需切换监听目标）
     // macOS/Windows 已有 recursive watcher，此调用为空操作
-    if (api) {
+    if (api && !isRemote.value) {
       api.invoke('kb-watch-current-dir', { dirPath }).catch(() => {});
     }
     if (addToHistory) {
@@ -104,6 +135,13 @@ export function useFileSystem() {
   }
 
   async function selectKnowledgeBaseDir(id, name, categoryId) {
+    // 连接中央机：知识库为只读远端，目录路径使用相对路径，不创建本地目录
+    if (isRemote.value) {
+      const relRoot = categoryId + '/' + name;
+      kbRootPath.value = relRoot;
+      await navigateTo(relRoot);
+      return;
+    }
     if (!api || !dataDir.value) return;
     const kbDir = dataDir.value + '/knowledge/' + categoryId + '/' + name;
     kbRootPath.value = kbDir;
@@ -143,6 +181,18 @@ export function useFileSystem() {
       await navigateTo(file.path);
       return;
     }
+    // 连接中央机：只读展示，仅支持应用内可查看的文本类文件
+    if (isRemote.value) {
+      if (IN_APP_VIEWABLE_TYPES.includes(file.type)) {
+        await openRemoteFile(file);
+      } else {
+        remoteFile.value = {
+          name: file.name,
+          error: '只读模式下暂不支持预览该格式，请在中央机上打开'
+        };
+      }
+      return;
+    }
     // 可在应用内查看的文件类型在新标签页中打开
     if (IN_APP_VIEWABLE_TYPES.includes(file.type)) {
       const tab = tabStore.addFileTab(file);
@@ -153,6 +203,23 @@ export function useFileSystem() {
     if (api) {
       await api.invoke('kb-open-file-external', { filePath: file.path });
     }
+  }
+
+  async function openRemoteFile(file) {
+    try {
+      const d = await electronService.invoke('kb-remote-file', { relPath: file.path });
+      if (d && d.success) {
+        remoteFile.value = { name: file.name, content: d.content, type: file.type };
+      } else {
+        remoteFile.value = { name: file.name, error: (d && d.error) || '读取失败' };
+      }
+    } catch (e) {
+      remoteFile.value = { name: file.name, error: '读取失败：' + (e?.message || e) };
+    }
+  }
+
+  function closeRemoteFile() {
+    remoteFile.value = null;
   }
 
   // 搜索结果点击：文件夹则进入，文件则跳转到所在目录
@@ -187,6 +254,7 @@ export function useFileSystem() {
 
   async function confirmNewFolder() {
     const folderName = newFolderName.value.trim();
+    if (readOnly.value) return;
     if (!folderName || !currentPath.value || !api) return;
     try {
       const result = await api.invoke('kb-mkdir', {
@@ -256,6 +324,7 @@ export function useFileSystem() {
 
   async function confirmRename() {
     const newName = renameName.value.trim();
+    if (readOnly.value) return;
     if (!newName || !renameItem.value || !api) {
       closeRenameDialog();
       return;
@@ -286,6 +355,7 @@ export function useFileSystem() {
 
   // ===== 删除文件/文件夹功能 =====
   async function deleteFileOrFolder(file) {
+    if (readOnly.value) return false;
     if (!api || !file || !file.path) return false;
     try {
       const result = await api.invoke('kb-delete-dir', { dirPath: file.path });
@@ -314,6 +384,8 @@ export function useFileSystem() {
     currentPath,
     kbRootPath,
     files,
+    readOnly,
+    remoteFile,
     showNewFolderDialog,
     newFolderName,
     newFolderInputRef,
@@ -331,6 +403,8 @@ export function useFileSystem() {
     goForward,
     navigateToSegment,
     openFile,
+    openRemoteFile,
+    closeRemoteFile,
     openSearchResult,
     refreshCurrentDir,
     openNewFolderDialog,

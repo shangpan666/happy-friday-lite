@@ -1,6 +1,7 @@
 import { loadConfig } from '../../config.js'
 import { runAgent } from '../agentRunner.js'
 import { createLogger } from '../../agent/logger.js'
+import { appendExternalMessage } from '../../externalChat.js'
 import { existsSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -70,11 +71,15 @@ async function replyTo(session, send) {
     const text = (res && res.content) || ''
     if (!text) return
     pushHistory(session, 'assistant', text)
+    // 持久化到桌面端会话，使对话出现在桌面「周五」
+    appendExternalMessage(session, 'assistant', text, 'QQ 对话', 'qq')
     await send(text)
   } catch (e) {
     log.error('QQ 回复失败: ' + (e?.message || e))
+    const errText = '（Friday 处理失败：' + (e?.message || e) + '）'
     try {
-      await send('（Friday 处理失败：' + (e?.message || e) + '）')
+      await send(errText)
+      appendExternalMessage(session, 'assistant', errText, 'QQ 对话', 'qq')
     } catch (_e) {
       // 忽略二次失败
     }
@@ -88,6 +93,8 @@ function handleMessage(e) {
   const isGroup = e.message_type === 'group'
   const session = isGroup ? `qqg:${e.group_id}:${e.user_id}` : `qq:${e.user_id}`
   pushHistory(session, 'user', text)
+  // 持久化用户消息到桌面端会话
+  appendExternalMessage(session, 'user', text, 'QQ 对话', 'qq')
   if (!client) return
   if (isGroup) replyTo(session, (t) => client.sendGroupMsg(e.group_id, t))
   else replyTo(session, (t) => client.sendPrivateMsg(e.user_id, t))

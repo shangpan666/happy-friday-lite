@@ -1,6 +1,7 @@
 import { loadConfig } from '../../config.js'
 import { runAgent } from '../agentRunner.js'
 import { createLogger } from '../../agent/logger.js'
+import { appendExternalMessage } from '../../externalChat.js'
 import { WebSocket } from 'ws'
 
 const log = createLogger('QQBot')
@@ -90,9 +91,17 @@ async function replyTo(session, send) {
     const text = (res && res.content) || ''
     if (!text) return
     pushHistory(session, 'assistant', text)
+    // 持久化到桌面端会话，使对话出现在桌面「周五」
+    appendExternalMessage(session, 'assistant', text, 'QQ 机器人对话', 'qqbot')
     await send(text)
   } catch (e) {
     log.error('QQBot 回复失败: ' + (e?.message || e))
+    const errText = '（Friday 处理失败：' + (e?.message || e) + '）'
+    try {
+      appendExternalMessage(session, 'assistant', errText, 'QQ 机器人对话', 'qqbot')
+    } catch (_e) {
+      // 忽略
+    }
   }
 }
 
@@ -133,6 +142,8 @@ function handleDispatch(cfg, event) {
   if (!text) return
   const key = isGroup ? 'qqbot:g:' + event.group_openid : 'qqbot:c:' + event.author.user_openid
   pushHistory(key, 'user', text)
+  // 持久化用户消息到桌面端会话
+  appendExternalMessage(key, 'user', text, 'QQ 机器人对话', 'qqbot')
   replyTo(key, buildSend(cfg, event))
 }
 

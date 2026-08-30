@@ -179,6 +179,65 @@ export function registerMobileSyncHandlers() {
       port
     }
   })
+
+  // ===== 电脑端账号（登录 / 当前账号 / 管理员注册员工）=====
+  // 渲染进程走 IPC 调用，由主进程以 Node 侧请求本机 shareServer，
+  // 避免渲染进程浏览器环境的 CORS 限制。
+  const accountBase = () => `http://127.0.0.1:${getServerPort() || 17918}`
+
+  ipcMain.handle('account-login', async (_e, { username, password, base }) => {
+    const url = base || accountBase()
+    try {
+      const res = await fetch(`${url}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+      return await res.json()
+    } catch (e) {
+      return { success: false, error: '无法连接电脑端服务：' + e.message }
+    }
+  })
+
+  ipcMain.handle('account-me', async (_e, { token, base }) => {
+    const url = base || accountBase()
+    try {
+      const res = await fetch(`${url}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      return await res.json()
+    } catch (e) {
+      return { success: false, error: e.message }
+    }
+  })
+
+  ipcMain.handle('account-register', async (_e, { token, username, password, role, base }) => {
+    const url = base || accountBase()
+    try {
+      const res = await fetch(`${url}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ username, password, role })
+      })
+      return await res.json()
+    } catch (e) {
+      return { success: false, error: e.message }
+    }
+  })
+
+  ipcMain.handle('account-change-password', async (_e, { token, oldPassword, newPassword, base }) => {
+    const url = base || accountBase()
+    try {
+      const res = await fetch(`${url}/api/auth/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ oldPassword, newPassword })
+      })
+      return await res.json()
+    } catch (e) {
+      return { success: false, error: e.message }
+    }
+  })
 }
 
 export function stopMobileSync() {

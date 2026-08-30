@@ -158,7 +158,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'mobile-get-qr-info',
       'mobile-start-tunnel',
       'mobile-stop-tunnel',
-      'mobile-tunnel-status'
+      'mobile-tunnel-status',
+      'account-login',
+      'account-me',
+      'account-register',
+      'account-change-password',
+      'set_connection'
     ]
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args)

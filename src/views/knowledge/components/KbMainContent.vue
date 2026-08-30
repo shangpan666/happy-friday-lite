@@ -101,7 +101,7 @@
             </div>
           </Transition>
         </div>
-        <div class="upload-wrapper" ref="uploadWrapperRef">
+        <div class="upload-wrapper" ref="uploadWrapperRef" v-if="!readOnly">
           <div class="tooltip-btn" data-tooltip="上传">
             <button class="icon-btn" :class="{ active: showUploadMenu }" @click="toggleUploadMenu">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -402,7 +402,8 @@ const props = defineProps({
   canGoForward: Boolean,
   pathSegments: Array,
   files: Array,
-  currentPath: String
+  currentPath: String,
+  readOnly: Boolean
 });
 
 const emit = defineEmits([

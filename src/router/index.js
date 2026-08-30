@@ -68,6 +68,11 @@ export const routes = [
     component: () => import('@/views/settings/SettingsGeneral.vue')
   },
   {
+    path: '/account',
+    name: 'account',
+    component: () => import('@/views/account/AccountView.vue')
+  },
+  {
     path: '/settings/model',
     name: 'settings-model',
     component: () => import('@/views/settings/SettingsModel.vue')

@@ -46,6 +46,20 @@ export function defaultConfig() {
     python: {
       path: null
     },
+    // 系统级工具开关：控制是否允许 Agent 调用 WSL/wmic/sc/reg/schtasks 等系统工具
+    systemTools: {
+      wsl: false,
+      wmic: false,
+      sc: false,
+      reg: false,
+      schtasks: false
+    },
+    // 内置运行时开关：控制是否允许 Agent 使用随包提供的 Node.js/Python/Git Bash
+    builtinRuntime: {
+      python: true,
+      nodejs: true,
+      gitBash: true
+    },
     // DeepSeek Harness 工作区目录：null = 使用默认位置（数据目录/deepseek-harness/workspace）
     harnessWorkspace: null,
     // 消息桥接服务：把 Friday 智能体暴露为 OpenAI 兼容的 /v1/chat/completions 端点，

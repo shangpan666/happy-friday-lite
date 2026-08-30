@@ -54,3 +54,9 @@ release/
 *.md
 !README.md
 !README.zh-CN.md
+!android-client/**/*.md
+
+# Flutter build artifacts
+android-client/build/
+android-client/.dart_tool/
+android-client/android/.gradle/

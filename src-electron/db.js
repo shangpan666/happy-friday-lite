@@ -5,9 +5,23 @@ import initSqlJs from 'sql.js'
 
 let dataDir = null
 let db = null
+let currentAccountId = null
+let serverDeviceId = null
 
 export function setDataDir(dir) {
   dataDir = dir
+}
+
+export function setCurrentAccountId(id) {
+  currentAccountId = id
+}
+
+export function getCurrentAccountId() {
+  return currentAccountId
+}
+
+export function getDeviceId() {
+  return serverDeviceId
 }
 
 function generateId() {
@@ -167,6 +181,35 @@ async function initDatabase() {
   } catch (_e) {
     // 列已存在，忽略
   }
+
+  // ===== 企业版：账号体系（账号绑定 + 按账号数据隔离）=====
+  db.run(`
+    CREATE TABLE IF NOT EXISTS accounts (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      token TEXT,
+      device_id TEXT,
+      role TEXT NOT NULL DEFAULT 'user',
+      created_at TEXT NOT NULL,
+      last_login_at TEXT
+    );
+  `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS server_meta (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    );
+  `)
+
+  // 迁移：为 sessions / notes 增加 account_id 归属列（已存在则忽略）
+  try {
+    db.run('ALTER TABLE sessions ADD COLUMN account_id TEXT')
+  } catch (_e) {}
+  try {
+    db.run('ALTER TABLE notes ADD COLUMN account_id TEXT')
+  } catch (_e) {}
 
   // 迁移：为 messages 表补充 metadata 列，存储 Agent 模式的工具调用时间线等附加数据
   try {
@@ -449,15 +492,16 @@ function normalizeAutomationTask(row) {
   return row
 }
 
-export function createSession(title, mode = 'chat') {
+export function createSession(title, mode = 'chat', accountId) {
   const now = nowISO()
   const id = generateId()
+  const owner = accountId !== undefined ? accountId : currentAccountId
   db.run(
-    'INSERT INTO sessions (id, title, mode, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)',
-    [id, title || '新对话', mode, now, now]
+    'INSERT INTO sessions (id, title, mode, account_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+    [id, title || '新对话', mode, owner, now, now]
   )
   saveDb()
-  return { id, title: title || '新对话', mode, createdAt: now, updatedAt: now }
+  return { id, title: title || '新对话', mode, accountId: owner, createdAt: now, updatedAt: now }
 }
 
 export function getSessions() {
@@ -599,8 +643,8 @@ export function createNote(knowledgeBaseId, notebookId, title) {
   const now = nowISO()
   const id = generateId()
   db.run(
-    'INSERT INTO notes (id, knowledgeBaseId, notebookId, title, content, contentText, isDeleted, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)',
-    [id, knowledgeBaseId || null, notebookId || null, title || '新建笔记', '', '', now, now]
+    'INSERT INTO notes (id, knowledgeBaseId, notebookId, title, content, contentText, isDeleted, account_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)',
+    [id, knowledgeBaseId || null, notebookId || null, title || '新建笔记', '', '', currentAccountId, now, now]
   )
   saveDb()
   return {
@@ -611,6 +655,7 @@ export function createNote(knowledgeBaseId, notebookId, title) {
     content: '',
     contentText: '',
     isDeleted: false,
+    accountId: currentAccountId,
     createdAt: now,
     updatedAt: now
   }
@@ -620,8 +665,8 @@ export function importNote(knowledgeBaseId, notebookId, title, content, contentT
   const now = nowISO()
   const id = generateId()
   db.run(
-    'INSERT INTO notes (id, knowledgeBaseId, notebookId, title, content, contentText, isDeleted, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)',
-    [id, knowledgeBaseId || null, notebookId || null, title || '新建笔记', content || '', contentText || '', now, now]
+    'INSERT INTO notes (id, knowledgeBaseId, notebookId, title, content, contentText, isDeleted, account_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)',
+    [id, knowledgeBaseId || null, notebookId || null, title || '新建笔记', content || '', contentText || '', currentAccountId, now, now]
   )
   saveDb()
   return {
@@ -1168,4 +1213,160 @@ export function deleteParentDocsByKbType(kbType, kbRootPath) {
     [`${kbRootPath}%`]
   )
   saveDb()
+}
+
+// =====================================================================
+// 企业版账号体系：令牌登录 + 按账号数据隔离 + 设备绑定
+// =====================================================================
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const derived = crypto.scryptSync(String(password), salt, 64).toString('hex')
+  return `${salt}:${derived}`
+}
+
+function verifyPassword(password, stored) {
+  if (!stored || typeof stored !== 'string' || !stored.includes(':')) return false
+  const [salt, expected] = stored.split(':')
+  const derived = crypto.scryptSync(String(password), salt, 64).toString('hex')
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(derived, 'hex'))
+  } catch (_e) {
+    return false
+  }
+}
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex')
+}
+
+export function getMeta(key) {
+  const row = queryOne('SELECT value FROM server_meta WHERE key = ?', [key])
+  return row ? row.value : null
+}
+
+export function setMeta(key, value) {
+  db.run('INSERT OR REPLACE INTO server_meta (key, value) VALUES (?, ?)', [key, value])
+  saveDb()
+}
+
+export function getAccountById(id) {
+  return queryOne('SELECT * FROM accounts WHERE id = ?', [id])
+}
+
+export function getAccountByUsername(username) {
+  return queryOne('SELECT * FROM accounts WHERE username = ?', [username])
+}
+
+export function getAccountByToken(token) {
+  if (!token) return null
+  return queryOne('SELECT * FROM accounts WHERE token = ?', [token])
+}
+
+export function getAccounts() {
+  return queryAll('SELECT * FROM accounts ORDER BY created_at ASC')
+}
+
+export function createAccount(username, password, opts = {}) {
+  const id = crypto.randomUUID()
+  const now = nowISO()
+  const role = opts.role || 'user'
+  const deviceId = opts.deviceId || null
+  db.run(
+    'INSERT INTO accounts (id, username, password_hash, token, device_id, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, username, hashPassword(password), null, deviceId, role, now]
+  )
+  saveDb()
+  return getAccountById(id)
+}
+
+export function authenticate(username, password) {
+  const acc = getAccountByUsername(username)
+  if (!acc) return null
+  if (!verifyPassword(password, acc.password_hash)) return null
+  return acc
+}
+
+export function issueToken(account) {
+  const token = generateToken()
+  db.run('UPDATE accounts SET token = ?, last_login_at = ? WHERE id = ?', [token, nowISO(), account.id])
+  saveDb()
+  return token
+}
+
+export function clearToken(accountId) {
+  db.run('UPDATE accounts SET token = NULL WHERE id = ?', [accountId])
+  saveDb()
+}
+
+export function changePassword(accountId, newPassword) {
+  db.run('UPDATE accounts SET password_hash = ? WHERE id = ?', [hashPassword(newPassword), accountId])
+  saveDb()
+}
+
+// 设备绑定：把账号绑定到当前 PC 设备（account.device_id = 本机 device_id）
+export function bindAccountToDevice(accountId, deviceId) {
+  db.run('UPDATE accounts SET device_id = ? WHERE id = ?', [deviceId, accountId])
+  saveDb()
+}
+
+// 首次启动引导：创建主账号（设备 owner）、生成设备ID、把既有数据归属到主账号
+export function bootstrapAuth(env = {}) {
+  let did = getMeta('device_id')
+  if (!did) {
+    did = crypto.randomBytes(16).toString('hex')
+    setMeta('device_id', did)
+  }
+  serverDeviceId = did
+
+  const adminUser = env.HAPPY_FRIDAY_ADMIN_USER || 'admin'
+  const adminPass = env.HAPPY_FRIDAY_ADMIN_PASSWORD || 'change-me-now'
+
+  let primary = getAccountByUsername(adminUser)
+  if (!primary) {
+    primary = createAccount(adminUser, adminPass, { role: 'admin', deviceId: did })
+  } else if (!primary.device_id) {
+    bindAccountToDevice(primary.id, did)
+  }
+
+  // 既有数据（account_id 为空）归属到主账号，实现“同一账号读取电脑端全部数据”
+  db.run('UPDATE notes SET account_id = ? WHERE account_id IS NULL', [primary.id])
+  db.run('UPDATE sessions SET account_id = ? WHERE account_id IS NULL', [primary.id])
+  saveDb()
+
+  setCurrentAccountId(primary.id)
+  return primary
+}
+
+// ===== 按账号隔离的数据读取（供手机端 / API 使用）=====
+
+export function getNotesForAccount(accountId) {
+  return queryAll(
+    'SELECT * FROM notes WHERE isDeleted = 0 AND account_id = ? ORDER BY updatedAt DESC',
+    [accountId]
+  ).map(normalizeNote)
+}
+
+export function getNoteForAccount(noteId, accountId) {
+  return normalizeNote(
+    queryOne('SELECT * FROM notes WHERE id = ? AND isDeleted = 0 AND account_id = ?', [noteId, accountId])
+  )
+}
+
+export function searchNotesForAccount(query, accountId) {
+  const q = `%${(query || '').toLowerCase()}%`
+  return queryAll(
+    "SELECT * FROM notes WHERE isDeleted = 0 AND account_id = ? AND (LOWER(title) LIKE ? OR LOWER(contentText) LIKE ?)",
+    [accountId, q, q]
+  ).map(normalizeNote)
+}
+
+export function getSessionsForAccount(accountId) {
+  return queryAll(
+    'SELECT id, title, mode, account_id, createdAt, updatedAt FROM sessions WHERE account_id = ? ORDER BY updatedAt DESC',
+    [accountId]
+  )
+}
+
+export function getSessionForAccount(sessionId, accountId) {
+  return queryOne('SELECT * FROM sessions WHERE id = ? AND account_id = ?', [sessionId, accountId])
 }

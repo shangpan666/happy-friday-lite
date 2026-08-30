@@ -1,5 +1,12 @@
 <template>
   <div class="knowledge-base">
+    <div v-if="readOnly" class="readonly-banner">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      <span>只读模式 · 来自中央机知识库</span>
+    </div>
     <KbSidebar
       :collapsed="sidebarCollapsed"
       :is-resizing="isResizing"
@@ -9,6 +16,7 @@
       :filtered-categories="filteredCategories"
       :selected-k-b="selectedKB"
       :search-input-ref="searchInputRef"
+      :read-only="readOnly"
       @toggle-sidebar="toggleSidebar"
       @enter-search="enterSearchMode"
       @exit-search="exitSearchMode"
@@ -44,6 +52,7 @@
       :path-segments="pathSegments"
       :files="files"
       :current-path="currentPath"
+      :read-only="readOnly"
       @go-back="goBack"
       @go-forward="goForward"
       @navigate-to-segment="navigateToSegment"
@@ -54,6 +63,19 @@
       @open-search-result="handleOpenSearchResult"
     />
 
+    <!-- 远端只读文件查看 -->
+    <div v-if="remoteFile" class="remote-file-overlay">
+      <div class="remote-file-header">
+        <span class="remote-file-name">{{ remoteFile.name }}</span>
+        <span class="remote-file-tag">只读</span>
+        <button class="remote-file-close" @click="closeRemoteFile">✕</button>
+      </div>
+      <div class="remote-file-body">
+        <pre v-if="remoteFile.content !== undefined" class="remote-file-content">{{ remoteFile.content }}</pre>
+        <div v-else class="remote-file-error">{{ remoteFile.error || '无法读取该文件' }}</div>
+      </div>
+    </div>
+
     <!-- 知识库右键菜单 -->
     <KbContextMenu
       :visible="contextMenu.visible"
@@ -61,14 +83,14 @@
       :y="contextMenu.y"
       @close="hideContextMenu"
     >
-      <div class="context-menu-item" @mousedown="handleEditKB">
+      <div v-if="!readOnly" class="context-menu-item" @mousedown="handleEditKB">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
         <span>编辑</span>
       </div>
-      <div v-if="!contextMenu.item?.protected" class="context-menu-item danger" @mousedown="handleDeleteKB">
+      <div v-if="!readOnly && !contextMenu.item?.protected" class="context-menu-item danger" @mousedown="handleDeleteKB">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6"></polyline>
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -86,7 +108,7 @@
       :y="fileContextMenu.y"
       @close="hideFileContextMenu"
     >
-      <div class="context-menu-item" @mousedown="openNewFolderDialog">
+      <div v-if="!readOnly" class="context-menu-item" @mousedown="openNewFolderDialog">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           <line x1="12" y1="11" x2="12" y2="17"></line>
@@ -94,7 +116,7 @@
         </svg>
         <span>新建文件夹</span>
       </div>
-      <div class="context-menu-item" @mousedown="openInFinder">
+      <div v-if="!readOnly" class="context-menu-item" @mousedown="openInFinder">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
         </svg>
@@ -110,7 +132,7 @@
       @close="hideFileItemContextMenu"
     >
       <div
-        v-if="canBuildIndex(fileItemContextMenu.items)"
+        v-if="!readOnly && canBuildIndex(fileItemContextMenu.items)"
         class="context-menu-item"
         @mousedown="handleBuildIndex"
       >
@@ -121,14 +143,14 @@
         </svg>
         <span>构建索引</span>
       </div>
-      <div v-if="fileItemContextMenu.items.length === 1" class="context-menu-item" @mousedown="handleRenameFile">
+      <div v-if="!readOnly && fileItemContextMenu.items.length === 1" class="context-menu-item" @mousedown="handleRenameFile">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
         <span>重命名</span>
       </div>
-      <div class="context-menu-item danger" @mousedown="handleDeleteFile">
+      <div v-if="!readOnly" class="context-menu-item danger" @mousedown="handleDeleteFile">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6"></polyline>
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -292,6 +314,8 @@ const fileSystem = useFileSystem();
 
 const {
   files,
+  readOnly,
+  remoteFile,
   showNewFolderDialog,
   newFolderName,
   newFolderInputRef,
@@ -314,7 +338,8 @@ const {
   openRenameDialog,
   closeRenameDialog,
   confirmRename,
-  deleteFileOrFolder
+  deleteFileOrFolder,
+  closeRemoteFile
 } = fileSystem;
 
 const currentPath = computed(() => fileSystem.currentPath.value);
@@ -831,5 +856,84 @@ onBeforeUnmount(() => {
   &:hover {
     background: var(--bg-active);
   }
+}
+
+.readonly-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.remote-file-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.remote-file-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.remote-file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remote-file-tag {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--accent-light);
+  color: var(--accent-color);
+}
+
+.remote-file-close {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.remote-file-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.remote-file-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.remote-file-error {
+  color: var(--danger-color);
+  font-size: 13px;
 }
 </style>

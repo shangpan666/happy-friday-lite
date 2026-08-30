@@ -34,14 +34,14 @@
               <ChevronIcon :class="{ expanded: category.expanded }" />
               <span class="category-name">{{ category.name }}</span>
               <button
-                v-if="!searchQuery && category.id === 'agent'"
+                v-if="!searchQuery && category.id === 'agent' && !readOnly"
                 class="add-btn open-dir-btn"
                 @click.stop="$emit('open-agent-dir')"
                 title="打开Agent文件目录"
               >
                 <FolderOpenIcon :size="14" />
               </button>
-              <button v-if="!searchQuery && category.id !== 'agent'" class="add-btn" @click.stop="$emit('add-kb', category.id)" title="添加知识库">
+              <button v-if="!searchQuery && category.id !== 'agent' && !readOnly" class="add-btn" @click.stop="$emit('add-kb', category.id)" title="添加知识库">
                 <PlusIcon :size="14" />
               </button>
             </div>
@@ -82,7 +82,8 @@ defineProps({
   searchQuery: String,
   filteredCategories: Array,
   selectedKB: String,
-  searchInputRef: Object
+  searchInputRef: Object,
+  readOnly: Boolean
 });
 
 defineEmits([

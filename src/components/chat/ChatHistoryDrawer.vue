@@ -204,6 +204,7 @@ const shareLinkInputRef = ref(null);
 
 const saveToastVisible = ref(false);
 const saveToastMessage = ref('');
+let unlistenExternal = null;
 
 const toggleDrawer = () => {
   isOpen.value = !isOpen.value;
@@ -612,10 +613,19 @@ const handleClickOutside = (e) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside, true);
+  // 外部入口（手机 / QQ 机器人等）产生新对话时，自动刷新桌面端会话列表，
+  // 使"在桌面端发起对话"可见
+  unlistenExternal = electronService.listen('friday-external-session', () => {
+    loadSessions();
+  });
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside, true);
+  if (unlistenExternal) {
+    try { unlistenExternal() } catch (_e) {}
+    unlistenExternal = null;
+  }
 });
 
 onDeactivated(() => {

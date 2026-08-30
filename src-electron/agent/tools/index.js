@@ -25,6 +25,9 @@ import './builtin/knowledgeBase.js'
 // 笔记操作工具（search/get/create/update）
 import './builtin/noteOps.js'
 
+// 对话（聊天记录）操作工具（list/get/search，使外部入口可读取桌面端历史对话）
+import './builtin/chatOps.js'
+
 // 日程操作工具（list/create/update/delete）
 import './builtin/scheduleOps.js'
 
