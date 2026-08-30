@@ -926,7 +926,7 @@ async function routeMobileApi(req, res, url, account) {
   sendJson(res, 404, { success: false, error: 'Not Found' })
 }
 
-function handleRequest(req, res) {
+async function handleRequest(req, res) {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`)
 

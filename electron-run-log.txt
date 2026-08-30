@@ -1,10 +1,10 @@
-[周日 2026/08/30 17:10:53.08] run-desktop.cmd started 
-[周日 2026/08/30 17:10:53.08] cwd: D:\ai agent\Ai agent\happy-friday-lite 
+[周日 2026/08/30 17:12:41.81] run-desktop.cmd started 
+[周日 2026/08/30 17:12:41.82] cwd: D:\ai agent\Ai agent\happy-friday-lite 
 D:\node.exe
 v24.19.0
 D:\npm
 D:\npm.cmd
-[周日 2026/08/30 17:10:53.62] Launching Electron desktop app... 
+[周日 2026/08/30 17:12:42.41] Launching Electron desktop app... 
 npm warn Unknown project config "electron_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 npm warn Unknown project config "electron_builder_binaries_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 
@@ -12,23 +12,3 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 > node scripts/fix-dsh-directory-picker-electron.mjs && concurrently "vite" "wait-on http://localhost:5173 && electron ."
 
 [fix-dsh-directory-picker-electron] Electron worker launch is patched
-[0] 
-[0]   [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m1600[22m[2m[0m ms[22m
-[0] 
-[0]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
-[0] [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
-[1] 
-[1] App threw an error during load
-[1] SyntaxError: Unexpected reserved word
-[1]     at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
-[1]     at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
-[1]     at #translate (node:internal/modules/esm/loader:451:20)
-[1]     at afterLoad (node:internal/modules/esm/loader:507:29)
-[1]     at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:512:12)
-[1]     at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:555:36)
-[1]     at afterResolve (node:internal/modules/esm/loader:603:52)
-[1]     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:609:12)
-[1]     at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33)
-[1]     at ModuleJob.link (node:internal/modules/esm/module_job:252:17)
-[0] vite exited with code 3221225786
-[1] wait-on http://localhost:5173 && electron . exited with code 3221225786
