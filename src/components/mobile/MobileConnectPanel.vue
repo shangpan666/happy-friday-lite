@@ -78,6 +78,22 @@
             <li>手机端支持查看对话、笔记、语音输入等功能</li>
           </ul>
         </div>
+
+        <!-- 手机扫码自动登录 -->
+        <div class="qr-login-section">
+          <h4>手机扫码登录</h4>
+          <p class="qr-login-desc">手机相机扫描下方二维码，点击链接即可自动登录 App。</p>
+          <div v-if="qrLoginData" style="text-align: center;">
+            <canvas ref="qrLoginCanvas" width="200" height="200" style="border-radius: 8px; border: 1px solid var(--border, #e5e7eb);"></canvas>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+              二维码 60 秒后过期，请刷新
+            </div>
+            <button class="copy-btn" style="margin-top: 8px;" @click="generateQrLogin">刷新二维码</button>
+          </div>
+          <div v-else style="text-align: center;">
+            <button class="copy-btn" @click="generateQrLogin" style="padding: 6px 16px;">生成登录二维码</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -98,6 +114,7 @@ export default {
       localUrl: '',
       tunnelUrl: '',
       tunnelStatus: 'stopped', // stopped | starting | running | error
+      qrLoginData: null,
     }
   },
   computed: {
@@ -218,6 +235,31 @@ export default {
         el.select()
         document.execCommand('copy')
         document.body.removeChild(el)
+      }
+    },
+    async generateQrLogin() {
+      if (!window.electronAPI) return
+      try {
+        const data = await window.electronAPI.invoke('mobile-get-qr-login-data')
+        if (!data || !data.qrToken) {
+          alert('生成二维码失败，请先登录或检查服务状态')
+          return
+        }
+        this.qrLoginData = data
+        await this.$nextTick()
+        if (this.$refs.qrLoginCanvas) {
+          const qrUrl = `${data.server}/mobile/qr-login?qrToken=${data.qrToken}`
+          const QRCode = await this.loadQRCodeLib()
+          if (QRCode) {
+            await QRCode.toCanvas(this.$refs.qrLoginCanvas, qrUrl, {
+              width: 200,
+              margin: 1,
+              color: { dark: '#000000', light: '#ffffff' }
+            })
+          }
+        }
+      } catch (e) {
+        console.error('QR login generation failed:', e)
       }
     }
   }
@@ -486,6 +528,28 @@ export default {
 .tips-section {
   font-size: 12px;
   color: var(--text-secondary, #6b7280);
+  margin-bottom: 16px;
+}
+
+/* QR Login Section */
+.qr-login-section {
+  padding: 16px;
+  background: var(--bg-secondary, #f9fafb);
+  border-radius: 12px;
+}
+
+.qr-login-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  margin-bottom: 6px;
+}
+
+.qr-login-desc {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .tips-section h4 {
