@@ -1,7 +1,6 @@
 # Phronesis 安卓端（企业内网版）
 
-安卓 App，连接电脑端的 **Phronesis Lite** 服务（`shareServer`，默认端口 `17918`），
-通过**账号令牌**登录，按账号读取电脑端的笔记与全部对话。同一账号即可在手机上看到电脑端数据。
+安卓 App，连接电脑端的 **Phronesis Lite** 服务（`shareServer`，默认端口 `17918`），通过**账号令牌**登录，按账号读取电脑端的笔记与全部对话。同一账号即可在手机上看到电脑端数据。
 
 > 技术栈：Flutter（Dart）。对应电脑端改动：`src-electron/db.js`、`src-electron/shareServer.js`。
 
