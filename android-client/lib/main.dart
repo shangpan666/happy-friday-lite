@@ -1,13 +1,22 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'screens/login_screen.dart';
 import 'screens/notes_screen.dart';
+import 'services/api_client.dart';
 import 'services/secure_storage.dart';
+
+const MethodChannel _deepLinkChannel = MethodChannel('com.happyfriday/deeplink');
+
+/// 全局 Deep Link 事件流，供各页面监听
+final StreamController<Map<String, String>> deepLinkStreamController =
+    StreamController<Map<String, String>>.broadcast();
+Stream<Map<String, String>> get deepLinkStream => deepLinkStreamController.stream;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // 把未捕获的 Dart 错误显示到界面上，方便定位（而不是变成"闪退"）
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Scaffold(
       body: SingleChildScrollView(
@@ -19,7 +28,6 @@ void main() {
       ),
     );
   };
-  // 记录并兜底未捕获的异常，避免异步错误直接导致进程退出（release 下表现为"闪退"）
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.dumpErrorToConsole(details);
   };
@@ -27,8 +35,17 @@ void main() {
     FlutterError.dumpErrorToConsole(
       FlutterErrorDetails(exception: error, stack: stack as StackTrace?),
     );
-    return true; // 已处理，阻止未捕获的异步 Dart 错误杀掉进程
+    return true;
   };
+
+  // 监听热启动时的 Deep Link 回调
+  _deepLinkChannel.setMethodCallHandler((call) async {
+    if (call.method == 'onDeepLink') {
+      final data = Map<String, String>.from(call.arguments as Map);
+      deepLinkStreamController.add(data);
+    }
+  });
+
   runApp(const MyApp());
 }
 
@@ -48,7 +65,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// 启动时检查是否已登录（已保存服务地址 + 令牌），决定进入登录页还是笔记页
 class EntryPoint extends StatefulWidget {
   const EntryPoint({super.key});
 
@@ -67,6 +83,27 @@ class _EntryPointState extends State<EntryPoint> {
 
   Future<void> _checkLogin() async {
     try {
+      // 先检查是否有冷启动 Deep Link
+      final initialLink = await _deepLinkChannel.invokeMethod<Map>('getInitialLink');
+      if (initialLink != null && initialLink.isNotEmpty) {
+        final server = initialLink['server'] ?? '';
+        final token = initialLink['token'] ?? '';
+        if (server.isNotEmpty && token.isNotEmpty) {
+          await SecureStorage.saveSession(
+            serverUrl: ApiClient.normalizeUrl(server),
+            token: token,
+            username: initialLink['username'] ?? '',
+            deviceId: initialLink['deviceId'],
+            role: initialLink['role'],
+          );
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const NotesScreen()),
+          );
+          return;
+        }
+      }
+
       final token = await _storage.read(key: kTokenKey);
       final server = await _storage.read(key: kServerUrlKey);
       if (!mounted) return;

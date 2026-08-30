@@ -937,6 +937,54 @@ async function handleRequest(req, res) {
       return
     }
 
+    // ===== 手机扫码登录中间页（公开接口，无需 token）=====
+    // 手机扫描 PC 二维码后访问此页面，页面内自动调用 qr-verify 并通过 Deep Link 跳转回 App
+    if (url.pathname === '/mobile/qr-login' && req.method === 'GET') {
+      const qrToken = url.searchParams.get('qrToken') || ''
+      if (!qrToken) {
+        res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' })
+        res.end('<html><body style="text-align:center;padding:40px;font-family:sans-serif"><h2>参数缺失</h2><p>缺少 qrToken 参数</p></body></html>')
+        return
+      }
+      const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Happy Friday - 扫码登录</title>
+<style>body{font-family:-apple-system,sans-serif;text-align:center;padding:60px 20px;margin:0;background:#f5f5f5}
+.box{background:#fff;border-radius:12px;padding:32px;max-width:360px;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.spinner{width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#1976d2;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ok{color:#2e7d32;font-size:18px;font-weight:bold}.err{color:#c62828}</style></head>
+<body><div class="box">
+<div class="spinner" id="sp"></div>
+<div id="msg">正在登录，请稍候...</div>
+</div>
+<script>
+(function(){
+  var qrToken=${JSON.stringify(qrToken)};
+  fetch('/api/auth/qr-verify',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({qrToken:qrToken})
+  }).then(function(r){return r.json()}).then(function(d){
+    document.getElementById('sp').style.display='none';
+    if(d.success){
+      document.getElementById('msg').innerHTML='<div class="ok">登录成功！</div><p>正在跳转到 App...</p>';
+      var params='token='+encodeURIComponent(d.token)+'&username='+encodeURIComponent(d.username||'')+'&server='+encodeURIComponent(d.server||'')+'&deviceId='+encodeURIComponent(d.deviceId||'')+'&role='+encodeURIComponent(d.role||'');
+      window.location.href='happyfriday://login?'+params;
+      setTimeout(function(){document.getElementById('msg').innerHTML+='<p style="color:#666;font-size:13px">如果没有自动跳转，请 <a href="happyfriday://login?'+params+'">点击这里</a></p>'},2000);
+    }else{
+      document.getElementById('msg').innerHTML='<div class="err">登录失败</div><p>'+((d.error)||'二维码已过期或无效')+'</p><p>请返回 PC 端刷新二维码后重试</p>';
+    }
+  }).catch(function(e){
+    document.getElementById('sp').style.display='none';
+    document.getElementById('msg').innerHTML='<div class="err">网络错误</div><p>'+e.message+'</p><p>请检查手机网络连接</p>';
+  });
+})();
+</script></body></html>`
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+      res.end(html)
+      return
+    }
+
     // ===== 账号体系（公开接口）=====
     // 登录：签发 Bearer Token，返回设备绑定信息
     if (url.pathname === '/api/auth/login' && req.method === 'POST') {
@@ -960,13 +1008,15 @@ async function handleRequest(req, res) {
       const account = verifyQrToken(qrToken)
       if (!account) { sendJson(res, 401, { success: false, error: '二维码已过期或无效' }); return }
       const sessionToken = issueToken(account)
+      const serverUrl = `http://${req.headers.host || 'localhost'}`
       sendJson(res, 200, {
         success: true,
         token: sessionToken,
         username: account.username,
         role: account.role,
         deviceId: account.device_id,
-        deviceName: os.hostname()
+        deviceName: os.hostname(),
+        server: serverUrl
       })
       return
     }

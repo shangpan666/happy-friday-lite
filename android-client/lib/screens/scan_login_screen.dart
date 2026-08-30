@@ -1,6 +1,6 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import '../main.dart';
 import '../services/api_client.dart';
 import '../services/secure_storage.dart';
 import 'notes_screen.dart';
@@ -13,85 +13,52 @@ class ScanLoginScreen extends StatefulWidget {
 }
 
 class _ScanLoginScreenState extends State<ScanLoginScreen> {
+  StreamSubscription<Map<String, String>>? _sub;
   bool _handling = false;
-  String? _error;
-  MobileScannerController? _controller;
+  String? _status;
 
   @override
   void initState() {
     super.initState();
-    _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
-      facing: CameraFacing.back,
-    );
+    _sub = deepLinkStream.listen(_onDeepLink);
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _sub?.cancel();
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) async {
+  void _onDeepLink(Map<String, String> data) async {
     if (_handling) return;
-    final barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
-    final raw = barcodes.first.rawValue;
-    if (raw == null || raw.isEmpty) return;
-
-    Map<String, dynamic> data;
-    try {
-      data = jsonDecode(raw) as Map<String, dynamic>;
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _error = '二维码格式无效，需要 JSON');
-      return;
-    }
-
-    final server = data['server']?.toString();
-    final qrToken = data['qrToken']?.toString();
-    if (server == null || qrToken == null) {
-      if (!mounted) return;
-      setState(() => _error = '二维码缺少 server 或 qrToken 字段');
-      return;
-    }
+    final server = data['server'] ?? '';
+    final token = data['token'] ?? '';
+    if (server.isEmpty || token.isEmpty) return;
 
     setState(() {
       _handling = true;
-      _error = null;
+      _status = '正在登录...';
     });
 
-    _controller?.stop();
-
     try {
-      final base = ApiClient.normalizeUrl(server);
-      final result = await ApiClient.qrLogin(base, qrToken);
       await SecureStorage.saveSession(
-        serverUrl: base,
-        token: result['token'],
-        username: result['username'] ?? '',
-        deviceId: result['deviceId'],
-        role: result['role'],
+        serverUrl: ApiClient.normalizeUrl(server),
+        token: token,
+        username: data['username'] ?? '',
+        deviceId: data['deviceId'],
+        role: data['role'],
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const NotesScreen()),
         (_) => false,
       );
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = '登录失败：${e.message}';
-        _handling = false;
-      });
-      _controller?.start();
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = '网络错误：$e';
+        _status = '登录失败：$e';
         _handling = false;
       });
-      _controller?.start();
     }
   }
 
@@ -99,78 +66,46 @@ class _ScanLoginScreenState extends State<ScanLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('扫码登录')),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          MobileScanner(
-            controller: _controller,
-            onDetect: _onDetect,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.qr_code_scanner,
+                size: 80,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                '使用手机相机扫描电脑端二维码',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '扫描后在弹出的链接上点击，即可自动登录 App。',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '步骤：\n1. 打开手机「相机」应用\n2. 对准电脑端的二维码\n3. 点击屏幕上的链接\n4. 自动跳转完成登录',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              if (_handling) ...[
+                const CircularProgressIndicator(),
+                const SizedBox(height: 12),
+                Text(_status ?? '', style: const TextStyle(color: Colors.green)),
+              ] else if (_status != null) ...[
+                Text(_status!, style: const TextStyle(color: Colors.red)),
+              ],
+            ],
           ),
-          Positioned(
-            top: 40,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  '将电脑端二维码放入框内',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-            ),
-          ),
-          if (_handling)
-            Positioned(
-              bottom: 60,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Text('正在登录...', style: TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          if (_error != null && !_handling)
-            Positioned(
-              bottom: 60,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade900,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(_error!, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }

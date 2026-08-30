@@ -648,7 +648,7 @@
         <div class="group-title">手机扫码登录</div>
         <div class="group-content">
           <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 12px;">
-            手机端点击「扫码登录」后扫描下方二维码，即可自动登录。
+            用手机相机扫描下方二维码，点击链接即可自动登录。
           </p>
           <div v-if="qrLoginData" style="text-align: center; padding: 16px;">
             <canvas ref="qrCanvasRef" width="200" height="200" style="border-radius: 8px;"></canvas>
@@ -2027,10 +2027,8 @@ async function generateQrLogin() {
   qrLoginData.value = data;
   await new Promise(r => setTimeout(r, 50));
   if (qrCanvasRef.value) {
-    drawQrOnCanvas(qrCanvasRef.value, JSON.stringify({
-      server: data.server,
-      qrToken: data.qrToken
-    }));
+    const qrUrl = `${data.server}/mobile/qr-login?qrToken=${data.qrToken}`;
+    drawQrOnCanvas(qrCanvasRef.value, qrUrl);
   }
 }
 

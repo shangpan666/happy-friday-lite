@@ -26,11 +26,6 @@ jobs:
           channel: 'stable'
           flutter-version: '3.24.0'
 
-      # mobile_scanner 依赖 CameraX + ML Kit，需要 Android NDK
-      - name: Install Android NDK
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653" || true
-
       - name: Install dependencies
         run: flutter pub get
 
@@ -39,21 +34,17 @@ jobs:
         run: flutter create --platforms=android --project-name android_client --org com.happyfriday .
 
       # 还原"内网明文 HTTP"配置（INTERNET 权限 + usesCleartextTraffic + network_security_config）
-      # 其余 android 原生文件由 flutter create 生成默认版本（与 Flutter 3.24 自带插件兼容）
       - name: Restore LAN HTTP manifest config
         run: |
           git checkout -- android/app/src/main/AndroidManifest.xml
           git checkout -- android/app/src/main/res/xml/network_security_config.xml
 
       # flutter create 默认生成的 Kotlin Gradle 插件版本过低(1.7.1)，与依赖的 kotlin-stdlib 1.9.x 不兼容
-      - name: Patch Kotlin version & NDK version
+      - name: Patch Kotlin version
         run: |
           sed -i 's#id "org.jetbrains.kotlin.android" version "[^"]*"#id "org.jetbrains.kotlin.android" version "1.9.24"#' android/settings.gradle android/build.gradle
           sed -i "s#ext.kotlin_version = '[^']*'#ext.kotlin_version = '1.9.24'#" android/settings.gradle android/build.gradle android/app/build.gradle 2>/dev/null || true
           grep -rn "kotlin" android/settings.gradle android/build.gradle || true
-          # 设置 NDK 版本（mobile_scanner / CameraX 原生编译需要）
-          sed -i '/android {/a\    ndkVersion "25.2.9519653"' android/app/build.gradle 2>/dev/null || true
-          grep -n "ndkVersion" android/app/build.gradle || true
 
       # 关闭 R8 收缩并挂上 keep 规则，避免 io.flutter.embedding.android.FlutterApplication
       # 被误删导致启动 ClassNotFoundException 闪退（release 构建默认会跑 R8 混淆）
@@ -63,7 +54,7 @@ jobs:
           grep -n "minifyEnabled\|proguardFiles" android/app/build.gradle || true
 
       - name: Build release APK
-        run: flutter build apk --release --verbose 2>&1 | tail -100
+        run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
