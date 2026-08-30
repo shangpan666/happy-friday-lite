@@ -1,6 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:wake_on_lan/wake_on_lan.dart';
 import '../services/wol_storage.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -135,12 +135,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Send Wake-on-LAN magic packet via raw UDP broadcast.
+  /// Magic packet = 6 bytes of 0xFF + target MAC repeated 16 times.
   Future<void> _wake(WoLComputer c) async {
     try {
-      final ip = IPAddress(c.broadcastIp);
-      final mac = MACAddress(c.macAddress);
-      final wol = WakeOnLAN(ip, mac);
-      await wol.wake(repeat: 3, repeatDelay: const Duration(milliseconds: 200));
+      final macBytes = c.macAddress
+          .split(':')
+          .map((s) => int.parse(s, radix: 16))
+          .toList();
+      if (macBytes.length != 6) throw const FormatException('Invalid MAC');
+
+      final magic = Uint8List(6 + 16 * 6);
+      for (int i = 0; i < 6; i++) magic[i] = 0xFF;
+      for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 6; j++) {
+          magic[6 + i * 6 + j] = macBytes[j];
+        }
+      }
+
+      final addr = InternetAddress(c.broadcastIp);
+      final socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        0,
+        reuseAddress: true,
+      );
+      socket.broadcastEnabled = true;
+      socket.send(magic, addr, 9);
+      socket.close();
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('已发送开机指令到「${c.name}」')),
