@@ -15,7 +15,7 @@ import {
   getDeviceId,
   changePassword
 } from './db.js'
-import { loadConfig, getDataDir } from './config.js'
+import { loadConfig, saveConfig, getDataDir } from './config.js'
 import { runAgent } from './bridge/agentRunner.js'
 import { notifyExternalSession } from './externalNotify.js'
 import {
@@ -805,6 +805,56 @@ function routeMobileApi(req, res, url, account) {
     const id = decodeURIComponent(sessionWrite[1])
     if (req.method === 'PUT') { serveMobileUpdateSessionApi(req, res, account, id); return }
     if (req.method === 'DELETE') { serveMobileDeleteSessionApi(req, res, account, id); return }
+  }
+
+  // ===== WoL 远程开机（需要登录）=====
+  if (url.pathname === '/api/mobile/wol' && req.method === 'GET') {
+    const config = loadConfig()
+    sendJson(res, 200, { success: true, computers: config.wolComputers || [] })
+    return
+  }
+  if (url.pathname === '/api/mobile/wol' && req.method === 'POST') {
+    let body
+    try { body = await readPostBody(req) } catch (_) { sendJson(res, 400, { success: false, error: '请求体格式错误' }); return }
+    const computers = Array.isArray(body.computers) ? body.computers : []
+    const config = loadConfig()
+    config.wolComputers = computers
+    saveConfig(config)
+    sendJson(res, 200, { success: true })
+    return
+  }
+  if (url.pathname === '/api/mobile/wol/wake' && req.method === 'POST') {
+    let body
+    try { body = await readPostBody(req) } catch (_) { sendJson(res, 400, { success: false, error: '请求体格式错误' }); return }
+    const { mac, broadcast } = body
+    if (!mac) { sendJson(res, 400, { success: false, error: 'mac 不能为空' }); return }
+    try {
+      const dgram = await import('dgram')
+      const socket = dgram.createSocket({ type: 'udp4', reuseAddr: true })
+      const macBytes = mac.split(':').map(s => parseInt(s, 16))
+      if (macBytes.length !== 6) throw new Error('MAC 地址格式无效')
+      const magic = Buffer.alloc(6 + 16 * 6)
+      magic.fill(0xFF, 0, 6)
+      for (let i = 0; i < 16; i++) {
+        for (let j = 0; j < 6; j++) {
+          magic[6 + i * 6 + j] = macBytes[j]
+        }
+      }
+      await new Promise((resolve, reject) => {
+        socket.bind(() => {
+          socket.setBroadcast(true)
+          socket.send(magic, 0, magic.length, 9, broadcast || '255.255.255.255', (err) => {
+            socket.close()
+            if (err) reject(err)
+            else resolve()
+          })
+        })
+      })
+      sendJson(res, 200, { success: true })
+    } catch (e) {
+      sendJson(res, 500, { success: false, error: e.message || '发送失败' })
+    }
+    return
   }
 
   // DeepSeek Harness 状态（GET）

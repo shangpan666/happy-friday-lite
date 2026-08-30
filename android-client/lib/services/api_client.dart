@@ -162,4 +162,34 @@ class ApiClient {
     final body = await _get('/api/mobile/kb/file?p=$p');
     return body;
   }
+
+  // ===== WoL 远程开机 =====
+  Future<List<dynamic>> getWoLComputers() async {
+    final body = await _get('/api/mobile/wol');
+    return body['computers'] as List<dynamic>? ?? [];
+  }
+
+  Future<void> saveWoLComputers(List<Map<String, dynamic>> computers) async {
+    final resp = await http.post(
+      Uri.parse('$serverUrl/api/mobile/wol'),
+      headers: _headers,
+      body: jsonEncode({'computers': computers}),
+    );
+    final body = _decode(resp);
+    if (resp.statusCode != 200 || body['success'] != true) {
+      throw ApiException(body['error']?.toString() ?? '保存失败');
+    }
+  }
+
+  Future<void> wakeComputer(String mac, {String? broadcast}) async {
+    final resp = await http.post(
+      Uri.parse('$serverUrl/api/mobile/wol/wake'),
+      headers: _headers,
+      body: jsonEncode({'mac': mac, 'broadcast': broadcast}),
+    );
+    final body = _decode(resp);
+    if (resp.statusCode != 200 || body['success'] != true) {
+      throw ApiException(body['error']?.toString() ?? '开机失败');
+    }
+  }
 }

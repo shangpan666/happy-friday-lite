@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../services/api_client.dart';
+import '../services/secure_storage.dart';
 import '../services/wol_storage.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -13,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   List<WoLComputer> _computers = [];
   bool _loading = true;
+  bool _synced = false; // whether loaded from server
 
   @override
   void initState() {
@@ -21,12 +24,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _load() async {
+    // Try server first
+    try {
+      final serverUrl = await SecureStorage.read(kServerUrlKey);
+      final token = await SecureStorage.read(kTokenKey);
+      if (serverUrl != null && token != null && token.isNotEmpty) {
+        final client = ApiClient(serverUrl: serverUrl, token: token);
+        final list = await client.getWoLComputers();
+        final computers = list.map((e) => WoLComputer.fromJson(e as Map<String, dynamic>)).toList();
+        if (!mounted) return;
+        setState(() {
+          _computers = computers;
+          _loading = false;
+          _synced = true;
+        });
+        // Sync to local as backup
+        await WoLStorage.saveComputers(computers);
+        return;
+      }
+    } catch (_) {}
+    // Fallback to local
     final list = await WoLStorage.loadComputers();
     if (!mounted) return;
     setState(() {
       _computers = list;
       _loading = false;
+      _synced = false;
     });
+  }
+
+  Future<void> _saveToServer() async {
+    if (!_synced) return;
+    try {
+      final serverUrl = await SecureStorage.read(kServerUrlKey);
+      final token = await SecureStorage.read(kTokenKey);
+      if (serverUrl != null && token != null) {
+        final client = ApiClient(serverUrl: serverUrl, token: token);
+        await client.saveWoLComputers(_computers.map((c) => c.toJson()).toList());
+      }
+    } catch (_) {}
+    // Also save locally
+    await WoLStorage.saveComputers(_computers);
   }
 
   Future<void> _addOrEdit({WoLComputer? existing}) async {
@@ -106,11 +144,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (existing != null) {
-      await WoLStorage.updateComputer(computer);
+      final idx = _computers.indexWhere((c) => c.id == existing.id);
+      if (idx >= 0) _computers[idx] = computer;
     } else {
-      await WoLStorage.addComputer(computer);
+      _computers.add(computer);
     }
-    await _load();
+    await _saveToServer();
+    if (!mounted) return;
+    setState(() {});
   }
 
   Future<void> _delete(WoLComputer c) async {
@@ -130,14 +171,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     if (confirm == true) {
-      await WoLStorage.removeComputer(c.id);
-      await _load();
+      _computers.removeWhere((e) => e.id == c.id);
+      await _saveToServer();
+      if (!mounted) return;
+      setState(() {});
     }
   }
 
-  /// Send Wake-on-LAN magic packet via raw UDP broadcast.
-  /// Magic packet = 6 bytes of 0xFF + target MAC repeated 16 times.
   Future<void> _wake(WoLComputer c) async {
+    // Try server-side wake first (works even if phone can't reach target LAN)
+    try {
+      final serverUrl = await SecureStorage.read(kServerUrlKey);
+      final token = await SecureStorage.read(kTokenKey);
+      if (serverUrl != null && token != null && token.isNotEmpty) {
+        final client = ApiClient(serverUrl: serverUrl, token: token);
+        await client.wakeComputer(c.macAddress, broadcast: c.broadcastIp);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('已发送开机指令到「${c.name}」')),
+        );
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback: direct UDP from phone
     try {
       final macBytes = c.macAddress
           .split(':')
@@ -179,7 +236,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('设置'),
+        title: Row(
+          children: [
+            const Text('设置'),
+            if (_synced)
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Icon(Icons.cloud_done, size: 16, color: Colors.green),
+              ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -200,7 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Text('暂无已保存的电脑', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
                       const SizedBox(height: 8),
                       Text(
-                        '点击右上角 + 添加需要远程开机的电脑',
+                        _synced ? '点击右上角 + 添加需要远程开机的电脑' : '未连接电脑端，使用本地存储',
                         style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                       ),
                     ],
