@@ -17,7 +17,7 @@ textarea,
 
 body {
   font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
-  font-size: 13px;
+  font-size: var(--base-font-size);
   background-color: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;

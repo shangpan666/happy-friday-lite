@@ -907,7 +907,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted, onUnmounted, onDeactivated } from 'vue';
+import { reactive, ref, computed, watch, onMounted, onUnmounted, onDeactivated } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppStore } from '@/store';
@@ -960,11 +960,26 @@ const currentLangLabel = computed(() => {
 
 const settings = reactive({
   displayMode: currentMode,
-  fontSize: 16,
+  fontSize: appStore.fontSize || 16,
   messageNotify: false,
   noteFimCompletion: appStore.noteFimCompletion,
   scheduleDefaultView: appStore.scheduleDefaultView || 'month'
 });
+
+// 字体大小变化时应用到全局
+watch(() => settings.fontSize, (val) => {
+  document.documentElement.style.setProperty('--base-font-size', val + 'px');
+  appStore.setFontSize(val);
+  // 持久化到 config.json
+  try {
+    electronService.invoke('get-config').then(config => {
+      if (config) {
+        config.fontSize = val;
+        electronService.invoke('save-config', config);
+      }
+    });
+  } catch (_e) {}
+}, { immediate: true });
 
 const enabledModuleCount = computed(() => Object.values(appStore.sidebarModules).filter(Boolean).length);
 const sidebarModuleCount = sidebarModuleConfig.length;

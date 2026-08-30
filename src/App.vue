@@ -159,6 +159,10 @@ onMounted(async () => {
           appStore.setScheduleDefaultView(config.scheduleDefaultView);
         }
         appStore.setSidebarModules(config.sidebarModules);
+        if (config.fontSize) {
+          appStore.setFontSize(config.fontSize);
+          document.documentElement.style.setProperty('--base-font-size', config.fontSize + 'px');
+        }
       }
     } catch (error) {
       console.error('Failed to load config:', error);
@@ -182,6 +186,10 @@ onMounted(async () => {
       }
       if (data.sidebarModules !== undefined) {
         appStore.setSidebarModules(data.sidebarModules);
+      }
+      if (data.fontSize) {
+        appStore.setFontSize(data.fontSize);
+        document.documentElement.style.setProperty('--base-font-size', data.fontSize + 'px');
       }
     });
   } else {
