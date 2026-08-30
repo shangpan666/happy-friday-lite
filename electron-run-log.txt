@@ -82,3 +82,8 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 [1] [Agent][BridgeHTTP] Bridge 未启用（config.bridge.enabled=false 且未设置 FRIDAY_BRIDGE=1）
 [1] [ShareServer] ✅ Share server running on http://0.0.0.0:17918
 [0] [2m22:02:35[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/views/account/AccountView.vue?vue&type=style&index=0&scoped=591b7e3e&lang.css[22m
+[1] [FileWatcher] 已停止 knowledge 目录监听
+[1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
+[1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
+[1] wait-on http://localhost:5173 && electron . exited with code 0
+[0] vite exited with code 3221225786

@@ -616,8 +616,8 @@ async function doRegister() {
 .radio input[type="radio"] {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border: 1.5px solid var(--border-strong);
   border-radius: 50%;
   background: transparent;
@@ -637,8 +637,8 @@ async function doRegister() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--accent-color);
 }
