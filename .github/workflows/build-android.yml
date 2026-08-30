@@ -47,6 +47,12 @@ jobs:
           sed -i "s#ext.kotlin_version = '[^']*'#ext.kotlin_version = '1.9.24'#" android/settings.gradle android/build.gradle android/app/build.gradle 2>/dev/null || true
           grep -rn "kotlin" android/settings.gradle android/build.gradle || true
 
+      # 关闭 R8 收缩，避免 io.flutter.embedding.android.FlutterApplication 被误删导致启动 ClassNotFoundException 闪退
+      - name: Disable R8 minify
+        run: |
+          sed -i 's#signingConfig signingConfigs.debug#signingConfig signingConfigs.debug\n            minifyEnabled false\n            shrinkResources false#' android/app/build.gradle
+          grep -n "minifyEnabled" android/app/build.gradle || true
+
       - name: Build release APK
         run: flutter build apk --release
 
