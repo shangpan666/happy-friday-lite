@@ -163,7 +163,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'account-me',
       'account-register',
       'account-change-password',
-      'set_connection'
+      'set_connection',
+      'wol-get-computers',
+      'wol-save-computers',
+      'wol-send',
+      'mobile-get-qr-login-data'
     ]
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args)

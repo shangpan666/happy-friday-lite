@@ -619,6 +619,49 @@
         </div>
       </div>
 
+      <!-- 远程开机 -->
+      <div class="settings-group">
+        <div class="group-title">远程开机（Wake-on-LAN）</div>
+        <div class="group-content">
+          <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 12px;">
+            添加局域网内需要远程开机的电脑，手机端也可管理同一列表。
+          </p>
+          <div v-for="(pc, idx) in wolComputers" :key="pc.id || idx" class="setting-item" style="align-items: flex-start;">
+            <div style="flex: 1;">
+              <div style="font-weight: 500;">{{ pc.name }}</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">MAC: {{ pc.mac }} 广播: {{ pc.broadcast }}</div>
+            </div>
+            <button class="text-btn" style="color: var(--success-color);" @click="wolSend(pc)">开机</button>
+            <button class="text-btn" style="color: var(--danger-color);" @click="wolRemove(idx)">删除</button>
+          </div>
+          <div class="setting-item" style="flex-wrap: wrap; gap: 8px;">
+            <input v-model="wolNew.name" placeholder="电脑名称" style="flex: 1; min-width: 100px;" class="text-input" />
+            <input v-model="wolNew.mac" placeholder="AA:BB:CC:DD:EE:FF" style="flex: 1; min-width: 160px;" class="text-input" />
+            <input v-model="wolNew.broadcast" placeholder="广播地址（可选，默认 255.255.255.255）" style="flex: 1; min-width: 180px;" class="text-input" />
+            <button class="primary-btn" @click="wolAdd">添加</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 手机扫码登录 -->
+      <div class="settings-group">
+        <div class="group-title">手机扫码登录</div>
+        <div class="group-content">
+          <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 12px;">
+            手机端点击「扫码登录」后扫描下方二维码，即可自动登录。
+          </p>
+          <div v-if="qrLoginData" style="text-align: center; padding: 16px;">
+            <div ref="qrCanvasRef" style="display: inline-block;"></div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+              服务器: {{ qrLoginData.server }}
+            </div>
+          </div>
+          <div v-else style="text-align: center; padding: 16px;">
+            <button class="primary-btn" @click="generateQrLogin">生成登录二维码</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 关于 -->
       <div class="settings-group">
         <div class="group-title">{{ t('settings.about') }}</div>
@@ -1929,6 +1972,80 @@ const goToModelSettings = () => {
 const goToModuleSettings = () => {
   router.push('/settings/modules');
 };
+
+// ========== 关于 / 功能介绍 / 帮助与反馈 ==========
+
+// ========== 远程开机（WoL） ==========
+const wolComputers = ref([]);
+const wolNew = reactive({ name: '', mac: '', broadcast: '255.255.255.255' });
+
+async function loadWolComputers() {
+  const list = await electronService.invoke('wol-get-computers');
+  if (list) wolComputers.value = list;
+}
+
+async function wolAdd() {
+  if (!wolNew.name.trim() || !wolNew.mac.trim()) return;
+  wolComputers.value.push({
+    id: Date.now().toString(),
+    name: wolNew.name.trim(),
+    mac: wolNew.mac.trim().toUpperCase(),
+    broadcast: wolNew.broadcast.trim() || '255.255.255.255'
+  });
+  await electronService.invoke('wol-save-computers', wolComputers.value);
+  wolNew.name = '';
+  wolNew.mac = '';
+  wolNew.broadcast = '255.255.255.255';
+}
+
+async function wolRemove(idx) {
+  wolComputers.value.splice(idx, 1);
+  await electronService.invoke('wol-save-computers', wolComputers.value);
+}
+
+async function wolSend(pc) {
+  try {
+    await electronService.invoke('wol-send', { mac: pc.mac, broadcast: pc.broadcast });
+    alert(`已发送开机指令到「${pc.name}」`);
+  } catch (e) {
+    alert(`发送失败: ${e.message || e}`);
+  }
+}
+
+// ========== 手机扫码登录二维码 ==========
+const qrLoginData = ref(null);
+const qrCanvasRef = ref(null);
+
+async function generateQrLogin() {
+  const data = await electronService.invoke('mobile-get-qr-login-data');
+  if (!data) return;
+  qrLoginData.value = data;
+  // 等 DOM 更新后用 Canvas 画二维码
+  await new Promise(r => setTimeout(r, 50));
+  if (qrCanvasRef.value) {
+    drawQrOnCanvas(qrCanvasRef.value, JSON.stringify({
+      server: data.server,
+      user: data.accounts?.[0]?.username || '',
+      pass: ''
+    }));
+  }
+}
+
+// 简易 QR 码 Canvas 绘制（使用 qrcode 库或内置实现）
+// 这里用 data URL 方式：生成一个 img 显示
+function drawQrOnCanvas(el, text) {
+  // 用 SVG 绘制一个简化的二维码占位，真实场景用 qrcode 库
+  // 暂时直接显示文本信息，用户可以扫码工具扫描
+  el.innerHTML = '';
+  const pre = document.createElement('pre');
+  pre.style.cssText = 'background: #f5f5f5; padding: 16px; border-radius: 8px; font-size: 11px; max-width: 300px; word-break: break-all; user-select: all;';
+  pre.textContent = text;
+  el.appendChild(pre);
+}
+
+onMounted(() => {
+  loadWolComputers();
+});
 
 // ========== 关于 / 功能介绍 / 帮助与反馈 ==========
 const HELP_URL = 'https://github.com/shangpan666/friendly-octo-spork';

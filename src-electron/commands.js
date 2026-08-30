@@ -32,7 +32,7 @@ import {
   syncHarnessConfigurationIfRunning
 } from './harness/index.js'
 import { getLogDir, setLoggingEnabled } from './logger.js'
-import { getShareUrl, getNoteShareUrl } from './shareServer.js'
+import { getShareUrl, getNoteShareUrl, getLocalIp, getServerPort } from './shareServer.js'
 import {
   createAutomationTask,
   getActiveAutomationRun,
@@ -1898,6 +1898,51 @@ export function registerCommands(mainWindow) {
   // 支持 HITL 审批。会话复用 sessions 表，与普通对话历史一致。
   registerAgentCommands(mainWindow)
   registerHarnessCommands(mainWindow)
+
+  // ========== 远程开机（WoL） ==========
+  ipcMain.handle('wol-get-computers', () => {
+    const config = loadConfig()
+    return config.wolComputers || []
+  })
+  ipcMain.handle('wol-save-computers', (_event, computers) => {
+    const config = loadConfig()
+    config.wolComputers = computers
+    saveConfig(config)
+    return { ok: true }
+  })
+  ipcMain.handle('wol-send', async (_event, { mac, broadcast }) => {
+    const dgram = await import('dgram')
+    const socket = dgram.createSocket({ type: 'udp4', reuseAddr: true })
+    const macBytes = mac.split(':').map(s => parseInt(s, 16))
+    if (macBytes.length !== 6) throw new Error('MAC 地址格式无效')
+    const magic = Buffer.alloc(6 + 16 * 6)
+    magic.fill(0xFF, 0, 6)
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 6; j++) {
+        magic[6 + i * 6 + j] = macBytes[j]
+      }
+    }
+    return new Promise((resolve, reject) => {
+      socket.bind(() => {
+        socket.setBroadcast(true)
+        socket.send(magic, 0, magic.length, 9, broadcast || '255.255.255.255', (err) => {
+          socket.close()
+          if (err) reject(err)
+          else resolve({ ok: true })
+        })
+      })
+    })
+  })
+
+  // ========== 手机扫码登录：生成二维码数据 ==========
+  ipcMain.handle('mobile-get-qr-login-data', () => {
+    const ip = getLocalIp()
+    const port = getServerPort() || 17918
+    return {
+      server: `http://${ip}:${port}`,
+      accounts: db.getAccounts ? db.getAccounts() : []
+    }
+  })
 
   console.log('[Commands] ✅ All IPC handlers registered successfully')
 }

@@ -254,5 +254,18 @@
   "toolNodejsDesc": "基于 Chrome V8 引擎的 JavaScript 运行时，用于服务端开发",
   "toolGitBash": "Git Bash",
   "toolGitBashDesc": "在 Windows 上提供 Git 和 Bash Shell 的类 Unix 命令行环境",
-  "toolStatus": "状态"
+  "toolStatus": "状态",
+  "wol": "远程开机（Wake-on-LAN）",
+  "wolHint": "添加局域网内需要远程开机的电脑，手机端也可管理同一列表。",
+  "wolName": "电脑名称",
+  "wolMac": "MAC 地址",
+  "wolBroadcast": "广播地址",
+  "wolAdd": "添加",
+  "wolSend": "开机",
+  "wolDelete": "删除",
+  "wolSent": "已发送开机指令到「{name}」",
+  "wolSendFailed": "发送失败",
+  "mobileQrLogin": "手机扫码登录",
+  "mobileQrLoginHint": "手机端点击「扫码登录」后扫描下方二维码，即可自动登录。",
+  "mobileQrGenerate": "生成登录二维码"
 }

@@ -72,6 +72,8 @@ export function defaultConfig() {
       unattended: true, // 无人值守模式：跳过工具审批中断（true 时危险性工具会自动执行，请谨慎）
       allowedOrigins: '*', // CORS 允许的来源，'*' 或逗号分隔的 origin 列表
       maxHistory: 40 // 每个会话在服务端保留的最大消息条数（滑动窗口）
-    }
+    },
+    // 远程开机：保存的电脑列表
+    wolComputers: []
   }
 }
