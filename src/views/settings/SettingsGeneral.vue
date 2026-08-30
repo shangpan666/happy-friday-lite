@@ -2089,34 +2089,94 @@ const appVersion = packageJson.version;
 
 const features = computed(() => [
   {
-    title: t('settings.featureSmartNote'),
-    desc: t('settings.featureSmartNoteDesc'),
-    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line>'
+    title: '斐思对话',
+    desc: '多模式 AI 对话（对话/无忆/Agent），支持联网搜索、笔记引用、知识库问答与流式输出。',
+    icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>'
   },
   {
-    title: t('settings.featureRag'),
-    desc: t('settings.featureRagDesc'),
+    title: '智能笔记',
+    desc: 'Markdown 编辑器，AI 补全、导出 PDF/MD、目录导航与 AI 写作助手。',
+    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line>'
+  },
+  {
+    title: '知识库 (RAG)',
+    desc: '导入多格式文档，自动向量化索引，语义检索与知识库内 AI 问答。',
     icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>'
   },
   {
-    title: t('settings.featureAiAssistant'),
-    desc: t('settings.featureAiAssistantDesc'),
-    icon: '<circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line>'
+    title: '日程安排',
+    desc: '月/周/年视图日历，事件管理、优先级、提醒与 AI 日程查询。',
+    icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>'
   },
   {
-    title: t('settings.featureMultiModel'),
-    desc: t('settings.featureMultiModelDesc'),
-    icon: '<path d="M12 2a10 10 0 1 0 10 10"></path><path d="M12 6v6l4 2"></path>'
+    title: '自动化',
+    desc: '定时任务调度，AI Agent 自动执行新闻简报、舆情监控、代码审查等。',
+    icon: '<polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line>'
   },
   {
-    title: t('settings.featureBackup'),
-    desc: t('settings.featureBackupDesc'),
+    title: 'Agent 智能体',
+    desc: '18+ 内置工具（浏览器、Python、文件、HTTP 等），人机协作审批。',
+    icon: '<rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line>'
+  },
+  {
+    title: 'DeepSeek 编程助手',
+    desc: '内嵌 DeepSeek 编程环境，自动连接 Agent 工具，代码生成与调试。',
+    icon: '<polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline>'
+  },
+  {
+    title: '记忆管理',
+    desc: '四维持久记忆：灵魂设定、用户档案、长期记忆、经验技巧。',
+    icon: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44A2.5 2.5 0 0 1 2.5 17V4.5A2.5 2.5 0 0 1 5 2z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44A2.5 2.5 0 0 0 21.5 17V4.5A2.5 2.5 0 0 0 19 2z"></path>'
+  },
+  {
+    title: '多模型支持',
+    desc: '接入豆包、千问、智谱、DeepSeek、Kimi、MiniMax 等多家大模型。',
+    icon: '<circle cx="12" cy="12" r="3"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>'
+  },
+  {
+    title: '手机扫码登录',
+    desc: '手机相机扫描 PC 二维码，点击链接自动登录移动端。',
+    icon: '<rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>'
+  },
+  {
+    title: '远程开机 (WoL)',
+    desc: '局域网唤醒关机电脑，一键开机，手机端同步管理。',
+    icon: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>'
+  },
+  {
+    title: '数据备份与恢复',
+    desc: '手动与自动备份（日/周），一键恢复数据保障安全。',
     icon: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
   },
   {
-    title: t('settings.featureAgent'),
-    desc: t('settings.featureAgentDesc'),
-    icon: '<rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line>'
+    title: '历史记录',
+    desc: '会话搜索、版本对比、保存为笔记、分享对话链接。',
+    icon: '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>'
+  },
+  {
+    title: '消息桥接',
+    desc: 'OpenAI 兼容服务，对接微信/QQ，多平台消息收发。',
+    icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>'
+  },
+  {
+    title: 'MCP 连接',
+    desc: 'Model Context Protocol 集成，暴露工具给 Claude Desktop 等客户端。',
+    icon: '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>'
+  },
+  {
+    title: '桌面宠物',
+    desc: '浮动宠物组件，显示助手形象与实时状态，闲置/行走动画。',
+    icon: '<circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line>'
+  },
+  {
+    title: '内网分享',
+    desc: '局域网 HTTP 服务，分享对话与笔记给同网络设备访问。',
+    icon: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>'
+  },
+  {
+    title: '用量统计',
+    desc: 'Token 用量追踪，按模型/来源分类，日趋势图表分析。',
+    icon: '<line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line>'
   }
 ]);
 

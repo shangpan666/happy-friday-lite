@@ -1,10 +1,10 @@
-[周日 2026/08/30 19:45:09.07] run-desktop.cmd started 
-[周日 2026/08/30 19:45:09.07] cwd: D:\ai agent\Ai agent\happy-friday-lite 
+[周日 2026/08/30 19:47:57.22] run-desktop.cmd started 
+[周日 2026/08/30 19:47:57.23] cwd: D:\ai agent\Ai agent\happy-friday-lite 
 D:\node.exe
 v24.19.0
 D:\npm
 D:\npm.cmd
-[周日 2026/08/30 19:45:09.61] Launching Electron desktop app... 
+[周日 2026/08/30 19:47:57.74] Launching Electron desktop app... 
 npm warn Unknown project config "electron_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 npm warn Unknown project config "electron_builder_binaries_mirror". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 
@@ -12,3 +12,79 @@ npm warn Unknown project config "electron_builder_binaries_mirror". This will st
 > node scripts/fix-dsh-directory-picker-electron.mjs && concurrently "vite" "wait-on http://localhost:5173 && electron ."
 
 [fix-dsh-directory-picker-electron] Electron worker launch is patched
+[0] 
+[0]   [32m[1mVITE[22m v6.4.2[39m  [2mready in [0m[1m1648[22m[2m[0m ms[22m
+[0] 
+[0]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[0] [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[1] 
+[1] [Agent][Subagents] 已装配 1 个子 Agent: researcher
+[1] [Agent][Tool] 注册工具: think
+[1] [Agent][Tool] 注册工具: ask_user
+[1] [Agent][Tool] 注册工具: browser_navigate
+[1] [Agent][Tool] 注册工具: browser_reload
+[1] [Agent][Tool] 注册工具: browser_snapshot
+[1] [Agent][Tool] 注册工具: browser_console
+[1] [Agent][Tool] 注册工具: browser_click
+[1] [Agent][Tool] 注册工具: browser_input
+[1] [Agent][Tool] 注册工具: browser_evaluate
+[1] [Agent][Tool] 注册工具: browser_screenshot
+[1] [Agent][Tool] 注册工具: retrieve_knowledge
+[1] [Agent][Tool] 注册工具: search_notes
+[1] [Agent][Tool] 注册工具: get_note
+[1] [Agent][Tool] 注册工具: create_note (需审批)
+[1] [Agent][Tool] 注册工具: update_note (需审批)
+[1] [Agent][Tool] 注册工具: list_chat_sessions
+[1] [Agent][Tool] 注册工具: get_chat_session
+[1] [Agent][Tool] 注册工具: search_chat_history
+[1] [Agent][Tool] 注册工具: list_events
+[1] [Agent][Tool] 注册工具: create_event (需审批)
+[1] [Agent][Tool] 注册工具: update_event (需审批)
+[1] [Agent][Tool] 注册工具: delete_event (需审批)
+[1] [Agent][Tool] 注册工具: list_automation_tasks
+[1] [Agent][Tool] 注册工具: create_automation_task (需审批)
+[1] [Agent][Tool] 注册工具: update_automation_task (需审批)
+[1] [Agent][Tool] 注册工具: delete_automation_task (需审批)
+[1] [Agent][Tool] 注册工具: list_agent_files
+[1] [Agent][Tool] 注册工具: read_agent_file
+[1] [Agent][Tool] 注册工具: write_agent_file (需审批)
+[1] [Agent][Tool] 注册工具: execute_command
+[1] [Agent][Tool] 注册工具: get_current_time
+[1] [Agent][Tool] 注册工具: calculator
+[1] [Agent][Tool] 注册工具: python_repl (需审批)
+[1] [Agent][Tool] 注册工具: pip_install (需审批)
+[1] [Agent][Tool] 注册工具: requests_get
+[1] [Agent][Tool] 注册工具: requests_post (需审批)
+[1] [Agent][Tool] 注册工具: requests_put (需审批)
+[1] [Agent][Tool] 注册工具: requests_patch (需审批)
+[1] [Agent][Tool] 注册工具: requests_delete (需审批)
+[1] [Agent][Tool] 注册工具: json_parse
+[1] [Agent][Tool] 注册工具: json_extract
+[1] [Agent][Tool] 注册工具: json_format
+[1] [Agent][Tool] 注册工具: fetch_webpage_text
+[1] [Agent][Tool] 注册工具: markitdown_convert (需审批)
+[1] [Logger] Initialized, log file: D:\ai agent\Ai agent\happy-friday-lite\app-data\logs\main.log
+[1] [Main] Registering IPC commands...
+[1] [Commands] Starting to register all IPC handlers...
+[1] [Agent][IPC] ====== 注册 Agent IPC 通道 ======
+[1] [Agent][IPC] ====== Agent IPC 通道注册完成 ======
+[1] [Commands] ✅ All IPC handlers registered successfully
+[1] [Main] ✅ IPC commands registered successfully
+[1] [Main] ✅ Mobile sync handlers registered
+[1] [Agent][Automation] Local automation scheduler started
+[1] [FileWatcher] ✅ 已启动 knowledge 目录监听: D:\ai agent\Ai agent\happy-friday-lite\app-data\knowledge (recursive=true)
+[1] [Python] 初始化 Python 环境...
+[1] [Python] ✓ 使用已配置的 Python: C:\Users\shang\AppData\Local\Programs\Python\Python314\python.exe (Python 3.14.7)
+[1] [ShareServer] ✅ 账号体系已初始化，主账号: admin（设备 51ead897e241f9fc05d343a6c76baac2）
+[1] [Main] ✅ MCP module initialized
+[1] [RAG] Initialized (manual mode, no scheduled polling)
+[1] [Main] ✅ RAG module initialized
+[1] [Agent][BridgeHTTP] Bridge 未启用（config.bridge.enabled=false 且未设置 FRIDAY_BRIDGE=1）
+[1] [ShareServer] ✅ Share server running on http://0.0.0.0:17918
+[1] [FileWatcher] 已停止 knowledge 目录监听
+[1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
+[1] [Harness] updateState: {"status":"idle","url":null,"port":null,"model":null,"toolCount":0,"error":null}
+[1] wait-on http://localhost:5173 && electron . exited with code 0
+[0] ^C
+[0] vite exited with code 3221225786
+^C
