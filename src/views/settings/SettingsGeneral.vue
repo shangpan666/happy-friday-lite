@@ -621,7 +621,10 @@
 
       <!-- 远程开机 -->
       <div class="settings-group">
-        <div class="group-title">远程开机（Wake-on-LAN）</div>
+        <div class="group-title" style="display: flex; align-items: center; gap: 8px;">
+          远程开机（Wake-on-LAN）
+          <button class="text-btn" style="font-size: 12px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary);" @click="showWolGuide = true">使用说明书</button>
+        </div>
         <div class="group-content">
           <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 12px;">
             添加局域网内需要远程开机的电脑，手机端也可管理同一列表。
@@ -774,6 +777,57 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </a>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- 远程开机使用说明书 -->
+    <Teleport to="body">
+      <div v-if="showWolGuide" class="info-modal-overlay" @click.self="showWolGuide = false">
+        <div class="info-modal-container">
+          <button class="info-modal-close" @click="showWolGuide = false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div style="padding: 24px;">
+            <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px;">远程开机（Wake-on-LAN）使用说明</h2>
+
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px;">一、什么是远程开机？</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.8;">
+              远程开机（Wake-on-LAN）是一种通过网络发送特殊数据包（Magic Packet）来唤醒局域网内已关机电脑的技术。即使电脑处于关机状态，只要网卡仍在供电且 BIOS 支持 WoL，就能被远程唤醒。
+            </p>
+
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px;">二、前置条件</h3>
+            <ul style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 2; padding-left: 20px;">
+              <li>目标电脑的主板和网卡必须支持 Wake-on-LAN</li>
+              <li>目标电脑的 BIOS 中已启用 WoL 功能（通常在"电源管理"或"高级"选项中）</li>
+              <li>目标电脑的网卡驱动中已启用"唤醒此计算机"（Windows 设备管理器 → 网络适配器 → 属性 → 电源管理）</li>
+              <li>本机与目标电脑在同一局域网内（或有可达的广播地址）</li>
+            </ul>
+
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px;">三、如何获取 MAC 地址？</h3>
+            <div style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.8;">
+              <p style="margin: 0 0 8px;"><strong>Windows：</strong>打开命令提示符，输入 <code style="background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px;">ipconfig /all</code>，找到目标网卡的"物理地址"（如 AA:BB:CC:DD:EE:FF）</p>
+              <p style="margin: 0;"><strong>Mac：</strong>打开终端，输入 <code style="background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px;">ifconfig | grep ether</code></p>
+            </div>
+
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px;">四、操作步骤</h3>
+            <ol style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; line-height: 2; padding-left: 20px;">
+              <li>在上方点击「添加」，输入电脑名称和 MAC 地址</li>
+              <li>广播地址通常保持默认 <code style="background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px;">255.255.255.255</code> 即可</li>
+              <li>需要开机时，点击对应电脑旁的「开机」按钮</li>
+              <li>手机端也可以管理同一列表（设置中自动同步）</li>
+            </ol>
+
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px;">五、常见问题</h3>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+              <p style="margin: 0 0 8px;"><strong>Q：点了开机没反应？</strong><br>A：请检查目标电脑 BIOS 和网卡驱动是否已启用 WoL，并确认两台电脑在同一局域网。</p>
+              <p style="margin: 0 0 8px;"><strong>Q：广播地址填什么？</strong><br>A：默认 255.255.255.255 即可。如果你的网络有子网划分（如 192.168.1.0/24），也可以填写对应的广播地址 192.168.1.255。</p>
+              <p style="margin: 0;"><strong>Q：电脑关机后网卡没电怎么办？</strong><br>A：部分电脑关机后 USB 接口和网卡会断电，需要在 BIOS 中启用"ErP Ready"或"S5 Wake-On-LAN"选项。</p>
+            </div>
           </div>
         </div>
       </div>
@@ -2003,6 +2057,7 @@ const HELP_URL = 'https://github.com/shangpan666/friendly-octo-spork';
 const showAboutModal = ref(false);
 const showFeaturesModal = ref(false);
 const showAuthorModal = ref(false);
+const showWolGuide = ref(false);
 
 const appVersion = packageJson.version;
 
