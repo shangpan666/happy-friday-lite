@@ -818,7 +818,7 @@
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          <div style="padding: 24px;">
+          <div style="padding: 24px; overflow-y: auto; max-height: 75vh;">
             <h2 style="font-size: 18px; font-weight: 600; margin: 0 0 16px;">远程开机（Wake-on-LAN）使用说明</h2>
 
             <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 8px;">一、什么是远程开机？</h3>
