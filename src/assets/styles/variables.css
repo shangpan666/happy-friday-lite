@@ -117,11 +117,11 @@
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.14);
 
   /* Glass-specific tokens */
-  --glass-bg: rgba(255, 255, 255, 0.60);
-  --glass-border: rgba(255, 255, 255, 0.80);
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.70);
   --glass-blur: 24px;
-  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-  --glass-refraction: linear-gradient(160deg, rgba(200, 220, 255, 0.15) 0%, rgba(220, 200, 255, 0.10) 40%, transparent 70%);
+  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+  --glass-refraction: linear-gradient(160deg, rgba(100, 180, 255, 0.08) 0%, rgba(180, 130, 255, 0.06) 40%, transparent 70%);
 
   --window-close-hover: #e81123;
   --window-close-hover-text: #ffffff;
