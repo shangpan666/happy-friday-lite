@@ -262,16 +262,17 @@ async function doRegister() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f2f5;
+  background: var(--bg-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
 /* ===== 登录面板 ===== */
 .login-panel {
   width: 380px;
-  background: #fff;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
@@ -312,7 +313,7 @@ async function doRegister() {
 .input-group label {
   display: block;
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
   font-weight: 500;
 }
@@ -321,10 +322,10 @@ async function doRegister() {
   width: 100%;
   height: 40px;
   padding: 0 12px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: #fff;
-  color: #333;
+  background: var(--bg-inset);
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -332,7 +333,7 @@ async function doRegister() {
 }
 
 .input-group input::placeholder {
-  color: #bbb;
+  color: var(--text-tertiary);
 }
 
 .input-group input:focus {
@@ -343,7 +344,7 @@ async function doRegister() {
 .field-hint {
   display: block;
   font-size: 12px;
-  color: #999;
+  color: var(--text-tertiary);
   margin-top: 6px;
   line-height: 1.5;
 }
@@ -351,8 +352,8 @@ async function doRegister() {
 .error-msg {
   padding: 10px 12px;
   margin-bottom: 16px;
-  background: #fef0f0;
-  border: 1px solid #fde2e2;
+  background: rgba(245, 108, 108, 0.1);
+  border: 1px solid rgba(245, 108, 108, 0.2);
   border-radius: 4px;
   color: #f56c6c;
   font-size: 13px;
@@ -374,27 +375,28 @@ async function doRegister() {
 }
 
 .login-btn:hover {
-  background: #357abd;
+  background: #5a9ee6;
 }
 
 .login-btn:active {
-  background: #2d6aa0;
+  background: #357abd;
 }
 
 .login-btn:disabled {
-  background: #a0cfff;
+  background: #4a6a8a;
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .login-footer {
   padding: 16px 0;
   text-align: center;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
 }
 
 .footer-text {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--text-tertiary);
 }
 
 /* ===== 已登录样式（保留原样） ===== */
