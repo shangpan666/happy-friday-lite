@@ -161,7 +161,10 @@ onMounted(async () => {
         appStore.setSidebarModules(config.sidebarModules);
         if (config.fontSize) {
           appStore.setFontSize(config.fontSize);
-          document.documentElement.style.setProperty('--base-font-size', config.fontSize + 'px');
+          const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
+          const scale = scaleMap[config.fontSize] || 1.0;
+          document.documentElement.style.zoom = scale;
+          document.body.style.zoom = scale;
         }
       }
     } catch (error) {
@@ -189,7 +192,10 @@ onMounted(async () => {
       }
       if (data.fontSize) {
         appStore.setFontSize(data.fontSize);
-        document.documentElement.style.setProperty('--base-font-size', data.fontSize + 'px');
+        const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
+        const scale = scaleMap[data.fontSize] || 1.0;
+        document.documentElement.style.zoom = scale;
+        document.body.style.zoom = scale;
       }
     });
   } else {

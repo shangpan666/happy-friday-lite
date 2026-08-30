@@ -968,7 +968,11 @@ const settings = reactive({
 
 // 字体大小变化时应用到全局
 watch(() => settings.fontSize, (val) => {
-  document.documentElement.style.setProperty('--base-font-size', val + 'px');
+  // 用 zoom 全局缩放（Electron/Chromium 支持），14→0.9, 16→1.0, 18→1.12
+  const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
+  const scale = scaleMap[val] || 1.0;
+  document.documentElement.style.zoom = scale;
+  document.body.style.zoom = scale;
   appStore.setFontSize(val);
   // 持久化到 config.json
   try {
