@@ -968,13 +968,13 @@ const settings = reactive({
 
 // 字体大小变化时应用到全局
 watch(() => settings.fontSize, (val) => {
-  // 用 zoom 全局缩放（Electron/Chromium 支持），14→0.9, 16→1.0, 18→1.12
+  // 只缩放内容区域，侧边栏/标题栏不动
   const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
   const scale = scaleMap[val] || 1.0;
-  document.documentElement.style.zoom = scale;
-  document.body.style.zoom = scale;
+  document.querySelectorAll('.workspace-content').forEach(el => {
+    el.style.zoom = scale;
+  });
   appStore.setFontSize(val);
-  // 持久化到 config.json
   try {
     electronService.invoke('get-config').then(config => {
       if (config) {
