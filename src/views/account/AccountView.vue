@@ -601,19 +601,49 @@ async function doRegister() {
 
 .radio-row {
   display: flex;
-  gap: 18px;
+  gap: 24px;
 }
 
 .radio {
   font-size: 13px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   color: var(--text-secondary);
   cursor: pointer;
 }
 
-.radio input {
-  accent-color: var(--accent-color);
+.radio input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s;
+}
+
+.radio input[type="radio"]:checked {
+  border-color: var(--accent-color);
+}
+
+.radio input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-color);
+}
+
+.radio input[type="radio"]:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
 }
 </style>
