@@ -1,0 +1,485 @@
+﻿2026-08-29T10:47:35.0589244Z Current runner version: '2.336.0'
+2026-08-29T10:47:35.0625249Z ##[group]Runner Image Provisioner
+2026-08-29T10:47:35.0626416Z Hosted Compute Agent
+2026-08-29T10:47:35.0627304Z Version: 20260819.586
+2026-08-29T10:47:35.0628220Z Commit: 3cc4a88dfa507ef76119ad1bb3eccc6378bb2b76
+2026-08-29T10:47:35.0629234Z Build Date: 2026-08-18T23:20:18Z
+2026-08-29T10:47:35.0630290Z Worker ID: {61d8333b-3c99-403c-97a5-c24c7abbb343}
+2026-08-29T10:47:35.0631301Z Azure Region: northcentralus
+2026-08-29T10:47:35.0632216Z ##[endgroup]
+2026-08-29T10:47:35.0634582Z ##[group]Operating System
+2026-08-29T10:47:35.0635479Z Ubuntu
+2026-08-29T10:47:35.0636256Z 24.04.4
+2026-08-29T10:47:35.0636911Z LTS
+2026-08-29T10:47:35.0637564Z ##[endgroup]
+2026-08-29T10:47:35.0638307Z ##[group]Runner Image
+2026-08-29T10:47:35.0639057Z Image: ubuntu-24.04
+2026-08-29T10:47:35.0639940Z Version: 20260823.283.1
+2026-08-29T10:47:35.0641657Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260823.283/images/ubuntu/Ubuntu2404-Readme.md
+2026-08-29T10:47:35.0644207Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260823.283
+2026-08-29T10:47:35.0645620Z ##[endgroup]
+2026-08-29T10:47:35.0647282Z ##[group]GITHUB_TOKEN Permissions
+2026-08-29T10:47:35.0650533Z Contents: read
+2026-08-29T10:47:35.0651401Z Metadata: read
+2026-08-29T10:47:35.0652145Z Packages: read
+2026-08-29T10:47:35.0653014Z ##[endgroup]
+2026-08-29T10:47:35.0656198Z Secret source: Actions
+2026-08-29T10:47:35.0658112Z Prepare workflow directory
+2026-08-29T10:47:35.1550642Z Prepare all required actions
+2026-08-29T10:47:35.1624285Z Getting action download info
+2026-08-29T10:47:35.4447855Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-08-29T10:47:35.6378189Z Download action repository 'actions/setup-java@v4' (SHA:cf277c60eb25467037889841efdb72551f06f6c3)
+2026-08-29T10:47:36.1382088Z Download action repository 'subosito/flutter-action@v2' (SHA:1a449444c387b1966244ae4d4f8c696479add0b2)
+2026-08-29T10:47:36.3319310Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-08-29T10:47:36.6759391Z Getting action download info
+2026-08-29T10:47:36.7478338Z Download action repository 'actions/cache@v5' (SHA:caa296126883cff596d87d8935842f9db880ef25)
+2026-08-29T10:47:37.0671890Z Complete job name: build
+2026-08-29T10:47:37.1536157Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-29T10:47:37.1547192Z ##[group]Run actions/checkout@v4
+2026-08-29T10:47:37.1548417Z with:
+2026-08-29T10:47:37.1549460Z   repository: shangpan666/happy-friday-android
+2026-08-29T10:47:37.1557905Z   token: ***
+2026-08-29T10:47:37.1558824Z   ssh-strict: true
+2026-08-29T10:47:37.1559805Z   ssh-user: git
+2026-08-29T10:47:37.1560785Z   persist-credentials: true
+2026-08-29T10:47:37.1561817Z   clean: true
+2026-08-29T10:47:37.1563067Z   sparse-checkout-cone-mode: true
+2026-08-29T10:47:37.1564238Z   fetch-depth: 1
+2026-08-29T10:47:37.1565199Z   fetch-tags: false
+2026-08-29T10:47:37.1566144Z   show-progress: true
+2026-08-29T10:47:37.1567116Z   lfs: false
+2026-08-29T10:47:37.1568175Z   submodules: false
+2026-08-29T10:47:37.1569144Z   set-safe-directory: true
+2026-08-29T10:47:37.1570242Z   allow-unsafe-pr-checkout: false
+2026-08-29T10:47:37.1572011Z ##[endgroup]
+2026-08-29T10:47:37.2806457Z Syncing repository: shangpan666/happy-friday-android
+2026-08-29T10:47:37.2815785Z ##[group]Getting Git version info
+2026-08-29T10:47:37.2821925Z Working directory is '/home/runner/work/happy-friday-android/happy-friday-android'
+2026-08-29T10:47:37.2828812Z [command]/usr/bin/git version
+2026-08-29T10:47:37.2884147Z git version 2.55.0
+2026-08-29T10:47:37.2925345Z ##[endgroup]
+2026-08-29T10:47:37.2944175Z Temporarily overriding HOME='/home/runner/work/_temp/c32917bf-06e2-4186-9305-2dcba2478de1' before making global git config changes
+2026-08-29T10:47:37.2949226Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-29T10:47:37.2953702Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/happy-friday-android/happy-friday-android
+2026-08-29T10:47:37.3045861Z Deleting the contents of '/home/runner/work/happy-friday-android/happy-friday-android'
+2026-08-29T10:47:37.3055206Z ##[group]Initializing the repository
+2026-08-29T10:47:37.3058884Z [command]/usr/bin/git init /home/runner/work/happy-friday-android/happy-friday-android
+2026-08-29T10:47:37.3147775Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-29T10:47:37.3151060Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-29T10:47:37.3154833Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-29T10:47:37.3157069Z hint: call:
+2026-08-29T10:47:37.3158540Z hint:
+2026-08-29T10:47:37.3160929Z hint: 	git config --global init.defaultBranch <name>
+2026-08-29T10:47:37.3163277Z hint:
+2026-08-29T10:47:37.3165586Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-29T10:47:37.3170860Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-29T10:47:37.3174101Z hint:
+2026-08-29T10:47:37.3177009Z hint: 	git branch -m <name>
+2026-08-29T10:47:37.3179020Z hint:
+2026-08-29T10:47:37.3181489Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-29T10:47:37.3185605Z Initialized empty Git repository in /home/runner/work/happy-friday-android/happy-friday-android/.git/
+2026-08-29T10:47:37.3192157Z [command]/usr/bin/git remote add origin https://github.com/shangpan666/happy-friday-android
+2026-08-29T10:47:37.3241852Z ##[endgroup]
+2026-08-29T10:47:37.3244936Z ##[group]Disabling automatic garbage collection
+2026-08-29T10:47:37.3247767Z [command]/usr/bin/git config --local gc.auto 0
+2026-08-29T10:47:37.3304495Z ##[endgroup]
+2026-08-29T10:47:37.3307319Z ##[group]Setting up auth
+2026-08-29T10:47:37.3309802Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-29T10:47:37.3361683Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-29T10:47:37.3912515Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-29T10:47:37.4027516Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-29T10:47:37.4237780Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-29T10:47:37.4270496Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-29T10:47:37.4468141Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-29T10:47:37.4504538Z ##[endgroup]
+2026-08-29T10:47:37.4507496Z ##[group]Fetching the repository
+2026-08-29T10:47:37.4516746Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +104e90aa5d78f1da2ddb9ed40c9553b37092169c:refs/remotes/origin/main
+2026-08-29T10:47:37.7902518Z From https://github.com/shangpan666/happy-friday-android
+2026-08-29T10:47:37.7905755Z  * [new ref]         104e90aa5d78f1da2ddb9ed40c9553b37092169c -> origin/main
+2026-08-29T10:47:37.7909015Z ##[endgroup]
+2026-08-29T10:47:37.7910149Z ##[group]Determining the checkout info
+2026-08-29T10:47:37.7911520Z ##[endgroup]
+2026-08-29T10:47:37.7918444Z [command]/usr/bin/git sparse-checkout disable
+2026-08-29T10:47:37.7966758Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-29T10:47:37.7996404Z ##[group]Checking out the ref
+2026-08-29T10:47:37.8000910Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-08-29T10:47:37.8058048Z Switched to a new branch 'main'
+2026-08-29T10:47:37.8066804Z branch 'main' set up to track 'origin/main'.
+2026-08-29T10:47:37.8076128Z ##[endgroup]
+2026-08-29T10:47:37.8120136Z [command]/usr/bin/git log -1 --format=%H
+2026-08-29T10:47:37.8142244Z 104e90aa5d78f1da2ddb9ed40c9553b37092169c
+2026-08-29T10:47:37.8426836Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-29T10:47:37.8429214Z ##[group]Run actions/setup-java@v4
+2026-08-29T10:47:37.8429690Z with:
+2026-08-29T10:47:37.8430057Z   distribution: zulu
+2026-08-29T10:47:37.8430448Z   java-version: 17
+2026-08-29T10:47:37.8430852Z   java-package: jdk
+2026-08-29T10:47:37.8431253Z   check-latest: false
+2026-08-29T10:47:37.8431665Z   server-id: github
+2026-08-29T10:47:37.8432041Z   server-username: GITHUB_ACTOR
+2026-08-29T10:47:37.8432450Z   server-password: GITHUB_TOKEN
+2026-08-29T10:47:37.8433062Z   overwrite-settings: true
+2026-08-29T10:47:37.8433478Z   job-status: success
+2026-08-29T10:47:37.8436012Z   token: ***
+2026-08-29T10:47:37.8436360Z ##[endgroup]
+2026-08-29T10:47:38.0352118Z ##[warning]setup-java v4 is deprecated and will no longer receive updates. Please migrate to actions/setup-java@v5.
+2026-08-29T10:47:38.0376284Z ##[group]Installed distributions
+2026-08-29T10:47:38.0377034Z Trying to resolve the latest version from remote
+2026-08-29T10:47:38.0544638Z (node:2011) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-29T10:47:38.0564564Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-29T10:47:38.2294013Z Resolved latest version as 17.0.20+8
+2026-08-29T10:47:38.2303112Z Trying to download...
+2026-08-29T10:47:38.2305062Z Downloading Java 17.0.20+8 (Zulu) from https://cdn.azul.com/zulu/bin/zulu17.68.19-ca-crac-jdk17.0.20-linux_x64.tar.gz ...
+2026-08-29T10:47:40.5774135Z Extracting Java archive...
+2026-08-29T10:47:40.5953377Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/4da2bf72-a311-4d09-8cf7-2ae97734adc4 -f /home/runner/work/_temp/316074d8-b3dc-407d-891c-43cf84a97b9c
+2026-08-29T10:47:49.7609675Z Java 17.0.20+8 was downloaded
+2026-08-29T10:47:49.7610356Z Setting Java 17.0.20+8 as the default
+2026-08-29T10:47:49.7623971Z Creating toolchains.xml for JDK version 17 from zulu
+2026-08-29T10:47:49.7690986Z Writing to /home/runner/.m2/toolchains.xml
+2026-08-29T10:47:49.7691909Z 
+2026-08-29T10:47:49.7692296Z Java configuration:
+2026-08-29T10:47:49.7693015Z   Distribution: zulu
+2026-08-29T10:47:49.7703956Z   Version: 17.0.20+8
+2026-08-29T10:47:49.7705334Z   Path: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.7743089Z 
+2026-08-29T10:47:49.7744476Z ##[endgroup]
+2026-08-29T10:47:49.7771098Z Creating settings.xml with server-id: github
+2026-08-29T10:47:49.7771656Z Writing to /home/runner/.m2/settings.xml
+2026-08-29T10:47:49.8011421Z ##[group]Run subosito/flutter-action@v2
+2026-08-29T10:47:49.8011736Z with:
+2026-08-29T10:47:49.8011956Z   channel: stable
+2026-08-29T10:47:49.8012191Z   flutter-version: 3.24.0
+2026-08-29T10:47:49.8012456Z   architecture: X64
+2026-08-29T10:47:49.8012906Z   cache: false
+2026-08-29T10:47:49.8013160Z   pub-cache-path: default
+2026-08-29T10:47:49.8013400Z   dry-run: false
+2026-08-29T10:47:49.8013708Z   git-source: https://github.com/flutter/flutter.git
+2026-08-29T10:47:49.8014022Z env:
+2026-08-29T10:47:49.8014300Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.8014709Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.8015055Z ##[endgroup]
+2026-08-29T10:47:49.8079654Z ##[start-action display=Make yq tool available on Windows runners;id=__subosito_flutter-action.__run]
+2026-08-29T10:47:49.8089571Z ##[end-action id=__subosito_flutter-action.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-29T10:47:49.8091793Z ##[start-action display=Make setup script executable;id=__subosito_flutter-action.__run_2]
+2026-08-29T10:47:49.8446008Z ##[group]Run chmod +x "$GITHUB_ACTION_PATH/setup.sh"
+2026-08-29T10:47:49.8446527Z [36;1mchmod +x "$GITHUB_ACTION_PATH/setup.sh"[0m
+2026-08-29T10:47:49.8476642Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-29T10:47:49.8477004Z env:
+2026-08-29T10:47:49.8477303Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.8477724Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.8478061Z ##[endgroup]
+2026-08-29T10:47:49.8579094Z ##[end-action id=__subosito_flutter-action.__run_2;outcome=success;conclusion=success;duration_ms=48]
+2026-08-29T10:47:49.8581803Z ##[start-action display=Set action inputs;id=__subosito_flutter-action.flutter-action]
+2026-08-29T10:47:49.8617881Z ##[group]Run $GITHUB_ACTION_PATH/setup.sh -p \
+2026-08-29T10:47:49.8618277Z [36;1m$GITHUB_ACTION_PATH/setup.sh -p \[0m
+2026-08-29T10:47:49.8618597Z [36;1m  -n '3.24.0' \[0m
+2026-08-29T10:47:49.8618838Z [36;1m  -f '' \[0m
+2026-08-29T10:47:49.8619058Z [36;1m  -a 'X64' \[0m
+2026-08-29T10:47:49.8619291Z [36;1m  -k '' \[0m
+2026-08-29T10:47:49.8619504Z [36;1m  -c '' \[0m
+2026-08-29T10:47:49.8619712Z [36;1m  -l '' \[0m
+2026-08-29T10:47:49.8619928Z [36;1m  -d 'default' \[0m
+2026-08-29T10:47:49.8620265Z [36;1m  -g 'https://github.com/flutter/flutter.git' \[0m
+2026-08-29T10:47:49.8620575Z [36;1m  stable[0m
+2026-08-29T10:47:49.8642907Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-29T10:47:49.8643442Z env:
+2026-08-29T10:47:49.8643844Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.8644345Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:49.8644823Z ##[endgroup]
+2026-08-29T10:47:50.0344235Z ##[end-action id=__subosito_flutter-action.flutter-action;outcome=success;conclusion=success;duration_ms=176]
+2026-08-29T10:47:50.0350785Z ##[start-action display=Cache Flutter;id=__subosito_flutter-action.cache-flutter]
+2026-08-29T10:47:50.0356368Z ##[end-action id=__subosito_flutter-action.cache-flutter;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-29T10:47:50.0358351Z ##[start-action display=Cache pub dependencies;id=__subosito_flutter-action.cache-pub]
+2026-08-29T10:47:50.0364767Z ##[end-action id=__subosito_flutter-action.cache-pub;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-08-29T10:47:50.0366548Z ##[start-action display=Run setup script;id=__subosito_flutter-action.__run_3]
+2026-08-29T10:47:50.0398904Z ##[group]Run $GITHUB_ACTION_PATH/setup.sh \
+2026-08-29T10:47:50.0399261Z [36;1m$GITHUB_ACTION_PATH/setup.sh \[0m
+2026-08-29T10:47:50.0399538Z [36;1m  -n '3.24.0' \[0m
+2026-08-29T10:47:50.0399794Z [36;1m  -a 'x64' \[0m
+2026-08-29T10:47:50.0400109Z [36;1m  -c '/opt/hostedtoolcache/flutter/stable-3.24.0-x64' \[0m
+2026-08-29T10:47:50.0400461Z [36;1m  -d '/home/runner/.pub-cache' \[0m
+2026-08-29T10:47:50.0400874Z [36;1m  stable[0m
+2026-08-29T10:47:50.0424696Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-08-29T10:47:50.0425029Z env:
+2026-08-29T10:47:50.0425307Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:50.0425712Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:47:50.0426050Z ##[endgroup]
+2026-08-29T10:47:50.1859029Z   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+2026-08-29T10:47:50.1861716Z                                  Dload  Upload   Total   Spent    Left  Speed
+2026-08-29T10:47:50.1864139Z 
+2026-08-29T10:47:50.5137433Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-08-29T10:47:51.4780724Z   0  639M    0 6208k    0     0  18.4M      0  0:00:34 --:--:--  0:00:34 18.4M
+2026-08-29T10:47:52.5788759Z  14  639M   14 90.0M    0     0  69.6M      0  0:00:09  0:00:01  0:00:08 69.6M
+2026-08-29T10:47:53.4787027Z  31  639M   31  202M    0     0  84.4M      0  0:00:07  0:00:02  0:00:05 84.4M
+2026-08-29T10:47:54.4780936Z  51  639M   51  330M    0     0   100M      0  0:00:06  0:00:03  0:00:03  100M
+2026-08-29T10:47:55.2174393Z  80  639M   80  514M    0     0   119M      0  0:00:05  0:00:04  0:00:01  119M
+2026-08-29T10:47:55.2179480Z 100  639M  100  639M    0     0   127M      0  0:00:05  0:00:05 --:--:--  134M
+2026-08-29T10:48:26.1562038Z ##[end-action id=__subosito_flutter-action.__run_3;outcome=success;conclusion=success;duration_ms=36119]
+2026-08-29T10:48:26.1611071Z ##[group]Run flutter pub get
+2026-08-29T10:48:26.1611406Z [36;1mflutter pub get[0m
+2026-08-29T10:48:26.1637843Z shell: /usr/bin/bash -e {0}
+2026-08-29T10:48:26.1638119Z env:
+2026-08-29T10:48:26.1638404Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:26.1638837Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:26.1639255Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter
+2026-08-29T10:48:26.1639619Z   PUB_CACHE: /home/runner/.pub-cache
+2026-08-29T10:48:26.1639886Z ##[endgroup]
+2026-08-29T10:48:26.7266085Z 
+2026-08-29T10:48:26.7294569Z   ╔════════════════════════════════════════════════════════════════════════════╗
+2026-08-29T10:48:26.7324405Z   ║                 Welcome to Flutter! - https://flutter.dev                  ║
+2026-08-29T10:48:26.7343721Z   ║                                                                            ║
+2026-08-29T10:48:26.7363876Z   ║ The Flutter tool uses Google Analytics to anonymously report feature usage ║
+2026-08-29T10:48:26.7364875Z   ║ statistics and basic crash reports. This data is used to help improve      ║
+2026-08-29T10:48:26.7401001Z   ║ Flutter tools over time.                                                   ║
+2026-08-29T10:48:26.7423525Z   ║                                                                            ║
+2026-08-29T10:48:26.7443629Z   ║ Flutter tool analytics are not sent on the very first run. To disable      ║
+2026-08-29T10:48:26.7463856Z   ║ reporting, type 'flutter config --no-analytics'. To display the current    ║
+2026-08-29T10:48:26.7483690Z   ║ setting, type 'flutter config'. If you opt out of analytics, an opt-out    ║
+2026-08-29T10:48:26.7493864Z   ║ event will be sent, and then no further information will be sent by the    ║
+2026-08-29T10:48:26.7513713Z   ║ Flutter tool.                                                              ║
+2026-08-29T10:48:26.7523998Z   ║                                                                            ║
+2026-08-29T10:48:26.7533550Z   ║ By downloading the Flutter SDK, you agree to the Google Terms of Service.  ║
+2026-08-29T10:48:26.7552178Z   ║ The Google Privacy Policy describes how data is handled in this service.   ║
+2026-08-29T10:48:26.7563598Z   ║                                                                            ║
+2026-08-29T10:48:26.7795991Z   ║ Moreover, Flutter includes the Dart SDK, which may send usage metrics and  ║
+2026-08-29T10:48:26.7957589Z   ║ crash reports to Google.                                                   ║
+2026-08-29T10:48:26.7977502Z   ║                                                                            ║
+2026-08-29T10:48:26.7980823Z   ║ Read about data we send with crash reports:                                ║
+2026-08-29T10:48:26.7983797Z   ║ https://flutter.dev/to/crash-reporting                                     ║
+2026-08-29T10:48:26.7984755Z   ║                                                                            ║
+2026-08-29T10:48:26.7986029Z   ║ See Google's privacy policy:                                               ║
+2026-08-29T10:48:26.7987042Z   ║ https://policies.google.com/privacy                                        ║
+2026-08-29T10:48:26.7988174Z   ║                                                                            ║
+2026-08-29T10:48:26.7989512Z   ║ To disable animations in this tool, use                                    ║
+2026-08-29T10:48:26.7993235Z   ║ 'flutter config --no-cli-animations'.                                      ║
+2026-08-29T10:48:26.7994246Z   ╚════════════════════════════════════════════════════════════════════════════╝
+2026-08-29T10:48:26.8003325Z 
+2026-08-29T10:48:33.4633972Z Resolving dependencies...
+2026-08-29T10:48:34.3223015Z Downloading packages...
+2026-08-29T10:48:35.8559447Z + async 2.11.0 (2.13.1 available)
+2026-08-29T10:48:35.8560323Z + boolean_selector 2.1.1 (2.1.2 available)
+2026-08-29T10:48:35.8560918Z + characters 1.3.0 (1.4.1 available)
+2026-08-29T10:48:35.8562220Z + clock 1.1.1 (1.1.3 available)
+2026-08-29T10:48:35.8563074Z + collection 1.18.0 (1.19.1 available)
+2026-08-29T10:48:35.8563599Z + fake_async 1.3.1 (1.3.3 available)
+2026-08-29T10:48:35.8564134Z + ffi 2.1.3 (2.2.0 available)
+2026-08-29T10:48:35.8564658Z + flutter 0.0.0 from sdk flutter
+2026-08-29T10:48:35.8565243Z + flutter_lints 3.0.2 (6.0.0 available)
+2026-08-29T10:48:35.8565829Z + flutter_secure_storage 9.2.4 (11.0.0 available)
+2026-08-29T10:48:35.8566516Z + flutter_secure_storage_linux 1.2.3 (3.0.2 available)
+2026-08-29T10:48:35.8567216Z + flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+2026-08-29T10:48:35.8567916Z + flutter_secure_storage_platform_interface 1.1.2 (2.0.3 available)
+2026-08-29T10:48:35.8568628Z + flutter_secure_storage_web 1.2.1 (2.1.1 available)
+2026-08-29T10:48:35.8569259Z + flutter_secure_storage_windows 3.1.2 (4.2.2 available)
+2026-08-29T10:48:35.8569978Z + flutter_test 0.0.0 from sdk flutter
+2026-08-29T10:48:35.8570572Z + flutter_web_plugins 0.0.0 from sdk flutter
+2026-08-29T10:48:35.8571171Z + http 1.6.0
+2026-08-29T10:48:35.8571604Z + http_parser 4.0.2 (4.1.2 available)
+2026-08-29T10:48:35.8572095Z + js 0.6.7 (0.7.2 available)
+2026-08-29T10:48:35.8572568Z + leak_tracker 10.0.5 (11.0.2 available)
+2026-08-29T10:48:35.8573376Z + leak_tracker_flutter_testing 3.0.5 (3.0.10 available)
+2026-08-29T10:48:35.8574020Z + leak_tracker_testing 3.0.1 (3.0.2 available)
+2026-08-29T10:48:35.8574585Z + lints 3.0.0 (6.1.0 available)
+2026-08-29T10:48:35.8575087Z + matcher 0.12.16+1 (0.12.20 available)
+2026-08-29T10:48:35.8575676Z + material_color_utilities 0.11.1 (0.13.1 available)
+2026-08-29T10:48:35.8576272Z + meta 1.15.0 (1.19.0 available)
+2026-08-29T10:48:35.8576790Z + path 1.9.0 (1.9.1 available)
+2026-08-29T10:48:35.8577330Z + path_provider 2.1.5 (2.1.6 available)
+2026-08-29T10:48:35.8577934Z + path_provider_android 2.2.15 (2.3.1 available)
+2026-08-29T10:48:35.8578600Z + path_provider_foundation 2.4.1 (2.6.0 available)
+2026-08-29T10:48:35.8585872Z + path_provider_linux 2.2.1 (2.2.2 available)
+2026-08-29T10:48:35.8586864Z + path_provider_platform_interface 2.1.2 (2.1.3 available)
+2026-08-29T10:48:35.8587556Z + path_provider_windows 2.3.0
+2026-08-29T10:48:35.8588060Z + platform 3.1.6
+2026-08-29T10:48:35.8588541Z + plugin_platform_interface 2.1.8
+2026-08-29T10:48:35.8589074Z + sky_engine 0.0.99 from sdk flutter
+2026-08-29T10:48:35.8589651Z + source_span 1.10.0 (1.10.2 available)
+2026-08-29T10:48:35.8590184Z + stack_trace 1.11.1 (1.12.2 available)
+2026-08-29T10:48:35.8590736Z + stream_channel 2.1.2 (2.1.4 available)
+2026-08-29T10:48:35.8591303Z + string_scanner 1.2.0 (1.4.1 available)
+2026-08-29T10:48:35.8591880Z + term_glyph 1.2.1 (1.2.2 available)
+2026-08-29T10:48:35.8595775Z + test_api 0.7.2 (0.7.13 available)
+2026-08-29T10:48:35.8596395Z + typed_data 1.4.0
+2026-08-29T10:48:35.8596892Z + vector_math 2.1.4 (2.4.2 available)
+2026-08-29T10:48:35.8597457Z + vm_service 14.2.4 (15.3.0 available)
+2026-08-29T10:48:35.8597929Z + web 1.1.1
+2026-08-29T10:48:35.8598383Z + win32 5.10.1 (6.4.0 available)
+2026-08-29T10:48:35.8598908Z + xdg_directories 1.1.0
+2026-08-29T10:48:35.8599480Z Changed 49 dependencies!
+2026-08-29T10:48:35.8600115Z 38 packages have newer versions incompatible with dependency constraints.
+2026-08-29T10:48:35.8600982Z Try `flutter pub outdated` for more information.
+2026-08-29T10:48:36.2136125Z ##[group]Run flutter create --platforms=android --project-name android_client --org com.happyfriday .
+2026-08-29T10:48:36.2136849Z [36;1mflutter create --platforms=android --project-name android_client --org com.happyfriday .[0m
+2026-08-29T10:48:36.2161931Z shell: /usr/bin/bash -e {0}
+2026-08-29T10:48:36.2162209Z env:
+2026-08-29T10:48:36.2162496Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:36.2163139Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:36.2163569Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter
+2026-08-29T10:48:36.2163947Z   PUB_CACHE: /home/runner/.pub-cache
+2026-08-29T10:48:36.2164206Z ##[endgroup]
+2026-08-29T10:48:36.4245104Z Recreating project ....
+2026-08-29T10:48:36.4886649Z   test/widget_test.dart (created)
+2026-08-29T10:48:36.4984303Z   android/app/src/main/kotlin/com/happyfriday/android_client/MainActivity.kt (created)
+2026-08-29T10:48:36.5018449Z   android/app/build.gradle (created)
+2026-08-29T10:48:36.5037901Z   android/android_client_android.iml (created)
+2026-08-29T10:48:36.5047600Z   android/build.gradle (created)
+2026-08-29T10:48:36.5073882Z   .gitignore (created)
+2026-08-29T10:48:36.5074447Z   android_client.iml (created)
+2026-08-29T10:48:36.5075122Z   .idea/runConfigurations/main_dart.xml (created)
+2026-08-29T10:48:36.5075806Z   .idea/workspace.xml (created)
+2026-08-29T10:48:36.5107678Z   .idea/modules.xml (created)
+2026-08-29T10:48:36.5114664Z   .idea/libraries/Dart_SDK.xml (created)
+2026-08-29T10:48:36.5136641Z   .idea/libraries/KotlinJavaRuntime.xml (created)
+2026-08-29T10:48:36.5153406Z   android/app/src/profile/AndroidManifest.xml (created)
+2026-08-29T10:48:36.5161906Z   android/app/src/main/res/mipmap-xhdpi/ic_launcher.png (created)
+2026-08-29T10:48:36.5171518Z   android/app/src/main/res/mipmap-hdpi/ic_launcher.png (created)
+2026-08-29T10:48:36.5178119Z   android/app/src/main/res/drawable-v21/launch_background.xml (created)
+2026-08-29T10:48:36.5195920Z   android/app/src/main/res/mipmap-mdpi/ic_launcher.png (created)
+2026-08-29T10:48:36.5213502Z   android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png (created)
+2026-08-29T10:48:36.5232819Z   android/app/src/main/res/values-night/styles.xml (created)
+2026-08-29T10:48:36.5247291Z   android/app/src/main/res/drawable/launch_background.xml (created)
+2026-08-29T10:48:36.5265324Z   android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png (created)
+2026-08-29T10:48:36.5273447Z   android/app/src/main/res/values/styles.xml (created)
+2026-08-29T10:48:36.5309777Z   android/app/src/debug/AndroidManifest.xml (created)
+2026-08-29T10:48:36.5338785Z   android/.gitignore (created)
+2026-08-29T10:48:36.5339444Z   android/gradle.properties (created)
+2026-08-29T10:48:36.5340618Z   android/gradle/wrapper/gradle-wrapper.properties (created)
+2026-08-29T10:48:36.5383387Z   android/settings.gradle (created)
+2026-08-29T10:48:36.5403927Z   analysis_options.yaml (created)
+2026-08-29T10:48:36.7254023Z Resolving dependencies...
+2026-08-29T10:48:37.1614810Z Downloading packages...
+2026-08-29T10:48:37.3644251Z Got dependencies.
+2026-08-29T10:48:37.6118518Z Wrote 31 files.
+2026-08-29T10:48:37.6119036Z 
+2026-08-29T10:48:37.6119378Z All done!
+2026-08-29T10:48:37.6133020Z You can find general documentation for Flutter at: https://docs.flutter.dev/
+2026-08-29T10:48:37.6134057Z Detailed API documentation is available at: https://api.flutter.dev/
+2026-08-29T10:48:37.6135286Z If you prefer video documentation, consider: https://www.youtube.com/c/flutterdev
+2026-08-29T10:48:37.6138905Z 
+2026-08-29T10:48:37.6139375Z In order to run your application, type:
+2026-08-29T10:48:37.6139819Z 
+2026-08-29T10:48:37.6140083Z   $ cd .
+2026-08-29T10:48:37.6140506Z   $ flutter run
+2026-08-29T10:48:37.6140823Z 
+2026-08-29T10:48:37.6141147Z Your application code is in ./lib/main.dart.
+2026-08-29T10:48:37.6141601Z 
+2026-08-29T10:48:37.6899323Z ##[group]Run git checkout -- android/app/src/main/AndroidManifest.xml
+2026-08-29T10:48:37.6899834Z [36;1mgit checkout -- android/app/src/main/AndroidManifest.xml[0m
+2026-08-29T10:48:37.6900448Z [36;1mgit checkout -- android/app/src/main/res/xml/network_security_config.xml[0m
+2026-08-29T10:48:37.6926122Z shell: /usr/bin/bash -e {0}
+2026-08-29T10:48:37.6926396Z env:
+2026-08-29T10:48:37.6926682Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:37.6927103Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:37.6927528Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter
+2026-08-29T10:48:37.6927896Z   PUB_CACHE: /home/runner/.pub-cache
+2026-08-29T10:48:37.6928155Z ##[endgroup]
+2026-08-29T10:48:37.7036153Z ##[group]Run sed -i 's#id "org.jetbrains.kotlin.android" version "[^"]*"#id "org.jetbrains.kotlin.android" version "1.9.24"#' android/settings.gradle android/build.gradle
+2026-08-29T10:48:37.7037143Z [36;1msed -i 's#id "org.jetbrains.kotlin.android" version "[^"]*"#id "org.jetbrains.kotlin.android" version "1.9.24"#' android/settings.gradle android/build.gradle[0m
+2026-08-29T10:48:37.7038087Z [36;1msed -i "s#ext.kotlin_version = '[^']*'#ext.kotlin_version = '1.9.24'#" android/settings.gradle android/build.gradle android/app/build.gradle 2>/dev/null || true[0m
+2026-08-29T10:48:37.7038785Z [36;1mgrep -rn "kotlin" android/settings.gradle android/build.gradle || true[0m
+2026-08-29T10:48:37.7060117Z shell: /usr/bin/bash -e {0}
+2026-08-29T10:48:37.7060380Z env:
+2026-08-29T10:48:37.7060661Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:37.7061067Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:37.7061539Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter
+2026-08-29T10:48:37.7061908Z   PUB_CACHE: /home/runner/.pub-cache
+2026-08-29T10:48:37.7062164Z ##[endgroup]
+2026-08-29T10:48:37.7153854Z android/settings.gradle:22:    id "org.jetbrains.kotlin.android" version "1.9.24" apply false
+2026-08-29T10:48:37.7176856Z ##[group]Run flutter build apk --release --no-shrink
+2026-08-29T10:48:37.7177242Z [36;1mflutter build apk --release --no-shrink[0m
+2026-08-29T10:48:37.7197058Z shell: /usr/bin/bash -e {0}
+2026-08-29T10:48:37.7197319Z env:
+2026-08-29T10:48:37.7197597Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:37.7198008Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:48:37.7198439Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter
+2026-08-29T10:48:37.7198816Z   PUB_CACHE: /home/runner/.pub-cache
+2026-08-29T10:48:37.7199075Z ##[endgroup]
+2026-08-29T10:48:38.2405416Z 
+2026-08-29T10:50:43.1218555Z Running Gradle task 'assembleRelease'...                        
+2026-08-29T10:50:43.1220003Z Checking the license for package Android SDK Build-Tools 30.0.3 in /usr/local/lib/android/sdk/licenses
+2026-08-29T10:50:43.2043253Z License for package Android SDK Build-Tools 30.0.3 accepted.
+2026-08-29T10:50:43.2054430Z Preparing "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)".
+2026-08-29T10:50:45.3000657Z "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" ready.
+2026-08-29T10:50:45.3021999Z Installing Android SDK Build-Tools 30.0.3 in /usr/local/lib/android/sdk/build-tools/30.0.3
+2026-08-29T10:50:45.3023324Z "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" complete.
+2026-08-29T10:50:45.7014517Z "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" finished.
+2026-08-29T10:51:23.5006932Z Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 1656 bytes (99.9% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+2026-08-29T10:52:04.2020282Z Caught exception: Already watching path: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter/packages/flutter_tools/gradle
+2026-08-29T10:52:07.2065895Z e: /home/runner/.gradle/caches/transforms-3/7be4be9309f80ffb9aaa76945e07caf1/transformed/fragment-1.7.1/jars/classes.jar!/META-INF/fragment_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2100628Z e: /home/runner/.gradle/caches/transforms-3/4b657f0ba5010f8b50d4d7a3f8343b71/transformed/jetified-activity-1.8.1/jars/classes.jar!/META-INF/activity_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2183617Z e: /home/runner/.gradle/caches/transforms-3/1396105b609c04e445bbeb06c427dfe3/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/jars/classes.jar!/META-INF/lifecycle-livedata-core-ktx_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2274882Z e: /home/runner/.gradle/caches/transforms-3/f0c2daaa2ecf778d4e0cf7898432b01b/transformed/lifecycle-livedata-2.7.0/jars/classes.jar!/META-INF/lifecycle-livedata_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2334901Z e: /home/runner/.gradle/caches/transforms-3/ce1cd08d877f608e174a6532600c15cb/transformed/lifecycle-viewmodel-2.7.0/jars/classes.jar!/META-INF/lifecycle-viewmodel_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2384679Z e: /home/runner/.gradle/caches/transforms-3/7c6ecf1edcb28986b1ddefa906c0c2dc/transformed/lifecycle-livedata-core-2.7.0/jars/classes.jar!/META-INF/lifecycle-livedata-core_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2389789Z e: /home/runner/.gradle/caches/transforms-3/d2a34622841a3735c26df85d85f5d79a/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/jars/classes.jar!/META-INF/lifecycle-viewmodel-savedstate_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2474117Z e: /home/runner/.gradle/caches/transforms-3/6113637fe3bd3132f5a629276252713b/transformed/jetified-core-ktx-1.13.1/jars/classes.jar!/META-INF/core-ktx_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2477441Z e: /home/runner/.gradle/caches/transforms-3/7e2d55279e4a82a2fa28d19d8479e127/transformed/core-1.13.1/jars/classes.jar!/META-INF/core_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2544452Z e: /home/runner/.gradle/caches/transforms-3/20bcd1dc1a869ce31edc92398a5b8cd4/transformed/lifecycle-runtime-2.7.0/jars/classes.jar!/META-INF/lifecycle-runtime_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2564661Z e: /home/runner/.gradle/caches/transforms-3/6ed3ee1205ecb8fcd1da3ddd2bb31e53/transformed/jetified-lifecycle-process-2.7.0/jars/classes.jar!/META-INF/lifecycle-process_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2615285Z e: /home/runner/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common/2.7.0/85334205d65cca70ed0109c3acbd29e22a2d9cb1/lifecycle-common-2.7.0.jar!/META-INF/lifecycle-common.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2653020Z e: /home/runner/.gradle/caches/transforms-3/ff3e83ea17f8d7400401692f3d419bcd/transformed/jetified-window-1.2.0/jars/classes.jar!/META-INF/window_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2714639Z e: /home/runner/.gradle/caches/transforms-3/bde8de4012bf083e2ca4e27a9e802d48/transformed/jetified-window-java-1.2.0/jars/classes.jar!/META-INF/window-java_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2717936Z e: /home/runner/.gradle/caches/transforms-3/de5f4b3b1a7c53092ef274848891e013/transformed/jetified-savedstate-1.2.1/jars/classes.jar!/META-INF/savedstate_release.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2774759Z e: /home/runner/.gradle/caches/modules-2/files-2.1/androidx.annotation/annotation-jvm/1.9.1/b17951747e38bf3986a24431b9ba0d039958aa5f/annotation-jvm-1.9.1.jar!/META-INF/annotation.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.9.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2805045Z e: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-android/1.7.1/c2d86b569f10b7fc7e28d3f50c0eed97897d77a7/kotlinx-coroutines-android-1.7.1.jar!/META-INF/kotlinx-coroutines-android.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2838323Z e: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.7.1/63a0779cf668e2a47d13fda7c3b0c4f8dc7762f4/kotlinx-coroutines-core-jvm-1.7.1.jar!/META-INF/kotlinx-coroutines-core.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.8.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2894760Z e: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.9.24/9928532f12c66ad816a625b3f9984f8368ca6d2b/kotlin-stdlib-1.9.24.jar!/META-INF/kotlin-stdlib.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.9.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2897931Z e: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.9.24/9928532f12c66ad816a625b3f9984f8368ca6d2b/kotlin-stdlib-1.9.24.jar!/META-INF/kotlin-stdlib-jdk8.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.9.0, expected version is 1.6.0.
+2026-08-29T10:52:07.2901056Z e: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.9.24/9928532f12c66ad816a625b3f9984f8368ca6d2b/kotlin-stdlib-1.9.24.jar!/META-INF/kotlin-stdlib-jdk7.kotlin_module: Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 1.9.0, expected version is 1.6.0.
+2026-08-29T10:52:39.9942286Z Running Gradle task 'assembleRelease'...                          241.7s
+2026-08-29T10:52:40.4343512Z ✓ Built build/app/outputs/flutter-apk/app-release.apk (21.2MB)
+2026-08-29T10:52:40.4728355Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-29T10:52:40.4730347Z ##[group]Run actions/upload-artifact@v4
+2026-08-29T10:52:40.4730773Z with:
+2026-08-29T10:52:40.4731087Z   name: app-release-apk
+2026-08-29T10:52:40.4731612Z   path: android-client/build/app/outputs/flutter-apk/app-release.apk
+2026-08-29T10:52:40.4732193Z   if-no-files-found: warn
+2026-08-29T10:52:40.4732561Z   compression-level: 6
+2026-08-29T10:52:40.4733175Z   overwrite: false
+2026-08-29T10:52:40.4733522Z   include-hidden-files: false
+2026-08-29T10:52:40.4733889Z env:
+2026-08-29T10:52:40.4734507Z   JAVA_HOME: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:52:40.4735200Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Zulu_jdk/17.0.20-8/x64
+2026-08-29T10:52:40.4735866Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.24.0-x64/flutter
+2026-08-29T10:52:40.4736435Z   PUB_CACHE: /home/runner/.pub-cache
+2026-08-29T10:52:40.4736821Z ##[endgroup]
+2026-08-29T10:52:41.6179319Z (node:2898) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-29T10:52:41.6180627Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-29T10:52:41.6261814Z With the provided path, there will be 1 file uploaded
+2026-08-29T10:52:41.6278049Z Artifact name is valid!
+2026-08-29T10:52:41.6282335Z Root directory input is valid!
+2026-08-29T10:52:41.9189199Z Beginning upload of artifact content to blob storage
+2026-08-29T10:52:42.2213934Z (node:2898) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-08-29T10:52:42.6289163Z Uploaded bytes 8388608
+2026-08-29T10:52:42.8784841Z Uploaded bytes 16777216
+2026-08-29T10:52:43.0686033Z Uploaded bytes 21046382
+2026-08-29T10:52:43.1025677Z Finished uploading artifact content to blob storage!
+2026-08-29T10:52:43.1027037Z SHA256 digest of uploaded artifact zip is 6da3da95c68a19357cbf72e802d33d147bff11e29aaf1a0acf253680288d2fe5
+2026-08-29T10:52:43.1027933Z Finalizing artifact upload
+2026-08-29T10:52:43.3307556Z Artifact app-release-apk.zip successfully finalized. Artifact ID 9713694758
+2026-08-29T10:52:43.3308727Z Artifact app-release-apk has been successfully uploaded! Final size is 21046382 bytes. Artifact ID is 9713694758
+2026-08-29T10:52:43.3330200Z Artifact download URL: https://github.com/shangpan666/happy-friday-android/actions/runs/33248630597/artifacts/9713694758
+2026-08-29T10:52:43.3599063Z Post job cleanup.
+2026-08-29T10:52:43.3678541Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-29T10:52:43.3679825Z Post job cleanup.
+2026-08-29T10:52:43.5364358Z (node:2910) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-29T10:52:43.5366051Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-29T10:52:43.5675809Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-29T10:52:43.5677770Z Post job cleanup.
+2026-08-29T10:52:43.7150502Z [command]/usr/bin/git version
+2026-08-29T10:52:43.7225726Z git version 2.55.0
+2026-08-29T10:52:43.7276173Z Temporarily overriding HOME='/home/runner/work/_temp/13fd17db-52a0-4349-97cc-f8d2077278fa' before making global git config changes
+2026-08-29T10:52:43.7277602Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-29T10:52:43.7278888Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/happy-friday-android/happy-friday-android
+2026-08-29T10:52:43.7333294Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-29T10:52:43.7424214Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-29T10:52:43.7772523Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-29T10:52:43.7805155Z http.https://github.com/.extraheader
+2026-08-29T10:52:43.7864701Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-29T10:52:43.7883124Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-29T10:52:43.8188670Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-29T10:52:43.8226108Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-29T10:52:43.8767588Z Cleaning up orphan processes
+2026-08-29T10:52:43.9238049Z Terminate orphan process: pid (2447) (java)
+2026-08-29T10:52:43.9280856Z Terminate orphan process: pid (2801) (java)
+2026-08-29T10:52:43.9311574Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-java@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,9 @@
+# Flutter / Dart
+.dart_tool/
+build/
+
+# released binaries (do not commit)
+*.apk
+*.zip
+build-apk*/
+build-android*/
