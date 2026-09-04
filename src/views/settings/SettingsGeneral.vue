@@ -968,12 +968,6 @@ const settings = reactive({
 
 // 字体大小变化时应用到全局
 watch(() => settings.fontSize, (val) => {
-  // 只缩放内容区域，侧边栏/标题栏不动
-  const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
-  const scale = scaleMap[val] || 1.0;
-  document.querySelectorAll('.workspace-content').forEach(el => {
-    el.style.zoom = scale;
-  });
   appStore.setFontSize(val);
   try {
     electronService.invoke('get-config').then(config => {

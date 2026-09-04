@@ -161,11 +161,6 @@ onMounted(async () => {
         appStore.setSidebarModules(config.sidebarModules);
         if (config.fontSize) {
           appStore.setFontSize(config.fontSize);
-          const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
-          const scale = scaleMap[config.fontSize] || 1.0;
-          document.querySelectorAll('.workspace-content').forEach(el => {
-            el.style.zoom = scale;
-          });
         }
       }
     } catch (error) {
@@ -193,11 +188,6 @@ onMounted(async () => {
       }
       if (data.fontSize) {
         appStore.setFontSize(data.fontSize);
-        const scaleMap = { 14: 0.9, 16: 1.0, 18: 1.12 };
-        const scale = scaleMap[data.fontSize] || 1.0;
-        document.querySelectorAll('.workspace-content').forEach(el => {
-          el.style.zoom = scale;
-        });
       }
     });
   } else {
@@ -241,7 +231,6 @@ onUnmounted(() => {
   overflow-y: auto;
   background-color: var(--bg-primary);
   position: relative;
-  transform-origin: top left;
 }
 
 /* 分享视图：隐藏侧边栏与标题条，全屏展示 */
